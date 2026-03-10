@@ -1,0 +1,27 @@
+{
+  "name": "server",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "tsc --noEmit",
+    "deploy": "wrangler deploy --minify",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "db:create": "bunx wrangler d1 create kz-db",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "bunx wrangler d1 migrations apply kz-db --local",
+    "db:migrate:remote": "bunx wrangler d1 migrations apply kz-db --remote",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@paralleldrive/cuid2": "^3.3.0",
+    "drizzle-orm": "^0.45.1",
+    "hono": "^4.12.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250224.0",
+    "@libsql/client": "^0.17.0",
+    "drizzle-kit": "^0.31.9",
+    "typescript": "^5.7.3",
+    "wrangler": "^4.4.0"
+  }
+}
