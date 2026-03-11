@@ -29,15 +29,15 @@ This architecture uses Cloudflare's platform to serve both your **Dashboard (Pag
 2.  **Note the URL:** It will look like `https://server.yourname.workers.dev`.
 
 ## Step 3: Deploy the Dashboard (Pages)
-1.  **Build and Deploy:**
-    ```bash
-    cd apps/dashboard
-    # VITE_API_URL: The relative path to your worker API
-    # VITE_SITE_URL: The public URL of your site (where the worker serves SSR)
-    VITE_API_URL=/api VITE_SITE_URL=https://app.yourdomain.com bun run build
-    bun run deploy
-    ```
-2.  **Follow the Prompts:** Create a new Pages project named `cf-dashboard`.
+1.  **Create a Pages Project:** In the [Cloudflare Dashboard](https://dash.cloudflare.com/), go to **Workers & Pages** > **Create** > **Pages** > **Connect to Git**.
+2.  **Configure Build Settings:**
+    *   **Framework preset:** `Vite`
+    *   **Build command:** `bun run build`
+    *   **Root directory:** `apps/dashboard`
+3.  **Add Environment Variables:** In project settings (under **Production** environment), add:
+    *   `VITE_API_URL` = `/api`
+    *   `VITE_SITE_URL` = `https://app.yourdomain.com`
+4.  **Deploy:** Save and deploy.
 
 ## Step 4: Configure the Unified Domain
 Performed in the [Cloudflare Dashboard](https://dash.cloudflare.com/):
@@ -55,8 +55,5 @@ Performed in the [Cloudflare Dashboard](https://dash.cloudflare.com/):
 
 ---
 
-## Unified Command
-Once set up, use the root command to deploy updates to both apps:
-```bash
-bun run deploy
-```
+## Troubleshooting
+*   **Cookie Issues:** In unified mode, `SameSite=Strict` or `SameSite=Lax` works best. However, `SameSite=None` (used for cross-origin testing) remains compatible if `Secure: true` is set.

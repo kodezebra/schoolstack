@@ -24,28 +24,27 @@ Use this guide for **testing on Cloudflare's default domains** (`.workers.dev` a
 3.  **Copy the Worker URL:** E.g., `https://server.yourname.workers.dev`.
 
 ## Step 2: Deploy the Dashboard (Frontend)
-1.  **Build using the Worker's URL:**
-    ```bash
-    cd apps/dashboard
-    # VITE_API_URL: Your worker's API URL
-    # VITE_SITE_URL: Your worker's base URL (where it serves SSR)
-    VITE_API_URL=https://server.yourname.workers.dev/api VITE_SITE_URL=https://server.yourname.workers.dev bun run build
-    bun run deploy
-    ```
-2.  **Copy the Pages URL:** E.g., `https://cf-dashboard.pages.dev`.
+1.  **Create a Pages Project:** In the [Cloudflare Dashboard](https://dash.cloudflare.com/), go to **Workers & Pages** > **Create** > **Pages** > **Connect to Git**.
+2.  **Configure Build Settings:**
+    *   **Framework preset:** `Vite`
+    *   **Build command:** `bun run build` (or `npm run build`)
+    *   **Root directory:** `apps/dashboard`
+3.  **Add Environment Variables:** In the project settings (under **Production** environment), add:
+    *   `VITE_API_URL` = `https://server.yourname.workers.dev/api`
+    *   `VITE_SITE_URL` = `https://server.yourname.workers.dev`
+4.  **Deploy:** Save and deploy. Copy your Pages URL (e.g., `https://cf-dashboard.pages.dev`).
 
 ## Step 3: Configure CORS (Crucial)
 Because these are separate origins, the browser will block the dashboard unless you explicitly allow it:
 
-1.  Go to the [Cloudflare Dashboard](https://dash.cloudflare.com/).
-2.  Navigate to **Workers & Pages** > **server (the worker)**.
-3.  Go to **Settings** > **Variables**.
-4.  Add/Edit `FRONTEND_URL` = `https://cf-dashboard.pages.dev`.
-5.  **Save and Deploy.**
+1.  Navigate to **Workers & Pages** > **server (the worker)** in the Cloudflare Dashboard.
+2.  Go to **Settings** > **Variables**.
+3.  Add/Edit `FRONTEND_URL` = `https://cf-dashboard.pages.dev` (the URL from Step 2).
+4.  **Save and Deploy.**
 
 ---
 
 ## Troubleshooting
 *   **Mixed Content:** Always use `https://` for both URLs.
 *   **CORS Errors:** Check the `FRONTEND_URL` variable in your Worker settings matches your Pages URL exactly (including the protocol).
-*   **Cookie Issues:** If using cookies for auth, ensure the server's `cors` middleware includes `credentials: true`.
+*   **Cookie Issues:** Since the apps are on different domains (`.pages.dev` and `.workers.dev`), authentication cookies **must** be configured with `SameSite=None` and `Secure`. Ensure your `apps/server/src/routes/auth.ts` has `sameSite: 'None'`.
