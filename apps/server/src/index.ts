@@ -6,15 +6,20 @@ import authApp from './routes/auth'
 
 type Bindings = {
   DB: D1Database
+  FRONTEND_URL: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
 
 // Middleware
-app.use('*', cors({
-  origin: 'http://localhost:5173', // Adjust to your frontend URL
-  credentials: true, // Crucial for HttpOnly cookies
-}))
+app.use('*', async (c, next) => {
+  const origin = c.env.FRONTEND_URL || 'http://localhost:5173'
+  const corsMiddleware = cors({
+    origin: origin,
+    credentials: true,
+  })
+  return corsMiddleware(c, next)
+})
 
 // Auth Routes
 app.route('/api/auth', authApp)

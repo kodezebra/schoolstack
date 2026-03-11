@@ -13,6 +13,7 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 const renderPage = async (c: any, slug: string) => {
   const db = drizzle(c.env.DB)
+  const dashboardUrl = c.env.FRONTEND_URL || 'http://localhost:5173'
 
   const page = await db
     .select()
@@ -23,8 +24,8 @@ const renderPage = async (c: any, slug: string) => {
   if (!page) {
     return c.html(
       <BaseLayout title="404 - Page Not Found">
-        <NotFound />
-        <Footer />
+        <NotFound dashboardUrl={dashboardUrl} />
+        <Footer dashboardUrl={dashboardUrl} />
       </BaseLayout>,
       404
     )
@@ -49,7 +50,7 @@ const renderPage = async (c: any, slug: string) => {
           return null
         })}
       </main>
-      <Footer />
+      <Footer dashboardUrl={dashboardUrl} />
     </BaseLayout>
   )
 }
