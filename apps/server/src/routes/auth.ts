@@ -87,7 +87,7 @@ app.post('/login', async (c) => {
   setCookie(c, 'session', sessionId, {
     httpOnly: true,
     secure: true,
-    sameSite: 'Lax',
+    sameSite: 'None',
     path: '/',
     expires: expiresAt,
   })
