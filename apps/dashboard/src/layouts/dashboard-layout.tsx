@@ -17,6 +17,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Route } from '@/routes/_dashboard/route' // Import the specific Route object
 
+import { apiFetch } from '@/lib/api'
+
 const navigation = [
   { name: 'Dashboard', to: '/', icon: LayoutDashboard },
   { name: 'CMS Pages', to: '/cms', icon: FileCode2 },
@@ -36,7 +38,7 @@ export function DashboardLayout() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await fetch('http://localhost:8787/api/auth/logout', { method: 'POST', credentials: 'include' }) // Ensure credentials are sent
+      await apiFetch('/auth/logout', { method: 'POST' })
     },
     onSuccess: () => {
       // Invalidate the 'me' query to clear the user from cache

@@ -16,13 +16,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { API_URL, SITE_URL } from '@/config'
+import { SITE_URL } from '@/config'
+import { apiFetch } from '@/lib/api'
 
 export const Route = createFileRoute('/_dashboard/cms/$pageId')({
   component: CMSPage,
 })
-
-const CMS_API_URL = `${API_URL}/pages`
 
 function CMSPage() {
   const { pageId } = Route.useParams()
@@ -44,7 +43,7 @@ function CMSPage() {
   const { data: pageData, isLoading } = useQuery({
     queryKey: ['page', pageId],
     queryFn: async () => {
-      const res = await fetch(`${CMS_API_URL}/${pageId}`)
+      const res = await apiFetch(`/pages/${pageId}`)
       return res.json()
     }
   })
@@ -72,9 +71,8 @@ function CMSPage() {
   // 2. Save Blocks Mutation
   const saveBlocks = useMutation({
     mutationFn: async (blocks: any[]) => {
-      await fetch(`${CMS_API_URL}/${pageId}/blocks`, {
+      await apiFetch(`/pages/${pageId}/blocks`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(blocks),
       })
     },
@@ -86,9 +84,8 @@ function CMSPage() {
   // 3. Save Settings Mutation
   const updateSettings = useMutation({
     mutationFn: async (newSettings: typeof settings) => {
-      const res = await fetch(`${CMS_API_URL}/${pageId}`, {
+      const res = await apiFetch(`/pages/${pageId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newSettings),
       })
       return res.json()

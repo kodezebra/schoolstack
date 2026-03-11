@@ -2,6 +2,8 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { DashboardLayout } from '@/layouts/dashboard-layout'
 import { QueryClient } from '@tanstack/react-query'
 
+import { apiFetch } from '@/lib/api'
+
 export const Route = createFileRoute('/_dashboard')({
   // Ensure queryClient is available in the route context
   // This is implicitly passed from main.tsx context when creating the router
@@ -14,7 +16,7 @@ export const Route = createFileRoute('/_dashboard')({
         queryKey: ['me'],
         queryFn: async () => {
           // Explicitly pass credentials to ensure the HttpOnly cookie is sent
-          const res = await fetch('http://localhost:8787/api/auth/me', { credentials: 'include' });
+          const res = await apiFetch('/auth/me');
           
           if (res.status === 401 || res.status === 403) {
             // Not authorized, user is null

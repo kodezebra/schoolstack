@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from 'react'
 
+import { apiFetch } from '@/lib/api'
+
 export const Route = createFileRoute('/_auth/login')({
   component: Login,
 })
@@ -18,11 +20,9 @@ function Login() {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      const res = await fetch('http://localhost:8787/api/auth/login', {
+      const res = await apiFetch('/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
-        credentials: 'include'
       })
       if (!res.ok) throw new Error('Invalid credentials')
       return res.json()

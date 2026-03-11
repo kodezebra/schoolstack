@@ -21,7 +21,7 @@ export const TextBlock = ({ content }: { content: any }) => (
   </section>
 )
 
-export const NotFound = ({ homeUrl = "/", dashboardUrl = "http://localhost:5173" }: { homeUrl?: string; dashboardUrl?: string }) => (
+export const NotFound = ({ homeUrl = "/", dashboardUrl }: { homeUrl?: string; dashboardUrl: string }) => (
   <div className="flex flex-col items-center justify-center min-h-[70vh] text-center p-6">
     <h1 className="text-8xl font-black text-slate-200 mb-4 tracking-tighter uppercase tabular-nums leading-none">404</h1>
     <h2 className="text-2xl font-bold mb-4">Page Not Found</h2>
@@ -37,7 +37,7 @@ export const NotFound = ({ homeUrl = "/", dashboardUrl = "http://localhost:5173"
   </div>
 )
 
-export const Footer = ({ dashboardUrl = "http://localhost:5173" }: { dashboardUrl?: string }) => (
+export const Footer = ({ dashboardUrl }: { dashboardUrl: string }) => (
   <footer className="py-16 border-t border-slate-100 mt-20 text-center text-slate-400 text-xs tracking-widest uppercase">
     <div className="max-w-4xl mx-auto px-6 space-y-4">
       <p>&copy; {new Date().getFullYear()} Built with KZ Cloud CMS</p>

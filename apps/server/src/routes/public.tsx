@@ -7,6 +7,7 @@ import { Hero, TextBlock, NotFound, Footer } from '../components/blocks'
 
 type Bindings = {
   DB: D1Database
+  FRONTEND_URL: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()

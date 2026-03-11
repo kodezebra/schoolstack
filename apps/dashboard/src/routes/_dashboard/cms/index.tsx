@@ -15,13 +15,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { useState } from 'react'
-import { API_URL } from '@/config'
+import { apiFetch } from '@/lib/api'
 
 export const Route = createFileRoute('/_dashboard/cms/')({
   component: CMSIndex,
 })
-
-const CMS_API_URL = `${API_URL}/pages`
 
 function CMSIndex() {
   const queryClient = useQueryClient()
@@ -40,7 +38,7 @@ function CMSIndex() {
   const { data: pages, isLoading, error } = useQuery({
     queryKey: ['pages'],
     queryFn: async () => {
-      const res = await fetch(CMS_API_URL)
+      const res = await apiFetch('/pages')
       return res.json()
     },
   })
@@ -48,9 +46,8 @@ function CMSIndex() {
   // 2. CREATE DATA
   const createPage = useMutation({
     mutationFn: async (newPage: typeof formData) => {
-      const res = await fetch(CMS_API_URL, {
+      const res = await apiFetch('/pages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newPage),
       })
       return res.json()
