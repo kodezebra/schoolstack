@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/button"
-import { 
-  Plus, Layers, MousePointer2, Box, Type, 
-  Layout, Zap, Eye, 
-  BarChart3, Users, MessageSquare, Megaphone, 
-  PanelBottom 
+import {
+  Plus, Layers, MousePointer2, Box, Type,
+  Layout, Zap, Eye,
+  BarChart3, Users, MessageSquare, Megaphone,
+  PanelBottom, ListFilter, HeartHandshake, ImagePlay, CircleHelp
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -27,6 +27,11 @@ const AVAILABLE_BLOCKS = [
   { type: 'cta', icon: Megaphone, label: 'Call to Action', description: 'Urge users to take action.' },
   { type: 'footer', icon: PanelBottom, label: 'Footer', description: 'Bottom navigation and info.' },
   { type: 'text', icon: Type, label: 'Basic Text', description: 'Simple text block.' },
+  { type: 'steps', icon: ListFilter, label: 'Steps/Process', description: 'Numbered steps or process flow.' },
+  { type: 'values', icon: HeartHandshake, label: 'Values Grid', description: 'Company values with icons.' },
+  { type: 'splitContent', icon: Layout, label: 'Split Content', description: 'Image and text side-by-side.' },
+  { type: 'videoGallery', icon: ImagePlay, label: 'Video Gallery', description: 'Grid of video thumbnails.' },
+  { type: 'faq', icon: CircleHelp, label: 'FAQ', description: 'Accordion questions and answers.' },
 ]
 
 export function EditorSidebar({ 

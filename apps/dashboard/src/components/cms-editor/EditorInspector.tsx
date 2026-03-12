@@ -368,6 +368,144 @@ export function EditorInspector({
           </>
         )}
 
+        {/* --- STEPS --- */}
+        {selectedBlock.type === 'steps' && (
+          <>
+            <Section title="Header">
+              <Field label="Tagline"><Input value={content.tagline || ''} onChange={(e) => onUpdateContent({ ...content, tagline: e.target.value })} /></Field>
+              <Field label="Title"><Input value={content.title || ''} onChange={(e) => onUpdateContent({ ...content, title: e.target.value })} /></Field>
+              <Field label="Subtitle"><textarea className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm" value={content.subtitle || ''} onChange={(e) => onUpdateContent({ ...content, subtitle: e.target.value })} /></Field>
+            </Section>
+            <Section title="Steps">
+              <div className="space-y-2">
+                {content.items?.map((item: any, i: number) => (
+                  <ItemAccordion key={i} title={item.title || `Step ${i+1}`} onRemove={() => removeItem('items', i)} isOpen={openItems[selectedBlock.id] === i} onToggle={() => toggleItem(selectedBlock.id, i)}>
+                    <Field label="Icon"><IconPicker value={item.icon} onSelect={(icon) => updateItem('items', i, { icon })} /></Field>
+                    <Field label="Title"><Input value={item.title || ''} onChange={(e) => updateItem('items', i, { title: e.target.value })} /></Field>
+                    <Field label="Description"><textarea className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm" value={item.description || ''} onChange={(e) => updateItem('items', i, { description: e.target.value })} /></Field>
+                  </ItemAccordion>
+                ))}
+                <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => addItem('items', { icon: 'zap', title: 'New Step', description: 'Step description' })}>
+                  <Plus className="h-3 w-3" /> Add Step
+                </Button>
+              </div>
+            </Section>
+          </>
+        )}
+
+        {/* --- VALUES --- */}
+        {selectedBlock.type === 'values' && (
+          <>
+            <Section title="Header">
+              <Field label="Tagline"><Input value={content.tagline || ''} onChange={(e) => onUpdateContent({ ...content, tagline: e.target.value })} /></Field>
+              <Field label="Title"><Input value={content.title || ''} onChange={(e) => onUpdateContent({ ...content, title: e.target.value })} /></Field>
+              <Field label="Subtitle"><textarea className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm" value={content.subtitle || ''} onChange={(e) => onUpdateContent({ ...content, subtitle: e.target.value })} /></Field>
+            </Section>
+            <Section title="Values">
+              <div className="space-y-2">
+                {content.items?.map((item: any, i: number) => (
+                  <ItemAccordion key={i} title={item.title || `Value ${i+1}`} onRemove={() => removeItem('items', i)} isOpen={openItems[selectedBlock.id] === i} onToggle={() => toggleItem(selectedBlock.id, i)}>
+                    <Field label="Icon"><IconPicker value={item.icon} onSelect={(icon) => updateItem('items', i, { icon })} /></Field>
+                    <Field label="Title"><Input value={item.title || ''} onChange={(e) => updateItem('items', i, { title: e.target.value })} /></Field>
+                    <Field label="Description"><textarea className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm" value={item.description || ''} onChange={(e) => updateItem('items', i, { description: e.target.value })} /></Field>
+                  </ItemAccordion>
+                ))}
+                <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => addItem('items', { icon: 'star', title: 'New Value', description: 'Value description' })}>
+                  <Plus className="h-3 w-3" /> Add Value
+                </Button>
+              </div>
+            </Section>
+          </>
+        )}
+
+        {/* --- SPLIT CONTENT --- */}
+        {selectedBlock.type === 'splitContent' && (
+          <>
+            <Section title="Content">
+              <Field label="Eyebrow Text"><Input value={content.eyebrow || ''} onChange={(e) => onUpdateContent({ ...content, eyebrow: e.target.value })} placeholder="Since 2014" /></Field>
+              <Field label="Title"><Input value={content.title || ''} onChange={(e) => onUpdateContent({ ...content, title: e.target.value })} /></Field>
+              <Field label="Description"><textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm" value={content.description || ''} onChange={(e) => onUpdateContent({ ...content, description: e.target.value })} /></Field>
+            </Section>
+            <Section title="Image">
+              <div className="flex items-center gap-2">
+                <Input value={content.image || ''} onChange={(e) => onUpdateContent({ ...content, image: e.target.value })} className="flex-1" />
+                <MediaPicker onSelect={(url) => onUpdateContent({ ...content, image: url })} trigger={<Button variant="outline" size="icon"><ImagePlus className="h-4 w-4" /></Button>} />
+              </div>
+              <div className="mt-3">
+                <Label>Image Position</Label>
+                <select
+                  value={content.imagePosition || 'left'}
+                  onChange={(e) => onUpdateContent({ ...content, imagePosition: e.target.value })}
+                  className="w-full mt-1.5 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm"
+                >
+                  <option value="left">Left</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+            </Section>
+            <Section title="CTA Button">
+              <div className="p-3 border rounded-lg bg-muted/20 space-y-3">
+                <Field label="Label"><Input value={content.cta?.label || ''} onChange={(e) => onUpdateContent({ ...content, cta: { ...content.cta, label: e.target.value } })} /></Field>
+                <Field label="Href"><Input value={content.cta?.href || ''} onChange={(e) => onUpdateContent({ ...content, cta: { ...content.cta, href: e.target.value } })} placeholder="/about" /></Field>
+              </div>
+            </Section>
+          </>
+        )}
+
+        {/* --- VIDEO GALLERY --- */}
+        {selectedBlock.type === 'videoGallery' && (
+          <>
+            <Section title="Header">
+              <Field label="Tagline"><Input value={content.tagline || ''} onChange={(e) => onUpdateContent({ ...content, tagline: e.target.value })} /></Field>
+              <Field label="Title"><Input value={content.title || ''} onChange={(e) => onUpdateContent({ ...content, title: e.target.value })} /></Field>
+              <Field label="Subtitle"><textarea className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm" value={content.subtitle || ''} onChange={(e) => onUpdateContent({ ...content, subtitle: e.target.value })} /></Field>
+            </Section>
+            <Section title="Videos">
+              <div className="space-y-2">
+                {content.items?.map((item: any, i: number) => (
+                  <ItemAccordion key={i} title={item.title || `Video ${i+1}`} onRemove={() => removeItem('items', i)} isOpen={openItems[selectedBlock.id] === i} onToggle={() => toggleItem(selectedBlock.id, i)}>
+                    <Field label="Title"><Input value={item.title || ''} onChange={(e) => updateItem('items', i, { title: e.target.value })} /></Field>
+                    <Field label="Thumbnail URL">
+                      <div className="flex items-center gap-2">
+                        <Input value={item.thumbnail || ''} onChange={(e) => updateItem('items', i, { thumbnail: e.target.value })} className="flex-1" />
+                        <MediaPicker onSelect={(url) => updateItem('items', i, { thumbnail: url })} trigger={<Button variant="outline" size="icon"><ImagePlus className="h-4 w-4" /></Button>} />
+                      </div>
+                    </Field>
+                    <Field label="Video URL"><Input value={item.videoUrl || ''} onChange={(e) => updateItem('items', i, { videoUrl: e.target.value })} placeholder="https://youtube.com/..." /></Field>
+                  </ItemAccordion>
+                ))}
+                <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => addItem('items', { title: 'New Video', thumbnail: '', videoUrl: '' })}>
+                  <Plus className="h-3 w-3" /> Add Video
+                </Button>
+              </div>
+            </Section>
+          </>
+        )}
+
+        {/* --- FAQ --- */}
+        {selectedBlock.type === 'faq' && (
+          <>
+            <Section title="Header">
+              <Field label="Tagline"><Input value={content.tagline || ''} onChange={(e) => onUpdateContent({ ...content, tagline: e.target.value })} /></Field>
+              <Field label="Title"><Input value={content.title || ''} onChange={(e) => onUpdateContent({ ...content, title: e.target.value })} /></Field>
+              <Field label="Subtitle"><textarea className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm" value={content.subtitle || ''} onChange={(e) => onUpdateContent({ ...content, subtitle: e.target.value })} /></Field>
+            </Section>
+            <Section title="Questions">
+              <div className="space-y-2">
+                {content.items?.map((item: any, i: number) => (
+                  <ItemAccordion key={i} title={item.question?.substring(0, 20) || `Q${i+1}`} onRemove={() => removeItem('items', i)} isOpen={openItems[selectedBlock.id] === i} onToggle={() => toggleItem(selectedBlock.id, i)}>
+                    <Field label="Question"><Input value={item.question || ''} onChange={(e) => updateItem('items', i, { question: e.target.value })} /></Field>
+                    <Field label="Answer"><textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm" value={item.answer || ''} onChange={(e) => updateItem('items', i, { answer: e.target.value })} /></Field>
+                  </ItemAccordion>
+                ))}
+                <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => addItem('items', { question: 'New Question', answer: 'Answer goes here' })}>
+                  <Plus className="h-3 w-3" /> Add Question
+                </Button>
+              </div>
+            </Section>
+          </>
+        )}
+
         {/* --- FOOTER --- */}
         {selectedBlock.type === 'footer' && (
           <>
@@ -382,10 +520,10 @@ export function EditorInspector({
         {selectedBlock.type === 'text' && (
           <Section title="Content">
             <Field label="Body Text">
-              <textarea 
+              <textarea
                 className="flex min-h-[160px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm"
-                value={content.text || ''} 
-                onChange={(e) => onUpdateContent({ ...content, text: e.target.value })} 
+                value={content.text || ''}
+                onChange={(e) => onUpdateContent({ ...content, text: e.target.value })}
               />
             </Field>
           </Section>

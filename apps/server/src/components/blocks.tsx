@@ -313,6 +313,217 @@ export const Cta = ({ content }: { content: any }) => (
   </section>
 )
 
+// --- NEW BLOCKS ---
+
+export const Steps = ({ content }: { content: any }) => (
+  <section className="py-32 bg-white dark:bg-background-dark" style={getPadding(content.styles)}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="text-center max-w-3xl mx-auto mb-20">
+        {content.tagline && (
+          <h2 className="text-primary font-display font-bold tracking-[0.2em] uppercase text-sm mb-4">{content.tagline}</h2>
+        )}
+        <h3 className="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl mb-6">
+          {content.title || "How It Works"}
+        </h3>
+        {content.subtitle && (
+          <p className="text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+            {content.subtitle}
+          </p>
+        )}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {content.items?.map((item: any, index: number) => (
+          <div key={index} className="relative flex flex-col items-center text-center p-6">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 text-primary">
+              {item.icon ? (
+                <i data-lucide={item.icon} className="w-8 h-8"></i>
+              ) : (
+                <span className="text-2xl font-black">{item.number || index + 1}</span>
+              )}
+            </div>
+            <h4 className="text-xl font-display font-bold text-slate-900 dark:text-white mb-3">
+              {item.title || `Step ${index + 1}`}
+            </h4>
+            <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+              {item.description || "Step description goes here."}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)
+
+export const Values = ({ content }: { content: any }) => (
+  <section className="py-32 bg-slate-50 dark:bg-slate-900/50" style={getPadding(content.styles)}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="text-center max-w-3xl mx-auto mb-16">
+        {content.tagline && (
+          <h2 className="text-primary font-display font-bold tracking-[0.2em] uppercase text-sm mb-4">{content.tagline}</h2>
+        )}
+        <h3 className="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl mb-6">
+          {content.title || "Our Core Values"}
+        </h3>
+        {content.subtitle && (
+          <p className="text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed max-w-2xl mx-auto">
+            {content.subtitle}
+          </p>
+        )}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {content.items?.map((item: any, index: number) => (
+          <div key={index} className="group flex flex-col gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark/50 p-8 hover:border-primary/50 transition-colors">
+            <div className="text-primary bg-primary/10 w-14 h-14 rounded-xl flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+              {item.icon ? (
+                <i data-lucide={item.icon} className="w-7 h-7"></i>
+              ) : (
+                <i data-lucide="star" className="w-7 h-7"></i>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <h4 className="text-slate-900 dark:text-slate-100 text-xl font-bold">{item.title || "Value Title"}</h4>
+              <p className="text-slate-500 dark:text-slate-400 leading-relaxed">{item.description || "Value description goes here."}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)
+
+export const SplitContent = ({ content, settings }: { content: any; settings?: any }) => {
+  const imagePosition = content.imagePosition || 'left'
+  const isReversed = imagePosition === 'right'
+
+  return (
+    <section className="py-32 overflow-hidden bg-white dark:bg-background-dark" style={getPadding(content.styles)}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className={`lg:flex lg:items-center lg:gap-24 ${isReversed ? 'lg:flex-row-reverse' : ''}`}>
+          <div className={`relative ${isReversed ? 'lg:w-1/2' : 'lg:w-1/2'}`}>
+            <div
+              className="relative rounded-[2.5rem] overflow-hidden shadow-2xl z-10 aspect-square sm:aspect-video lg:aspect-square bg-slate-200 dark:bg-slate-800 bg-cover bg-center"
+              style={{ backgroundImage: `url('${content.image || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80"}')` }}
+            >
+              <div className="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
+            </div>
+            <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-accent rounded-full -z-0 opacity-20 blur-3xl"></div>
+            <div className="absolute -top-10 -left-10 w-64 h-64 bg-primary rounded-full -z-0 opacity-20 blur-3xl"></div>
+          </div>
+          <div className={`mt-16 lg:mt-0 ${isReversed ? 'lg:w-1/2 lg:pr-8' : 'lg:w-1/2 lg:pl-8'}`}>
+            {content.eyebrow && (
+              <span className="text-primary font-bold tracking-widest text-sm uppercase block mb-4">{content.eyebrow}</span>
+            )}
+            <h2 className="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl mb-8 leading-tight">
+              {content.title || "About Our Vision"}
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed font-medium">
+              {content.description || "Founded on the principle of innovation, we believe that technology should be accessible, beautiful, and functional."}
+            </p>
+            {content.cta && (
+              <a
+                href={content.cta.href || "#"}
+                className="text-primary font-display font-bold text-lg flex items-center gap-3 group hover:text-indigo-700 transition-all"
+              >
+                <span className="relative">
+                  {content.cta.label || "Learn More"}
+                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/30 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
+                </span>
+                <div className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                  <i data-lucide="arrow-right" className="w-5 h-5"></i>
+                </div>
+              </a>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export const VideoGallery = ({ content }: { content: any }) => (
+  <section className="py-32 bg-slate-50 dark:bg-slate-900/50" style={getPadding(content.styles)}>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="text-center max-w-3xl mx-auto mb-20">
+        {content.tagline && (
+          <h2 className="text-accent font-display font-bold tracking-[0.2em] uppercase text-sm mb-4">{content.tagline}</h2>
+        )}
+        <h3 className="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl mb-6">
+          {content.title || "Video Showcase"}
+        </h3>
+        {content.subtitle && (
+          <p className="mt-6 text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+            {content.subtitle}
+          </p>
+        )}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {content.items?.map((item: any, index: number) => (
+          <div key={index} className="group relative rounded-3xl overflow-hidden aspect-video bg-slate-200 dark:bg-slate-800 shadow-lg">
+            {item.thumbnail ? (
+              <img src={item.thumbnail} alt={item.title || `Video ${index + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center">
+                <i data-lucide="video" className="w-12 h-12 text-slate-500 dark:text-slate-600"></i>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              {item.videoUrl ? (
+                <a href={item.videoUrl} className="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50 cursor-pointer hover:scale-110 transition-transform">
+                  <i data-lucide="play" className="w-8 h-8 text-white fill-white"></i>
+                </a>
+              ) : (
+                <div className="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50">
+                  <i data-lucide="play" className="w-8 h-8 text-white fill-white"></i>
+                </div>
+              )}
+            </div>
+            {item.title && (
+              <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900/80 to-transparent">
+                <p className="text-white font-bold text-sm">{item.title}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)
+
+export const Faq = ({ content }: { content: any }) => (
+  <section className="py-32 bg-white dark:bg-background-dark" style={getPadding(content.styles)}>
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="text-center mb-16">
+        {content.tagline && (
+          <h2 className="text-primary font-display font-bold tracking-[0.2em] uppercase text-sm mb-4">{content.tagline}</h2>
+        )}
+        <h3 className="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl mb-6">
+          {content.title || "Frequently Asked Questions"}
+        </h3>
+        {content.subtitle && (
+          <p className="text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+            {content.subtitle}
+          </p>
+        )}
+      </div>
+      <div className="space-y-4">
+        {content.items?.map((item: any, index: number) => (
+          <details key={index} className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 overflow-hidden">
+            <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+              <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 pr-4">{item.question || "Question?"}</h4>
+              <span className="text-primary transition-transform group-open:rotate-180 flex-shrink-0">
+                <i data-lucide="chevron-down" className="w-6 h-6"></i>
+              </span>
+            </summary>
+            <div className="px-6 pb-6">
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{item.answer || "Answer goes here."}</p>
+            </div>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+)
+
 export const Footer = ({ dashboardUrl, content, settings }: { dashboardUrl: string; content: any; settings?: any }) => {
   const logoText = content?.logoText || settings?.logoText || "KZ Cloud"
   const logoIcon = content?.logoIcon || settings?.logoIcon || "layout"
