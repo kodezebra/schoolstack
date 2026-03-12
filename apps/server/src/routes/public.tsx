@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { eq, and, or } from 'drizzle-orm'
-import { pages, blocks } from '../db/schema'
-import { BaseLayout } from '../layouts/base'
-import { Hero, TextBlock, NotFound, Footer } from '../components/blocks'
+import { eq, and } from 'drizzle-orm'
+import { pages, blocks, siteSettings } from '../db/schema'
+import { PublicLayout } from '../layouts/public'
+import * as Blocks from '../components/blocks'
 
 type Bindings = {
   DB: D1Database
@@ -16,6 +16,9 @@ const renderPage = async (c: any, slug: string) => {
   const db = drizzle(c.env.DB)
   const dashboardUrl = c.env.FRONTEND_URL || 'http://localhost:5173'
 
+  // Fetch Site Settings
+  const settings = await db.select().from(siteSettings).where(eq(siteSettings.id, 'default')).get()
+
   const page = await db
     .select()
     .from(pages)
@@ -24,10 +27,13 @@ const renderPage = async (c: any, slug: string) => {
 
   if (!page) {
     return c.html(
-      <BaseLayout title="404 - Page Not Found">
-        <NotFound dashboardUrl={dashboardUrl} />
-        <Footer dashboardUrl={dashboardUrl} />
-      </BaseLayout>,
+      <PublicLayout 
+        title="404 - Page Not Found" 
+        dashboardUrl={dashboardUrl} 
+        settings={settings}
+      >
+        <Blocks.NotFound dashboardUrl={dashboardUrl} />
+      </PublicLayout>,
       404
     )
   }
@@ -38,21 +44,47 @@ const renderPage = async (c: any, slug: string) => {
     .where(eq(blocks.pageId, page.id))
     .orderBy(blocks.order)
 
+  // Identify overrides
+  let navbarOverride = null
+  let footerOverride = null
+  
+  const contentBlocks = pageBlocks.filter(block => {
+    const type = block.type.toLowerCase()
+    if (type === 'navbar') {
+      navbarOverride = typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+      return false
+    }
+    if (type === 'footer') {
+      footerOverride = typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+      return false
+    }
+    return true
+  })
+
   return c.html(
-    <BaseLayout 
+    <PublicLayout 
       title={page.metaTitle || page.title} 
       description={page.metaDescription || page.description || ''}
+      dashboardUrl={dashboardUrl}
+      settings={settings}
+      navbarOverride={navbarOverride}
+      footerOverride={footerOverride}
     >
-      <main>
-        {pageBlocks.map((block) => {
-          const content = typeof block.content === 'string' ? JSON.parse(block.content) : block.content
-          if (block.type === 'hero') return <Hero content={content} />
-          if (block.type === 'text') return <TextBlock content={content} />
-          return null
-        })}
-      </main>
-      <Footer dashboardUrl={dashboardUrl} />
-    </BaseLayout>
+      {contentBlocks.map((block) => {
+        const content = typeof block.content === 'string' ? JSON.parse(block.content) : block.content
+        const typeName = block.type.charAt(0).toUpperCase() + block.type.slice(1).toLowerCase()
+        const BlockComponent = (Blocks as any)[typeName]
+        
+        if (BlockComponent) {
+          if (block.type === 'hero') {
+            return <BlockComponent content={content} settings={settings} />
+          }
+          return <BlockComponent content={content} />
+        }
+        
+        return null
+      })}
+    </PublicLayout>
   )
 }
 

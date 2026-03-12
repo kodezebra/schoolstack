@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NexusFlow | Innovating the Future</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#6366f1",
+                        "accent": "#ff6b35",
+                        "electric-teal": "#00f5d4",
+                        "background-light": "#ffffff",
+                        "background-dark": "#0f172a",
+                    },
+                    fontFamily: {
+                        "display": ["Quicksand", "sans-serif"],
+                        "body": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1.25rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+        .hero-bg {
+            background-image: linear-gradient(to bottom, rgba(99, 102, 241, 0.85), rgba(79, 70, 229, 0.9)), url('https://lh3.googleusercontent.com/aida-public/AB6AXuC8gQRE-_OswKUwPWLGKJvUNEtiRYwAdZB2wtH7J0yZs9Jj2tJ5b2gxIeaYeBFhDd5UoKIqWOw1xoPaZZ2eUENMqq_V0fgNCqVYLGQjwyp4SusWXjJvCn92jQ8JVwG3FIJ7Ph0xOodvRV09fUgjbZVKkP1MuUFjZaMLv1rJcPfLx4fE9KoLHEgLDNNvoQu3_AifgxWLthDLut_OkYYPGhvnKqO9ehrCXVnl1vb0Y1i1_O9N2D_lz2DbNpGLsEh5dS2Hf0J1gHEcxxU');
+            background-size: cover;
+            background-position: center;
+        }
+        .link-arrow-animate:hover .arrow-icon {
+            transform: translateX(8px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<nav class="sticky top-0 z-50 w-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-20">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-4xl">deployed_code</span>
+<span class="text-2xl font-display font-bold tracking-tight text-slate-900 dark:text-white">NexusFlow</span>
+</div>
+<div class="hidden md:block">
+<div class="flex items-center space-x-10">
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Services</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">About</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Pricing</a>
+<a class="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-indigo-600 hover:shadow-lg hover:shadow-primary/30 transition-all" href="#">Get Started</a>
+</div>
+</div>
+<div class="md:hidden">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300 text-3xl">menu</span>
+</div>
+</div>
+</div>
+</nav>
+<header class="relative hero-bg pt-24 pb-32 lg:pt-48 lg:pb-56 text-white overflow-hidden">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+<div class="max-w-3xl">
+<h1 class="text-5xl font-display font-bold tracking-tight sm:text-7xl mb-8 leading-[1.1]">
+                    Design Your Future with <span class="text-electric-teal">Precision</span>
+</h1>
+<p class="mt-6 text-xl text-indigo-50 font-medium leading-relaxed max-w-2xl">
+                    Elevate your digital presence with our modern, professional solutions tailored for growth and impact. We build the tools that empower tomorrow's leaders.
+                </p>
+<div class="mt-12 flex flex-col sm:flex-row gap-5">
+<button class="bg-accent text-white px-10 py-5 rounded-2xl font-display font-bold text-xl hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-accent/20">
+                        Start Building Now
+                    </button>
+<button class="bg-white/10 backdrop-blur-md border border-white/20 text-white px-10 py-5 rounded-2xl font-display font-bold text-xl hover:bg-white/20 transition-all">
+                        View Portfolio
+                    </button>
+</div>
+</div>
+</div>
+<div class="absolute -bottom-24 -left-24 w-96 h-96 bg-electric-teal rounded-full blur-[120px] opacity-20 pointer-events-none"></div>
+</header>
+<section class="py-32 bg-slate-50 dark:bg-slate-900/50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-3xl mx-auto mb-20">
+<h2 class="text-accent font-display font-bold tracking-[0.2em] uppercase text-sm mb-4">Our Expertise</h2>
+<h3 class="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl">Tailored Solutions for Your Success</h3>
+<p class="mt-6 text-lg text-slate-600 dark:text-slate-400 font-medium">We provide high-quality services to help your business thrive in a digital-first world through innovation and design.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<div class="group p-10 rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-primary/50 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none hover:-translate-y-2">
+<div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-8 text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl">strategy</span>
+</div>
+<h4 class="text-2xl font-display font-bold mb-4">Digital Strategy</h4>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">Data-driven strategies to reach your target audience effectively and maximize your market presence.</p>
+</div>
+<div class="group p-10 rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-primary/50 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none hover:-translate-y-2">
+<div class="w-16 h-16 bg-accent/10 rounded-2xl flex items-center justify-center mb-8 text-accent group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl">palette</span>
+</div>
+<h4 class="text-2xl font-display font-bold mb-4">UI/UX Design</h4>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">User-centric designs that prioritize clean aesthetics and seamless usability for your customers.</p>
+</div>
+<div class="group p-10 rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-primary/50 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none hover:-translate-y-2">
+<div class="w-16 h-16 bg-electric-teal/10 rounded-2xl flex items-center justify-center mb-8 text-teal-600 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl">code</span>
+</div>
+<h4 class="text-2xl font-display font-bold mb-4">Web Development</h4>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">Robust and scalable web applications built with the latest technologies to ensure peak performance.</p>
+</div>
+</div>
+<div class="flex justify-center gap-2 mt-12">
+<div class="w-2.5 h-2.5 rounded-full bg-primary shadow-sm shadow-primary/40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+</div>
+</div>
+</section>
+<section class="py-32 overflow-hidden bg-white dark:bg-background-dark">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="lg:flex lg:items-center lg:gap-24">
+<div class="lg:w-1/2 relative">
+<div class="relative rounded-[2.5rem] overflow-hidden shadow-2xl z-10 aspect-square sm:aspect-video lg:aspect-square bg-slate-200 dark:bg-slate-800" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCWlQHMA1cEx0gKL790g0ZSQtK4uG-cWX8kJuM39rjHoHNd01FvsZN99YlTL3e4EBJFB5DNqij2zFdUf2vdaza3FM6jevuL8ikrAzIs4QrpTLRjYCO_AXeE8LLATNPDFLjehbpSDRKmTJK2yR3a4yW-LGwrdRMKU5IeHchRiaXn9XIpESZpIkocuwMAR0WXHgWImcmHBsZ47hSVe07kw2625YnfxDihv7ZlnSAr7IjAXe2Kwwg1k-u6xX4lnDk92_Ewr127rKukMzc'); background-size: cover; background-position: center;">
+<div class="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-20 h-20 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50 cursor-pointer hover:scale-110 transition-transform group/play">
+<span class="material-symbols-outlined text-white text-5xl fill-1">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="absolute -bottom-10 -right-10 w-64 h-64 bg-accent rounded-full -z-0 opacity-20 blur-3xl"></div>
+<div class="absolute -top-10 -left-10 w-64 h-64 bg-primary rounded-full -z-0 opacity-20 blur-3xl"></div>
+</div>
+<div class="mt-16 lg:mt-0 lg:w-1/2">
+<h2 class="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl mb-8 leading-tight">About Our Vision</h2>
+<p class="text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed font-medium">
+                        Founded on the principle of innovation, we believe that technology should be accessible, beautiful, and functional. Our team of experts works tirelessly to bridge the gap between complex ideas and user-friendly digital experiences.
+                    </p>
+<p class="text-lg text-slate-600 dark:text-slate-400 mb-10 leading-relaxed font-medium">
+                        We don't just build products; we build partnerships. By understanding your unique challenges, we deliver solutions that are not only effective today but scalable for tomorrow.
+                    </p>
+<ul class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-12">
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl font-bold">check_circle</span>
+<span class="font-bold text-slate-700 dark:text-slate-200">10+ Years Excellence</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl font-bold">check_circle</span>
+<span class="font-bold text-slate-700 dark:text-slate-200">Global Creative Network</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl font-bold">check_circle</span>
+<span class="font-bold text-slate-700 dark:text-slate-200">Sustainable Growth</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl font-bold">check_circle</span>
+<span class="font-bold text-slate-700 dark:text-slate-200">Innovative Approach</span>
+</li>
+</ul>
+<button class="text-primary font-display font-bold text-lg flex items-center gap-3 group link-arrow-animate hover:text-indigo-700 transition-all">
+<span class="relative">
+                            Learn More About Us
+                            <span class="absolute bottom-0 left-0 w-full h-0.5 bg-primary/30 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
+</span>
+<div class="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all arrow-icon">
+<span class="material-symbols-outlined text-xl">arrow_forward</span>
+</div>
+</button>
+</div>
+</div>
+</div>
+</section><section class="py-32 bg-slate-50 dark:bg-slate-900/50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-3xl mx-auto mb-20">
+<h2 class="text-accent font-display font-bold tracking-[0.2em] uppercase text-sm mb-4">Portfolio in Motion</h2>
+<h3 class="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl">Video Showcase</h3>
+<p class="mt-6 text-lg text-slate-600 dark:text-slate-400 font-medium">Explore our latest projects and see how we bring digital visions to life through high-quality video content and dynamic user experiences.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="group relative rounded-3xl overflow-hidden aspect-video bg-slate-200 dark:bg-slate-800 shadow-lg">
+<img alt="Project Alpha" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBR9L2w1l_K_qS-1v2n_T_S8u9R6f4z_W7v7m1q_W8v8_v8_v8_v8_v8_v8_v8_v8_v8_v8_v8_v8"/>
+<div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50 cursor-pointer hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-white text-4xl fill-1">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="group relative rounded-3xl overflow-hidden aspect-video bg-slate-200 dark:bg-slate-800 shadow-lg">
+<img alt="Project Beta" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8gQRE-_OswKUwPWLGKJvUNEtiRYwAdZB2wtH7J0yZs9Jj2tJ5b2gxIeaYeBFhDd5UoKIqWOw1xoPaZZ2eUENMqq_V0fgNCqVYLGQjwyp4SusWXjJvCn92jQ8JVwG3FIJ7Ph0xOodvRV09fUgjbZVKkP1MuUFjZaMLv1rJcPfLx4fE9KoLHEgLDNNvoQu3_AifgxWLthDLut_OkYYPGhvnKqO9ehrCXVnl1vb0Y1i1_O9N2D_lz2DbNpGLsEh5dS2Hf0J1gHEcxxU"/>
+<div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50 cursor-pointer hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-white text-4xl fill-1">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="group relative rounded-3xl overflow-hidden aspect-video bg-slate-200 dark:bg-slate-800 shadow-lg">
+<img alt="Project Gamma" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWlQHMA1cEx0gKL790g0ZSQtK4uG-cWX8kJuM39rjHoHNd01FvsZN99YlTL3e4EBJFB5DNqij2zFdUf2vdaza3FM6jevuL8ikrAzIs4QrpTLRjYCO_AXeE8LLATNPDFLjehbpSDRKmTJK2yR3a4yW-LGwrdRMKU5IeHchRiaXn9XIpESZpIkocuwMAR0WXHgWImcmHBsZ47hSVe07kw2625YnfxDihv7ZlnSAr7IjAXe2Kwwg1k-u6xX4lnDk92_Ewr127rKukMzc"/>
+<div class="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<div class="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50 cursor-pointer hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-white text-4xl fill-1">play_arrow</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="py-32 bg-white dark:bg-background-dark">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-3xl mx-auto mb-20">
+<h2 class="text-primary font-display font-bold tracking-[0.2em] uppercase text-sm mb-4">Our Team</h2>
+<h3 class="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl">Meet the Minds Behind NexusFlow</h3>
+<p class="mt-6 text-lg text-slate-600 dark:text-slate-400 font-medium">A diverse group of designers, developers, and strategists dedicated to excellence and innovation.</p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+<div class="text-center group">
+<div class="relative mb-6 rounded-3xl overflow-hidden aspect-square bg-slate-100 dark:bg-slate-800">
+<img alt="Alex Rivera" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBR9L2w1l_K_qS-1v2n_T_S8u9R6f4z_W7v7m1q_W8v8_v8_v8_v8_v8_v8_v8_v8_v8_v8_v8_v8"/>
+</div>
+<h4 class="text-xl font-display font-bold text-slate-900 dark:text-white">Alex Rivera</h4>
+<p class="text-primary font-bold text-sm">CEO &amp; Founder</p>
+</div>
+<div class="text-center group">
+<div class="relative mb-6 rounded-3xl overflow-hidden aspect-square bg-slate-100 dark:bg-slate-800">
+<img alt="Sarah Chen" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWlQHMA1cEx0gKL790g0ZSQtK4uG-cWX8kJuM39rjHoHNd01FvsZN99YlTL3e4EBJFB5DNqij2zFdUf2vdaza3FM6jevuL8ikrAzIs4QrpTLRjYCO_AXeE8LLATNPDFLjehbpSDRKmTJK2yR3a4yW-LGwrdRMKU5IeHchRiaXn9XIpESZpIkocuwMAR0WXHgWImcmHBsZ47hSVe07kw2625YnfxDihv7ZlnSAr7IjAXe2Kwwg1k-u6xX4lnDk92_Ewr127rKukMzc"/>
+</div>
+<h4 class="text-xl font-display font-bold text-slate-900 dark:text-white">Sarah Chen</h4>
+<p class="text-primary font-bold text-sm">Creative Director</p>
+</div>
+<div class="text-center group">
+<div class="relative mb-6 rounded-3xl overflow-hidden aspect-square bg-slate-100 dark:bg-slate-800">
+<img alt="James Wilson" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8gQRE-_OswKUwPWLGKJvUNEtiRYwAdZB2wtH7J0yZs9Jj2tJ5b2gxIeaYeBFhDd5UoKIqWOw1xoPaZZ2eUENMqq_V0fgNCqVYLGQjwyp4SusWXjJvCn92jQ8JVwG3FIJ7Ph0xOodvRV09fUgjbZVKkP1MuUFjZaMLv1rJcPfLx4fE9KoLHEgLDNNvoQu3_AifgxWLthDLut_OkYYPGhvnKqO9ehrCXVnl1vb0Y1i1_O9N2D_lz2DbNpGLsEh5dS2Hf0J1gHEcxxU"/>
+</div>
+<h4 class="text-xl font-display font-bold text-slate-900 dark:text-white">James Wilson</h4>
+<p class="text-primary font-bold text-sm">Lead Developer</p>
+</div>
+<div class="text-center group">
+<div class="relative mb-6 rounded-3xl overflow-hidden aspect-square bg-slate-100 dark:bg-slate-800">
+<img alt="Elena Rodriguez" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBR9L2w1l_K_qS-1v2n_T_S8u9R6f4z_W7v7m1q_W8v8_v8_v8_v8_v8_v8_v8_v8_v8_v8_v8_v8"/>
+</div>
+<h4 class="text-xl font-display font-bold text-slate-900 dark:text-white">Elena Rodriguez</h4>
+<p class="text-primary font-bold text-sm">Product Strategist</p>
+</div>
+</div>
+</div>
+</section><section class="py-32 bg-slate-50 dark:bg-slate-900/50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-3xl mx-auto mb-20">
+<h2 class="text-accent font-display font-bold tracking-[0.2em] uppercase text-sm mb-4">Testimonials</h2>
+<h3 class="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl">What Our Clients Say</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+<div class="p-10 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none">
+<div class="flex items-center gap-4 mb-8">
+<img alt="Client 1" class="w-14 h-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWlQHMA1cEx0gKL790g0ZSQtK4uG-cWX8kJuM39rjHoHNd01FvsZN99YlTL3e4EBJFB5DNqij2zFdUf2vdaza3FM6jevuL8ikrAzIs4QrpTLRjYCO_AXeE8LLATNPDFLjehbpSDRKmTJK2yR3a4yW-LGwrdRMKU5IeHchRiaXn9XIpESZpIkocuwMAR0WXHgWImcmHBsZ47hSVe07kw2625YnfxDihv7ZlnSAr7IjAXe2Kwwg1k-u6xX4lnDk92_Ewr127rKukMzc"/>
+<div>
+<h4 class="font-display font-bold text-slate-900 dark:text-white">Michael Ross</h4>
+<p class="text-sm text-slate-500 font-medium">Founder, TechVentures</p>
+</div>
+</div>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed italic">"NexusFlow transformed our digital presence. Their attention to detail and innovative approach exceeded all our expectations. Truly a remarkable partner."</p>
+</div>
+<div class="p-10 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none">
+<div class="flex items-center gap-4 mb-8">
+<img alt="Client 2" class="w-14 h-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8gQRE-_OswKUwPWLGKJvUNEtiRYwAdZB2wtH7J0yZs9Jj2tJ5b2gxIeaYeBFhDd5UoKIqWOw1xoPaZZ2eUENMqq_V0fgNCqVYLGQjwyp4SusWXjJvCn92jQ8JVwG3FIJ7Ph0xOodvRV09fUgjbZVKkP1MuUFjZaMLv1rJcPfLx4fE9KoLHEgLDNNvoQu3_AifgxWLthDLut_OkYYPGhvnKqO9ehrCXVnl1vb0Y1i1_O9N2D_lz2DbNpGLsEh5dS2Hf0J1gHEcxxU"/>
+<div>
+<h4 class="font-display font-bold text-slate-900 dark:text-white">Linda Graham</h4>
+<p class="text-sm text-slate-500 font-medium">CMO, Global Reach</p>
+</div>
+</div>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed italic">"Working with NexusFlow was a game-changer for our brand. They didn't just build a website; they built a platform for our future growth."</p>
+</div>
+<div class="p-10 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none">
+<div class="flex items-center gap-4 mb-8">
+<img alt="Client 3" class="w-14 h-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBR9L2w1l_K_qS-1v2n_T_S8u9R6f4z_W7v7m1q_W8v8_v8_v8_v8_v8_v8_v8_v8_v8_v8_v8_v8"/>
+<div>
+<h4 class="font-display font-bold text-slate-900 dark:text-white">David Smith</h4>
+<p class="text-sm text-slate-500 font-medium">CTO, NextGen Apps</p>
+</div>
+</div>
+<p class="text-slate-600 dark:text-slate-400 leading-relaxed italic">"The level of expertise the team brought to the table was incredible. Our project was delivered on time and with a level of polish that is rare to find."</p>
+</div>
+</div>
+</div>
+</section><section class="py-24 bg-primary">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+<h2 class="text-4xl font-display font-bold text-white sm:text-5xl mb-8">Ready to Revolutionize Your Digital Strategy?</h2>
+<p class="text-xl text-indigo-100 mb-12 max-w-2xl mx-auto font-medium">
+                    Join hundreds of forward-thinking companies already using NexusFlow to drive growth and innovation.
+                </p>
+<div class="flex justify-center">
+<button class="bg-accent text-white px-12 py-5 rounded-2xl font-display font-bold text-xl hover:bg-orange-600 hover:scale-[1.05] active:scale-[0.98] transition-all shadow-2xl shadow-black/20">
+                        Start Your Journey Today
+                    </button>
+</div>
+</div>
+</section><footer class="bg-slate-50 dark:bg-slate-950 pt-32 pb-12 border-t border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-24">
+<div class="col-span-2">
+<div class="flex items-center gap-2 mb-8">
+<span class="material-symbols-outlined text-primary text-4xl">deployed_code</span>
+<span class="text-2xl font-display font-bold tracking-tight text-slate-900 dark:text-white">NexusFlow</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 font-medium max-w-xs mb-8 leading-relaxed">
+                        Empowering businesses with cutting-edge digital solutions and forward-thinking design.
+                    </p>
+<div class="flex gap-4">
+<a class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all text-slate-600 dark:text-slate-300 shadow-sm" href="#">
+<span class="material-symbols-outlined text-2xl">public</span>
+</a>
+<a class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-accent hover:text-white hover:border-accent transition-all text-slate-600 dark:text-slate-300 shadow-sm" href="#">
+<span class="material-symbols-outlined text-2xl">alternate_email</span>
+</a>
+<a class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-electric-teal hover:text-slate-900 hover:border-electric-teal transition-all text-slate-600 dark:text-slate-300 shadow-sm" href="#">
+<span class="material-symbols-outlined text-2xl">share</span>
+</a>
+</div>
+</div>
+<div>
+<h5 class="font-display font-bold text-lg mb-8">Product</h5>
+<ul class="space-y-4 text-slate-500 dark:text-slate-400 font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">Features</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Integrations</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Pricing</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Changelog</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-display font-bold text-lg mb-8">Company</h5>
+<ul class="space-y-4 text-slate-500 dark:text-slate-400 font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">About Us</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Careers</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Blog</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Contact</a></li>
+</ul>
+</div>
+<div>
+<h5 class="font-display font-bold text-lg mb-8">Legal</h5>
+<ul class="space-y-4 text-slate-500 dark:text-slate-400 font-medium">
+<li><a class="hover:text-primary transition-colors" href="#">Privacy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Terms</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Cookie Policy</a></li>
+</ul>
+</div>
+</div>
+<div class="pt-10 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
+<p class="text-sm text-slate-500 dark:text-slate-400 font-medium">© 2024 NexusFlow Inc. All rights reserved.</p>
+<div class="flex items-center gap-8">
+<span class="text-sm text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-base">language</span> English (US)
+                    </span>
+<span class="text-sm text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
+<span class="material-symbols-outlined text-base">location_on</span> San Francisco, CA
+                    </span>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

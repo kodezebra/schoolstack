@@ -5,10 +5,13 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
   const cleanPath = path.replace(/^\/+/, '');
   const url = path.startsWith('http') ? path : `${baseUrl}/${cleanPath}`;
   
-  const headers = {
-    'Content-Type': 'application/json',
+  const headers: any = {
     ...options.headers,
   };
+
+  if (!(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const response = await fetch(url, {
     ...options,

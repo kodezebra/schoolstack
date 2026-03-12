@@ -35,3 +35,27 @@ export const blocks = sqliteTable('blocks', {
   order: integer('order').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
+
+export const assets = sqliteTable('assets', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull(),
+  key: text('key').notNull().unique(), // R2 Object Key
+  mimeType: text('mime_type').notNull(),
+  size: integer('size').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const siteSettings = sqliteTable('site_settings', {
+  id: text('id').primaryKey().$defaultFn(() => 'default'),
+  logoText: text('logo_text').notNull().default('KZ Cloud'),
+  logoType: text('logo_type').notNull().default('icon'), // 'icon' | 'image'
+  logoIcon: text('logo_icon').notNull().default('zap'),
+  logoImage: text('logo_image'),
+  favicon: text('favicon'),
+  footerDescription: text('footer_description'),
+  primaryColor: text('primary_color').notNull().default('#6366f1'),
+  accentColor: text('accent_color').notNull().default('#ff6b35'),
+  navbarConfig: text('navbar_config'),
+  footerConfig: text('footer_config'),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
