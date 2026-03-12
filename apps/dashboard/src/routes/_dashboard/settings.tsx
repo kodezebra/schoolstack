@@ -286,11 +286,21 @@ const FONT_OPTIONS = [
   'Open Sans'
 ]
 
+const BORDER_RADIUS_OPTIONS = [
+  { id: 'none', name: 'Square', value: '0' },
+  { id: 'sm', name: 'Slight', value: '0.125rem' },
+  { id: 'md', name: 'Moderate', value: '0.375rem' },
+  { id: 'lg', name: 'Rounded', value: '0.5rem' },
+  { id: 'xl', name: 'Very Rounded', value: '0.75rem' },
+  { id: 'full', name: 'Pill', value: '9999px' },
+]
+
 function SettingsPage() {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState('branding')
   const [showPreview, setShowPreview] = useState(true)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [showPreviewDarkMode, setShowPreviewDarkMode] = useState(false) // New state for preview dark mode
 
   // Fetch settings
   const { data: settingsData, isLoading, error } = useQuery({
@@ -1230,14 +1240,25 @@ function SettingsPage() {
       {/* Preview Panel */}
       {showPreview && (
         <div className="w-[450px] shrink-0 flex flex-col border rounded-lg overflow-hidden bg-background">
-          <div className="p-4 border-b bg-muted/30">
-            <h3 className="font-semibold flex items-center gap-2">
-              <Eye className="h-4 w-4" />
-              Live Preview
-            </h3>
-            <p className="text-xs text-muted-foreground mt-1">Approximate preview of your settings</p>
+          <div className="p-4 border-b bg-muted/30 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold flex items-center gap-2">
+                <Eye className="h-4 w-4" />
+                Live Preview
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">Approximate preview of your settings</p>
+            </div>
+            {/* Dark Mode Toggle for Preview */}
+            <Switch
+              checked={showPreviewDarkMode}
+              onCheckedChange={setShowPreviewDarkMode}
+              aria-label="Toggle dark mode preview"
+              className="ml-auto"
+            />
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className={`flex-1 overflow-y-auto ${showPreviewDarkMode ? 'dark' : ''}`} style={{ 
+            backgroundColor: showPreviewDarkMode ? parsedSettings.backgroundDark : parsedSettings.backgroundLight 
+          }}>
             {/* Preview Navbar */}
             <div className="sticky top-0 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b">
               <div className="flex items-center justify-between h-16 px-4">
@@ -1279,10 +1300,40 @@ function SettingsPage() {
                 >
                   Preview Content
                 </div>
-                <h2 className="text-2xl font-bold">Your Site Content Here</h2>
-                <p className="text-muted-foreground max-w-md mx-auto">
+                <h2 className="text-2xl font-bold" style={{ fontFamily: parsedSettings.fontDisplay }}>
+                  Your Site Content Here
+                </h2>
+                <p className="text-muted-foreground max-w-md mx-auto" style={{ fontFamily: parsedSettings.fontBody }}>
                   This is a preview of how your settings will appear. The actual site will render your full content.
                 </p>
+              </div>
+
+              {/* Theme Settings Preview */}
+              <div className="space-y-4">
+                <h3 className="font-semibold text-sm">Font Preview</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-3 rounded-lg border bg-background text-sm">
+                    <p className="text-muted-foreground mb-1">Display Font</p>
+                    <p style={{ fontFamily: parsedSettings.fontDisplay }} className="font-bold text-lg">Aa Bb Cc</p>
+                  </div>
+                  <div className="p-3 rounded-lg border bg-background text-sm">
+                    <p className="text-muted-foreground mb-1">Body Font</p>
+                    <p style={{ fontFamily: parsedSettings.fontBody }} className="text-lg">Aa Bb Cc</p>
+                  </div>
+                </div>
+
+                <h3 className="font-semibold text-sm mt-4">Border Radius Preview</h3>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 bg-primary/20 flex items-center justify-center text-primary font-bold text-xs"
+                    style={{ borderRadius: BORDER_RADIUS_OPTIONS.find(o => o.id === parsedSettings.borderRadius)?.value || '0.5rem' }}
+                  >
+                    Radius
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Selected: {parsedSettings.borderRadius} (
+                    {BORDER_RADIUS_OPTIONS.find(o => o.id === parsedSettings.borderRadius)?.value})
+                  </p>
+                </div>
               </div>
 
               {/* Color Preview Cards */}
