@@ -4,7 +4,7 @@ import {
   Monitor, Smartphone, Tablet, Plus, PanelLeft, PanelRight,
   Image as ImageIcon, Users,
   MessageSquare, PanelBottom, Globe, Mail, Share2,
-  GripVertical, Copy, Trash2
+  Copy, Trash2
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from "@/lib/utils"
@@ -24,8 +24,7 @@ export function EditorCanvas({
   leftOpen,
   rightOpen,
   onDuplicateBlock,
-  onRemoveBlock,
-  onMoveBlock
+  onRemoveBlock
 }: {
   blocks: any[],
   onSelectBlock: (id: string) => void,
@@ -35,32 +34,14 @@ export function EditorCanvas({
   leftOpen: boolean,
   rightOpen: boolean,
   onDuplicateBlock: (id: string) => void,
-  onRemoveBlock: (id: string) => void,
-  onMoveBlock: (fromIndex: number, toIndex: number) => void
+  onRemoveBlock: (id: string) => void
 }) {
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
 
   const containerWidths = {
     desktop: 'w-full max-w-[1200px]',
     tablet: 'w-[768px]',
     mobile: 'w-[375px]'
-  }
-
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedIndex(index)
-    e.dataTransfer.effectAllowed = 'move'
-  }
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault()
-    if (draggedIndex === null || draggedIndex === index) return
-    onMoveBlock(draggedIndex, index)
-    setDraggedIndex(index)
-  }
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null)
   }
 
   const renderDynamicIcon = (name: string, className?: string) => {
@@ -161,14 +142,10 @@ export function EditorCanvas({
             const isSelected = selectedBlockId === block.id
             const styles = block.content.styles || {}
             const paddingY = styles.paddingY !== undefined ? `${styles.paddingY}px` : '48px'
-            
+
             return (
               <div
                 key={block.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, index)}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragEnd={handleDragEnd}
                 onClick={(e) => {
                   e.stopPropagation()
                   onSelectBlock(block.id)
@@ -176,22 +153,9 @@ export function EditorCanvas({
                 style={{ paddingTop: paddingY, paddingBottom: paddingY }}
                 className={cn(
                   "relative transition-all group/block",
-                  isSelected ? "ring-2 ring-primary ring-inset z-10" : "hover:bg-slate-50/50",
-                  draggedIndex === index ? "opacity-50" : ""
+                  isSelected ? "ring-2 ring-primary ring-inset z-10" : "hover:bg-slate-50/50"
                 )}
               >
-                {/* Drag Handle & Actions */}
-                <div className="absolute -left-3 top-2 opacity-0 group-hover/block:opacity-100 transition-opacity flex flex-col gap-1 z-20">
-                  <button
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, index)}
-                    className="h-6 w-6 rounded bg-background border shadow-sm flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary cursor-grab active:cursor-grabbing"
-                    title="Drag to reorder"
-                  >
-                    <GripVertical className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                
                 {/* Block Actions */}
                 <div className="absolute -right-2 top-2 opacity-0 group-hover/block:opacity-100 transition-opacity flex items-center gap-1 z-20">
                   <Button

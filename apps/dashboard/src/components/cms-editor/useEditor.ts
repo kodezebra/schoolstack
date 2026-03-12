@@ -143,13 +143,23 @@ export function useEditor(initialBlocks: any[] = []) {
 
   const moveBlock = useCallback((fromIndex: number, toIndex: number) => {
     if (toIndex < 0 || toIndex >= localBlocks.length) return
-    
+
     const newBlocks = [...localBlocks]
     const [removed] = newBlocks.splice(fromIndex, 1)
     newBlocks.splice(toIndex, 0, removed)
     setLocalBlocks(newBlocks)
     saveToHistory(newBlocks)
   }, [localBlocks, saveToHistory])
+
+  const moveBlockUp = useCallback((index: number) => {
+    if (index <= 0 || index >= localBlocks.length) return
+    moveBlock(index, index - 1)
+  }, [localBlocks, moveBlock])
+
+  const moveBlockDown = useCallback((index: number) => {
+    if (index < 0 || index >= localBlocks.length - 1) return
+    moveBlock(index, index + 1)
+  }, [localBlocks, moveBlock])
 
   const undo = useCallback(() => {
     if (historyIndex > 0) {
@@ -202,6 +212,8 @@ export function useEditor(initialBlocks: any[] = []) {
     removeBlock,
     duplicateBlock,
     moveBlock,
+    moveBlockUp,
+    moveBlockDown,
     undo,
     redo,
     canUndo,

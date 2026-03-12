@@ -97,6 +97,9 @@ function CMSPage() {
               activeBlockId={editor.selectedBlockId}
               onSelectBlock={editor.setSelectedBlockId}
               onAddBlock={editor.addBlock}
+              onMoveBlock={editor.moveBlock}
+              onMoveBlockUp={editor.moveBlockUp}
+              onMoveBlockDown={editor.moveBlockDown}
             />
           </div>
         </aside>
@@ -111,7 +114,6 @@ function CMSPage() {
           rightOpen={editor.rightSidebarOpen}
           onDuplicateBlock={editor.duplicateBlock}
           onRemoveBlock={editor.removeBlock}
-          onMoveBlock={editor.moveBlock}
         />
 
         <aside className={cn("transition-all duration-300 border-l shrink-0 overflow-hidden bg-card", editor.rightSidebarOpen ? "w-[320px]" : "w-0")}>

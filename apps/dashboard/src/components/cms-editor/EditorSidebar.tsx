@@ -5,7 +5,8 @@ import {
   Layout, Zap, Eye,
   BarChart3, Users, MessageSquare, Megaphone,
   PanelBottom, ListFilter, HeartHandshake, ImagePlay, CircleHelp,
-  Search, Sparkles, FileText, Image as ImageIcon, MessageCircle
+  Search, Sparkles, FileText, Image as ImageIcon, MessageCircle,
+  ChevronUp, ChevronDown
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import {
@@ -17,7 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 type BlockCategory = 'all' | 'layout' | 'content' | 'media' | 'interactive'
 
@@ -63,18 +64,25 @@ export function EditorSidebar({
   blocks,
   activeBlockId,
   onSelectBlock,
-  onAddBlock
+  onAddBlock,
+  onMoveBlock,
+  onMoveBlockUp,
+  onMoveBlockDown
 }: {
   blocks: any[],
   activeBlockId: string | null,
   onSelectBlock: (id: string) => void,
-  onAddBlock: (type: string) => void
+  onAddBlock: (type: string) => void,
+  onMoveBlock: (fromIndex: number, toIndex: number) => void,
+  onMoveBlockUp: (index: number) => void,
+  onMoveBlockDown: (index: number) => void
 }) {
   const [isPickerOpen, setIsPickerOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<BlockCategory>('all')
   const [recentlyUsed, setRecentlyUsed] = useState<string[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Load recently used from localStorage
@@ -118,7 +126,7 @@ export function EditorSidebar({
     setSelectedIndex(0)
   }
 
-  // Keyboard navigation
+  // Keyboard navigation for block picker
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isPickerOpen) return
@@ -146,10 +154,50 @@ export function EditorSidebar({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isPickerOpen, filteredBlocks, selectedIndex])
 
+  // Keyboard shortcuts for moving layers (Alt+ArrowUp/ArrowDown)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!activeBlockId) return
+
+      const currentIndex = blocks.findIndex(b => b.id === activeBlockId)
+      if (currentIndex === -1) return
+
+      // Alt + ArrowUp to move up
+      if (e.altKey && e.key === 'ArrowUp') {
+        e.preventDefault()
+        onMoveBlockUp(currentIndex)
+      }
+      // Alt + ArrowDown to move down
+      if (e.altKey && e.key === 'ArrowDown') {
+        e.preventDefault()
+        onMoveBlockDown(currentIndex)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [activeBlockId, blocks, onMoveBlockUp, onMoveBlockDown])
+
   // Get recently used blocks
   const recentBlocks = recentlyUsed
     .map(type => AVAILABLE_BLOCKS.find(b => b.type === type))
     .filter((b): b is BlockDefinition => !!b)
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) return
+    onMoveBlock(draggedIndex, index)
+    setDraggedIndex(index)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
+  }
 
   return (
     <div className="w-[280px] border-r bg-card flex flex-col h-full shadow-sm">
@@ -324,31 +372,94 @@ export function EditorSidebar({
           const isActive = activeBlockId === block.id
           const blockDef = AVAILABLE_BLOCKS.find(b => b.type === block.type)
           const Icon = blockDef?.icon || Box
+          const isFirst = index === 0
+          const isLast = index === blocks.length - 1
 
           return (
-            <button
+            <div
               key={block.id}
-              onClick={() => onSelectBlock(block.id)}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all group",
+                "w-full flex items-center gap-2 px-2 py-2 rounded-lg text-left transition-all group",
                 isActive
                   ? "bg-primary text-primary-foreground shadow-md scale-[1.02] z-10"
-                  : "hover:bg-muted text-muted-foreground hover:text-foreground"
+                  : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                draggedIndex === index ? "opacity-50" : "",
+                "cursor-grab active:cursor-grabbing"
               )}
             >
-              <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-muted-foreground/60")} />
-              <div className="flex-1 min-w-0">
-                <div className="text-[11px] font-bold uppercase tracking-tight truncate">
-                  {block.type}
-                </div>
-                <div className={cn(
-                  "text-[10px] truncate opacity-60 font-medium",
-                  isActive ? "text-white" : "text-muted-foreground"
-                )}>
-                  {block.content.title || block.content.text || `Block ${index + 1}`}
-                </div>
+              {/* Move Handle */}
+              <div
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
+                className={cn(
+                  "h-full flex items-center justify-center w-6 shrink-0 cursor-grab active:cursor-grabbing",
+                  isActive ? "text-white/60" : "text-muted-foreground/40"
+                )}
+                title="Drag to reorder"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                  <path d="M9 3h6M9 7h6M9 11h6M9 15h6M9 19h6" strokeLinecap="round"/>
+                </svg>
               </div>
-            </button>
+
+              {/* Move Up/Down Buttons */}
+              <div className="flex flex-col gap-0.5 shrink-0">
+                <button
+                  onClick={(e) => { e.stopPropagation(); onMoveBlockUp(index); }}
+                  disabled={isFirst}
+                  className={cn(
+                    "h-4 w-4 flex items-center justify-center rounded transition-colors",
+                    isFirst
+                      ? "text-muted-foreground/20 cursor-not-allowed"
+                      : isActive
+                        ? "text-white/80 hover:text-white hover:bg-white/20"
+                        : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/50"
+                  )}
+                  title="Move up (Alt+↑)"
+                >
+                  <ChevronUp className="h-3 w-3" />
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onMoveBlockDown(index); }}
+                  disabled={isLast}
+                  className={cn(
+                    "h-4 w-4 flex items-center justify-center rounded transition-colors",
+                    isLast
+                      ? "text-muted-foreground/20 cursor-not-allowed"
+                      : isActive
+                        ? "text-white/80 hover:text-white hover:bg-white/20"
+                        : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/50"
+                  )}
+                  title="Move down (Alt+↓)"
+                >
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              </div>
+
+              {/* Icon and Label */}
+              <button
+                onClick={(e) => { e.stopPropagation(); onSelectBlock(block.id); }}
+                className={cn(
+                  "flex-1 flex items-center gap-3 min-w-0",
+                  isActive ? "text-white" : ""
+                )}
+              >
+                <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-muted-foreground/60")} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] font-bold uppercase tracking-tight truncate">
+                    {block.type}
+                  </div>
+                  <div className={cn(
+                    "text-[10px] truncate opacity-60 font-medium",
+                    isActive ? "text-white" : "text-muted-foreground"
+                  )}>
+                    {block.content.title || block.content.text || `Block ${index + 1}`}
+                  </div>
+                </div>
+              </button>
+            </div>
           )
         })}
 
