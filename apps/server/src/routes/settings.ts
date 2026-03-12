@@ -22,25 +22,30 @@ app.get('/', async (c) => {
   return c.json(settings)
 })
 
-// PUT update site settings
+// PUT update site settings (Partial Update)
 app.put('/', async (c) => {
   const db = drizzle(c.env.DB)
   const body = await c.req.json()
   
+  // Build update object only with provided fields
+  const updateData: any = {
+    updatedAt: new Date()
+  }
+  
+  const fields = [
+    'logoText', 'logoType', 'logoIcon', 'logoImage', 'favicon', 
+    'footerDescription', 'primaryColor', 'accentColor', 
+    'navbarConfig', 'navbarCta', 'footerConfig', 'footerSocials'
+  ]
+  
+  for (const field of fields) {
+    if (body[field] !== undefined) {
+      updateData[field] = body[field]
+    }
+  }
+  
   const [updated] = await db.update(siteSettings)
-    .set({
-      logoText: body.logoText,
-      logoType: body.logoType,
-      logoIcon: body.logoIcon,
-      logoImage: body.logoImage,
-      favicon: body.favicon,
-      footerDescription: body.footerDescription,
-      primaryColor: body.primaryColor,
-      accentColor: body.accentColor,
-      navbarConfig: body.navbarConfig,
-      footerConfig: body.footerConfig,
-      updatedAt: new Date()
-    })
+    .set(updateData)
     .where(eq(siteSettings.id, 'default'))
     .returning()
     

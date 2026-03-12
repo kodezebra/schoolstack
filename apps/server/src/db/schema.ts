@@ -56,6 +56,8 @@ export const siteSettings = sqliteTable('site_settings', {
   primaryColor: text('primary_color').notNull().default('#6366f1'),
   accentColor: text('accent_color').notNull().default('#ff6b35'),
   navbarConfig: text('navbar_config'),
+  navbarCta: text('navbar_cta'), // { label: string, url: string, show: boolean }
   footerConfig: text('footer_config'),
+  footerSocials: text('footer_socials'), // Array<{ platform: string, url: string }>
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
