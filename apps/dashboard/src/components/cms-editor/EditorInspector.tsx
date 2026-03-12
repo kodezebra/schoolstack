@@ -234,9 +234,9 @@ export function EditorInspector({
             <Section title="Checklist Features">
               <div className="space-y-4">
                 <Field label="Checklist Icon">
-                  <IconPicker 
-                    value={content.featureIcon} 
-                    onSelect={(featureIcon) => onUpdateContent({ ...content, featureIcon })} 
+                  <IconPicker
+                    value={content.featureIcon}
+                    onSelect={(featureIcon) => onUpdateContent({ ...content, featureIcon })}
                   />
                 </Field>
                 <div className="space-y-2">
@@ -262,6 +262,12 @@ export function EditorInspector({
               <div className="flex items-center gap-2">
                 <Input value={content.image || ''} onChange={(e) => onUpdateContent({ ...content, image: e.target.value })} className="flex-1" />
                 <MediaPicker onSelect={(url) => onUpdateContent({ ...content, image: url })} trigger={<Button variant="outline" size="icon"><ImagePlus className="h-4 w-4" /></Button>} />
+              </div>
+            </Section>
+            <Section title="CTA Button">
+              <div className="p-3 border rounded-lg bg-muted/20 space-y-3">
+                <Field label="Label"><Input value={content.cta?.label || ''} onChange={(e) => onUpdateContent({ ...content, cta: { ...content.cta, label: e.target.value } })} /></Field>
+                <Field label="Href"><Input value={content.cta?.href || ''} onChange={(e) => onUpdateContent({ ...content, cta: { ...content.cta, href: e.target.value } })} placeholder="/contact" /></Field>
               </div>
             </Section>
           </>
@@ -354,7 +360,10 @@ export function EditorInspector({
               <Field label="Subtitle"><textarea className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm" value={content.subtitle || ''} onChange={(e) => onUpdateContent({ ...content, subtitle: e.target.value })} /></Field>
             </Section>
             <Section title="Button">
-              <Field label="Label"><Input value={content.ctaLabel || ''} onChange={(e) => onUpdateContent({ ...content, ctaLabel: e.target.value })} /></Field>
+              <div className="p-3 border rounded-lg bg-muted/20 space-y-3">
+                <Field label="Label"><Input value={content.ctaLabel || ''} onChange={(e) => onUpdateContent({ ...content, ctaLabel: e.target.value })} /></Field>
+                <Field label="Href"><Input value={content.ctaHref || ''} onChange={(e) => onUpdateContent({ ...content, ctaHref: e.target.value })} placeholder="/contact" /></Field>
+              </div>
             </Section>
           </>
         )}

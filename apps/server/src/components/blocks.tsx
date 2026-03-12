@@ -121,14 +121,20 @@ export const Hero = ({ content }: { content: any }) => (
         </p>
         <div className="mt-12 flex flex-col sm:flex-row gap-5">
           {content.primaryCta && (
-            <button className="bg-accent text-white px-10 py-5 rounded-2xl font-display font-bold text-xl hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-accent/20">
+            <a
+              href={content.primaryCta.href || "#"}
+              className="bg-accent text-white px-10 py-5 rounded-2xl font-display font-bold text-xl hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-accent/20 inline-block text-center"
+            >
               {content.primaryCta.label}
-            </button>
+            </a>
           )}
           {content.secondaryCta && (
-            <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-10 py-5 rounded-2xl font-display font-bold text-xl hover:bg-white/20 transition-all">
+            <a
+              href={content.secondaryCta.href || "#"}
+              className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-10 py-5 rounded-2xl font-display font-bold text-xl hover:bg-white/20 transition-all inline-block text-center"
+            >
               {content.secondaryCta.label}
-            </button>
+            </a>
           )}
         </div>
       </div>
@@ -296,9 +302,12 @@ export const Cta = ({ content }: { content: any }) => (
         {content.subtitle || "Join hundreds of forward-thinking companies already using KZ Cloud to drive growth and innovation."}
       </p>
       <div className="flex justify-center">
-        <button className="bg-accent text-white px-12 py-5 rounded-2xl font-display font-bold text-xl hover:bg-orange-600 hover:scale-[1.05] active:scale-[0.98] transition-all shadow-2xl shadow-black/20">
+        <a
+          href={content.ctaHref || "#"}
+          className="bg-accent text-white px-12 py-5 rounded-2xl font-display font-bold text-xl hover:bg-orange-600 hover:scale-[1.05] active:scale-[0.98] transition-all shadow-2xl shadow-black/20 inline-block"
+        >
           {content.ctaLabel || "Start Your Journey Today"}
-        </button>
+        </a>
       </div>
     </div>
   </section>
