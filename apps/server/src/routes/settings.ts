@@ -43,7 +43,8 @@ app.put('/', async (c) => {
     'footerDescription', 'primaryColor', 'accentColor',
     'navbarConfig', 'navbarCta', 'footerConfig', 'footerSocials',
     // Theme fields
-    'theme', 'fontDisplay', 'fontBody', 'borderRadius', 'darkMode'
+    'theme', 'fontDisplay', 'fontBody', 'borderRadius', 'darkMode',
+    'backgroundLight', 'backgroundDark'
   ]
 
   for (const field of fields) {

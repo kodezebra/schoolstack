@@ -25,7 +25,7 @@ export const THEMES: ThemePreset[] = [
   {
     id: 'modern',
     name: 'Modern',
-    description: 'Clean and professional with vibrant accents. Perfect for tech companies and startups.',
+    description: 'Clean and professional with vibrant accents. Perfect for tech companies.',
     primaryColor: '#6366f1',
     accentColor: '#ff6b35',
     fontDisplay: 'Quicksand',
@@ -47,9 +47,93 @@ export const THEMES: ThemePreset[] = [
     tags: ['Minimal', 'Elegant', 'Sharp']
   },
   {
+    id: 'bakery',
+    name: 'Bakery & Cafe',
+    description: 'Warm, appetizing tones with classic serif headings. Perfect for food businesses.',
+    primaryColor: '#854d0e',
+    accentColor: '#fde047',
+    fontDisplay: 'Playfair Display',
+    fontBody: 'Open Sans',
+    borderRadius: 'md',
+    darkMode: 'light',
+    tags: ['Warm', 'Food', 'Classic']
+  },
+  {
+    id: 'high-tech',
+    name: 'High-Tech',
+    description: 'Futuristic and fast with geometric typography. Best for SaaS and AI products.',
+    primaryColor: '#0ea5e9',
+    accentColor: '#00f5d4',
+    fontDisplay: 'Space Grotesk',
+    fontBody: 'Inter',
+    borderRadius: 'sm',
+    darkMode: 'dark',
+    tags: ['Futuristic', 'Tech', 'Geometric']
+  },
+  {
+    id: 'luxury',
+    name: 'Luxury',
+    description: 'Sophisticated gold and black palette for high-end boutique experiences.',
+    primaryColor: '#a855f7',
+    accentColor: '#fbbf24',
+    fontDisplay: 'Playfair Display',
+    fontBody: 'Montserrat',
+    borderRadius: 'none',
+    darkMode: 'dark',
+    tags: ['Luxury', 'Elegant', 'Boutique']
+  },
+  {
+    id: 'nature',
+    name: 'Nature & Wellness',
+    description: 'Calming earth tones and organic feel for eco-friendly and health brands.',
+    primaryColor: '#15803d',
+    accentColor: '#d97706',
+    fontDisplay: 'Quicksand',
+    fontBody: 'Plus Jakarta Sans',
+    borderRadius: 'full',
+    darkMode: 'system',
+    tags: ['Organic', 'Eco', 'Wellness']
+  },
+  {
+    id: 'academy',
+    name: 'Academy',
+    description: 'Trustworthy and scholarly feel for educational institutions and non-profits.',
+    primaryColor: '#1e3a8a',
+    accentColor: '#f59e0b',
+    fontDisplay: 'Poppins',
+    fontBody: 'Roboto',
+    borderRadius: 'md',
+    darkMode: 'light',
+    tags: ['Education', 'Trust', 'Scholarly']
+  },
+  {
+    id: 'playful',
+    name: 'Playful',
+    description: 'Fun and friendly with bouncy curves. Great for toys, games, and children products.',
+    primaryColor: '#ec4899',
+    accentColor: '#8b5cf6',
+    fontDisplay: 'Quicksand',
+    fontBody: 'Plus Jakarta Sans',
+    borderRadius: 'full',
+    darkMode: 'system',
+    tags: ['Fun', 'Friendly', 'Kids']
+  },
+  {
+    id: 'corporate',
+    name: 'Corporate',
+    description: 'Serious and stable blue tones for finance, law, and consulting.',
+    primaryColor: '#1e40af',
+    accentColor: '#0ea5e9',
+    fontDisplay: 'Inter',
+    fontBody: 'Plus Jakarta Sans',
+    borderRadius: 'sm',
+    darkMode: 'light',
+    tags: ['Serious', 'Finance', 'Corporate']
+  },
+  {
     id: 'bold',
-    name: 'Bold',
-    description: 'High contrast with rounded corners. Great for creative agencies and bold brands.',
+    name: 'Bold Agency',
+    description: 'High contrast and energetic for creative agencies that want to stand out.',
     primaryColor: '#dc2626',
     accentColor: '#fbbf24',
     fontDisplay: 'Poppins',
@@ -57,42 +141,6 @@ export const THEMES: ThemePreset[] = [
     borderRadius: 'xl',
     darkMode: 'dark',
     tags: ['Bold', 'Creative', 'Energetic']
-  },
-  {
-    id: 'playful',
-    name: 'Playful',
-    description: 'Fun and friendly with full rounded elements. Perfect for lifestyle and consumer brands.',
-    primaryColor: '#ec4899',
-    accentColor: '#8b5cf6',
-    fontDisplay: 'Quicksand',
-    fontBody: 'Plus Jakarta Sans',
-    borderRadius: 'full',
-    darkMode: 'system',
-    tags: ['Fun', 'Friendly', 'Colorful']
-  },
-  {
-    id: 'corporate',
-    name: 'Corporate',
-    description: 'Trustworthy blue tones with conservative styling. Ideal for finance and enterprise.',
-    primaryColor: '#1e40af',
-    accentColor: '#0ea5e9',
-    fontDisplay: 'Inter',
-    fontBody: 'Plus Jakarta Sans',
-    borderRadius: 'md',
-    darkMode: 'light',
-    tags: ['Corporate', 'Trust', 'Enterprise']
-  },
-  {
-    id: 'nature',
-    name: 'Nature',
-    description: 'Earth tones with organic feel. Perfect for eco-friendly and wellness brands.',
-    primaryColor: '#16a34a',
-    accentColor: '#d97706',
-    fontDisplay: 'Quicksand',
-    fontBody: 'Inter',
-    borderRadius: 'lg',
-    darkMode: 'system',
-    tags: ['Natural', 'Organic', 'Wellness']
   }
 ]
 
@@ -109,6 +157,7 @@ export function getThemeById(id: string): ThemePreset | undefined {
 export const FONT_OPTIONS = [
   { id: 'Quicksand', name: 'Quicksand', category: 'Display' },
   { id: 'Playfair Display', name: 'Playfair Display', category: 'Display' },
+  { id: 'Space Grotesk', name: 'Space Grotesk', category: 'Display' },
   { id: 'Poppins', name: 'Poppins', category: 'Display' },
   { id: 'Roboto', name: 'Roboto', category: 'Sans-serif' },
   { id: 'Inter', name: 'Inter', category: 'Sans-serif' },
@@ -136,6 +185,7 @@ export function getFontStack(fontName: string): string {
   const stacks: Record<string, string> = {
     'Quicksand': 'Quicksand, system-ui, sans-serif',
     'Playfair Display': '"Playfair Display", Georgia, serif',
+    'Space Grotesk': '"Space Grotesk", system-ui, sans-serif',
     'Poppins': 'Poppins, system-ui, sans-serif',
     'Roboto': 'Roboto, system-ui, sans-serif',
     'Inter': 'Inter, system-ui, sans-serif',

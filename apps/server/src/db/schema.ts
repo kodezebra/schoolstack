@@ -61,6 +61,8 @@ export const siteSettings = sqliteTable('site_settings', {
   footerSocials: text('footer_socials'), // Array<{ platform: string, url: string }>
   // Theme configuration
   theme: text('theme').notNull().default('modern'), // 'modern' | 'minimal' | 'bold' | 'playful'
+  backgroundLight: text('background_light').notNull().default('#f6f7f8'),
+  backgroundDark: text('background_dark').notNull().default('#101922'),
   fontDisplay: text('font_display').notNull().default('Quicksand'), // Font for headings
   fontBody: text('font_body').notNull().default('Plus Jakarta Sans'), // Font for body text
   borderRadius: text('border_radius').notNull().default('lg'), // 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full'

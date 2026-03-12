@@ -71,6 +71,8 @@ interface SiteSettings {
   footerDescription: string
   primaryColor: string
   accentColor: string
+  backgroundLight: string
+  backgroundDark: string
   navbarConfig: string | null
   navbarCta: string | null
   footerConfig: string | null
@@ -92,6 +94,8 @@ interface ParsedSettings {
   footerDescription: string
   primaryColor: string
   accentColor: string
+  backgroundLight: string
+  backgroundDark: string
   navbarLinks: NavLink[]
   navbarCta: NavbarCta
   footerColumns: FooterColumn[]
@@ -113,6 +117,8 @@ const DEFAULT_SETTINGS: ParsedSettings = {
   footerDescription: 'Empowering businesses with cutting-edge digital solutions and forward-thinking design.',
   primaryColor: '#6366f1',
   accentColor: '#ff6b35',
+  backgroundLight: '#f6f7f8',
+  backgroundDark: '#101922',
   navbarLinks: [
     { label: 'Home', href: '/' },
     { label: 'About', href: '/about' }
@@ -134,6 +140,151 @@ const DEFAULT_SETTINGS: ParsedSettings = {
   borderRadius: 'lg',
   darkMode: 'system'
 }
+
+const THEMES = [
+  {
+    id: 'modern',
+    name: 'Modern',
+    description: 'Clean and professional with vibrant accents.',
+    primaryColor: '#6366f1',
+    accentColor: '#ff6b35',
+    backgroundLight: '#ffffff',
+    backgroundDark: '#0f172a',
+    fontDisplay: 'Quicksand',
+    fontBody: 'Plus Jakarta Sans',
+    borderRadius: 'lg',
+    darkMode: 'system'
+  },
+  {
+    id: 'minimal',
+    name: 'Minimal',
+    description: 'Monochrome elegance with sharp edges.',
+    primaryColor: '#171717',
+    accentColor: '#737373',
+    backgroundLight: '#ffffff',
+    backgroundDark: '#0a0a0a',
+    fontDisplay: 'Inter',
+    fontBody: 'Inter',
+    borderRadius: 'none',
+    darkMode: 'light'
+  },
+  {
+    id: 'bakery',
+    name: 'Bakery & Cafe',
+    description: 'Warm, appetizing tones with classic serif headings.',
+    primaryColor: '#854d0e',
+    accentColor: '#fde047',
+    backgroundLight: '#fffbeb',
+    backgroundDark: '#1c1917',
+    fontDisplay: 'Playfair Display',
+    fontBody: 'Open Sans',
+    borderRadius: 'md',
+    darkMode: 'light'
+  },
+  {
+    id: 'high-tech',
+    name: 'High-Tech',
+    description: 'Futuristic and fast with geometric typography.',
+    primaryColor: '#0ea5e9',
+    accentColor: '#00f5d4',
+    backgroundLight: '#f0f9ff',
+    backgroundDark: '#020617',
+    fontDisplay: 'Space Grotesk',
+    fontBody: 'Inter',
+    borderRadius: 'sm',
+    darkMode: 'dark'
+  },
+  {
+    id: 'luxury',
+    name: 'Luxury',
+    description: 'Sophisticated gold and black palette.',
+    primaryColor: '#a855f7',
+    accentColor: '#fbbf24',
+    backgroundLight: '#faf5ff',
+    backgroundDark: '#09090b',
+    fontDisplay: 'Playfair Display',
+    fontBody: 'Montserrat',
+    borderRadius: 'none',
+    darkMode: 'dark'
+  },
+  {
+    id: 'nature',
+    name: 'Nature & Wellness',
+    description: 'Calming earth tones and organic feel.',
+    primaryColor: '#15803d',
+    accentColor: '#d97706',
+    backgroundLight: '#f0fdf4',
+    backgroundDark: '#022c22',
+    fontDisplay: 'Quicksand',
+    fontBody: 'Plus Jakarta Sans',
+    borderRadius: 'full',
+    darkMode: 'system'
+  },
+  {
+    id: 'academy',
+    name: 'Academy',
+    description: 'Trustworthy and scholarly feel.',
+    primaryColor: '#1e3a8a',
+    accentColor: '#f59e0b',
+    backgroundLight: '#f8fafc',
+    backgroundDark: '#0f172a',
+    fontDisplay: 'Poppins',
+    fontBody: 'Roboto',
+    borderRadius: 'md',
+    darkMode: 'light'
+  },
+  {
+    id: 'playful',
+    name: 'Playful',
+    description: 'Fun and friendly with bouncy curves.',
+    primaryColor: '#ec4899',
+    accentColor: '#8b5cf6',
+    backgroundLight: '#fff1f2',
+    backgroundDark: '#2e1065',
+    fontDisplay: 'Quicksand',
+    fontBody: 'Plus Jakarta Sans',
+    borderRadius: 'full',
+    darkMode: 'system'
+  },
+  {
+    id: 'corporate',
+    name: 'Corporate',
+    description: 'Serious and stable blue tones.',
+    primaryColor: '#1e40af',
+    accentColor: '#0ea5e9',
+    backgroundLight: '#f1f5f9',
+    backgroundDark: '#0f172a',
+    fontDisplay: 'Inter',
+    fontBody: 'Plus Jakarta Sans',
+    borderRadius: 'sm',
+    darkMode: 'light'
+  },
+  {
+    id: 'bold',
+    name: 'Bold Agency',
+    description: 'High contrast and energetic.',
+    primaryColor: '#dc2626',
+    accentColor: '#fbbf24',
+    backgroundLight: '#fef2f2',
+    backgroundDark: '#111827',
+    fontDisplay: 'Poppins',
+    fontBody: 'Inter',
+    borderRadius: 'xl',
+    darkMode: 'dark'
+  }
+]
+
+const FONT_OPTIONS = [
+  'Quicksand',
+  'Playfair Display',
+  'Space Grotesk',
+  'Poppins',
+  'Roboto',
+  'Inter',
+  'Plus Jakarta Sans',
+  'Montserrat',
+  'Open Sans'
+]
 
 function SettingsPage() {
   const queryClient = useQueryClient()
@@ -178,6 +329,8 @@ function SettingsPage() {
           footerDescription: settingsData.footerDescription || DEFAULT_SETTINGS.footerDescription,
           primaryColor: settingsData.primaryColor || DEFAULT_SETTINGS.primaryColor,
           accentColor: settingsData.accentColor || DEFAULT_SETTINGS.accentColor,
+          backgroundLight: settingsData.backgroundLight || DEFAULT_SETTINGS.backgroundLight,
+          backgroundDark: settingsData.backgroundDark || DEFAULT_SETTINGS.backgroundDark,
           navbarLinks: navbarConfig?.links || DEFAULT_SETTINGS.navbarLinks,
           navbarCta: settingsData.navbarCta && settingsData.navbarCta.trim() !== ''
             ? JSON.parse(settingsData.navbarCta)
@@ -211,6 +364,8 @@ function SettingsPage() {
         footerDescription: settings.footerDescription,
         primaryColor: settings.primaryColor,
         accentColor: settings.accentColor,
+        backgroundLight: settings.backgroundLight,
+        backgroundDark: settings.backgroundDark,
         navbarConfig: JSON.stringify({
           logoText: settings.logoText,
           logoIcon: settings.logoIcon,
@@ -250,17 +405,24 @@ function SettingsPage() {
     saveMutation.mutate(parsedSettings)
   }
 
-  const updateSetting = (key: keyof ParsedSettings, value: any) => {
+  const updateSetting = (key: keyof ParsedSettings | Partial<ParsedSettings>, value?: any) => {
     setParsedSettings(prev => {
-      const updated = { ...prev, [key]: value }
+      let updated: ParsedSettings;
+      
+      if (typeof key === 'object') {
+        updated = { ...prev, ...key }
+      } else {
+        updated = { ...prev, [key]: value }
+      }
+      
       // Ensure arrays are always arrays
-      if (key === 'navbarLinks' && !Array.isArray(updated.navbarLinks)) {
+      if (!Array.isArray(updated.navbarLinks)) {
         updated.navbarLinks = DEFAULT_SETTINGS.navbarLinks
       }
-      if (key === 'footerColumns' && !Array.isArray(updated.footerColumns)) {
+      if (!Array.isArray(updated.footerColumns)) {
         updated.footerColumns = DEFAULT_SETTINGS.footerColumns
       }
-      if (key === 'footerSocials' && !Array.isArray(updated.footerSocials)) {
+      if (!Array.isArray(updated.footerSocials)) {
         updated.footerSocials = DEFAULT_SETTINGS.footerSocials
       }
       return updated
@@ -550,53 +712,84 @@ function SettingsPage() {
                     <Palette className="h-5 w-5" />
                     Color Scheme
                   </CardTitle>
-                  <CardDescription>Define your brand colors</CardDescription>
+                  <CardDescription>Define your brand colors and backgrounds</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
                       <Label htmlFor="primaryColor">Primary Color</Label>
-                      <div className="flex gap-2 mt-1.5">
+                      <div className="flex gap-2">
                         <Input
                           id="primaryColor"
                           type="color"
                           value={parsedSettings.primaryColor}
                           onChange={(e) => updateSetting('primaryColor', e.target.value)}
-                          className="w-16 h-9 p-1"
+                          className="w-12 h-9 p-1"
                         />
                         <Input
                           type="text"
                           value={parsedSettings.primaryColor}
                           onChange={(e) => updateSetting('primaryColor', e.target.value)}
-                          className="flex-1 font-mono"
+                          className="flex-1 font-mono h-9"
                         />
                       </div>
-                      <div
-                        className="mt-2 h-8 rounded-md border"
-                        style={{ backgroundColor: parsedSettings.primaryColor }}
-                      />
                     </div>
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor="accentColor">Accent Color</Label>
-                      <div className="flex gap-2 mt-1.5">
+                      <div className="flex gap-2">
                         <Input
                           id="accentColor"
                           type="color"
                           value={parsedSettings.accentColor}
                           onChange={(e) => updateSetting('accentColor', e.target.value)}
-                          className="w-16 h-9 p-1"
+                          className="w-12 h-9 p-1"
                         />
                         <Input
                           type="text"
                           value={parsedSettings.accentColor}
                           onChange={(e) => updateSetting('accentColor', e.target.value)}
-                          className="flex-1 font-mono"
+                          className="flex-1 font-mono h-9"
                         />
                       </div>
-                      <div
-                        className="mt-2 h-8 rounded-md border"
-                        style={{ backgroundColor: parsedSettings.accentColor }}
-                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="backgroundLight">Background (Light Mode)</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="backgroundLight"
+                          type="color"
+                          value={parsedSettings.backgroundLight}
+                          onChange={(e) => updateSetting('backgroundLight', e.target.value)}
+                          className="w-12 h-9 p-1"
+                        />
+                        <Input
+                          type="text"
+                          value={parsedSettings.backgroundLight}
+                          onChange={(e) => updateSetting('backgroundLight', e.target.value)}
+                          className="flex-1 font-mono h-9"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="backgroundDark">Background (Dark Mode)</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="backgroundDark"
+                          type="color"
+                          value={parsedSettings.backgroundDark}
+                          onChange={(e) => updateSetting('backgroundDark', e.target.value)}
+                          className="w-12 h-9 p-1"
+                        />
+                        <Input
+                          type="text"
+                          value={parsedSettings.backgroundDark}
+                          onChange={(e) => updateSetting('backgroundDark', e.target.value)}
+                          className="flex-1 font-mono h-9"
+                        />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -628,46 +821,25 @@ function SettingsPage() {
                     <LayoutTemplate className="h-5 w-5" />
                     Theme Preset
                   </CardTitle>
-                  <CardDescription>Choose a pre-designed theme or customize individual settings</CardDescription>
+                  <CardDescription>Choose a pre-designed theme identity</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {[
-                      { id: 'modern', name: 'Modern', colors: ['#6366f1', '#ff6b35'], radius: 'lg' },
-                      { id: 'minimal', name: 'Minimal', colors: ['#171717', '#737373'], radius: 'none' },
-                      { id: 'bold', name: 'Bold', colors: ['#dc2626', '#fbbf24'], radius: 'xl' },
-                      { id: 'playful', name: 'Playful', colors: ['#ec4899', '#8b5cf6'], radius: 'full' },
-                      { id: 'corporate', name: 'Corporate', colors: ['#1e40af', '#0ea5e9'], radius: 'md' },
-                      { id: 'nature', name: 'Nature', colors: ['#16a34a', '#d97706'], radius: 'lg' },
-                    ].map((theme) => (
+                    {THEMES.map((theme) => (
                       <button
                         key={theme.id}
                         onClick={() => {
-                          updateSetting('theme', theme.id)
-                          updateSetting('primaryColor', theme.colors[0])
-                          updateSetting('accentColor', theme.colors[1])
-                          updateSetting('borderRadius', theme.radius)
-                          if (theme.id === 'minimal') {
-                            updateSetting('fontDisplay', 'Inter')
-                            updateSetting('fontBody', 'Inter')
-                            updateSetting('darkMode', 'light')
-                          } else if (theme.id === 'bold') {
-                            updateSetting('fontDisplay', 'Poppins')
-                            updateSetting('fontBody', 'Inter')
-                            updateSetting('darkMode', 'dark')
-                          } else if (theme.id === 'corporate') {
-                            updateSetting('fontDisplay', 'Inter')
-                            updateSetting('fontBody', 'Plus Jakarta Sans')
-                            updateSetting('darkMode', 'light')
-                          } else if (theme.id === 'nature') {
-                            updateSetting('fontDisplay', 'Quicksand')
-                            updateSetting('fontBody', 'Inter')
-                            updateSetting('darkMode', 'system')
-                          } else {
-                            updateSetting('fontDisplay', 'Quicksand')
-                            updateSetting('fontBody', 'Plus Jakarta Sans')
-                            updateSetting('darkMode', 'system')
-                          }
+                          updateSetting({
+                            theme: theme.id,
+                            primaryColor: theme.primaryColor,
+                            accentColor: theme.accentColor,
+                            backgroundLight: theme.backgroundLight,
+                            backgroundDark: theme.backgroundDark,
+                            borderRadius: theme.borderRadius,
+                            fontDisplay: theme.fontDisplay,
+                            fontBody: theme.fontBody,
+                            darkMode: theme.darkMode as any
+                          })
                         }}
                         className={`group relative p-4 rounded-xl border-2 text-left transition-all ${
                           parsedSettings.theme === theme.id
@@ -683,21 +855,16 @@ function SettingsPage() {
                         <div className="flex items-center gap-2 mb-3">
                           <div
                             className="w-8 h-8 rounded-lg shadow-sm"
-                            style={{ backgroundColor: theme.colors[0] }}
+                            style={{ backgroundColor: theme.primaryColor }}
                           />
                           <div
                             className="w-6 h-6 rounded-full shadow-sm"
-                            style={{ backgroundColor: theme.colors[1] }}
+                            style={{ backgroundColor: theme.accentColor }}
                           />
                         </div>
                         <div className="font-semibold text-sm">{theme.name}</div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {theme.id === 'modern' && 'Clean & professional'}
-                          {theme.id === 'minimal' && 'Monochrome elegance'}
-                          {theme.id === 'bold' && 'High contrast & energetic'}
-                          {theme.id === 'playful' && 'Fun & friendly'}
-                          {theme.id === 'corporate' && 'Trustworthy & enterprise'}
-                          {theme.id === 'nature' && 'Earth tones & organic'}
+                          {theme.description}
                         </div>
                       </button>
                     ))}
@@ -723,10 +890,7 @@ function SettingsPage() {
                         onChange={(e) => updateSetting('fontDisplay', e.target.value)}
                         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       >
-                        {[
-                          'Quicksand', 'Playfair Display', 'Poppins', 'Roboto',
-                          'Inter', 'Plus Jakarta Sans', 'Montserrat', 'Open Sans'
-                        ].map(font => (
+                        {FONT_OPTIONS.map(font => (
                           <option key={font} value={font}>{font}</option>
                         ))}
                       </select>
@@ -745,10 +909,7 @@ function SettingsPage() {
                         onChange={(e) => updateSetting('fontBody', e.target.value)}
                         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       >
-                        {[
-                          'Quicksand', 'Playfair Display', 'Poppins', 'Roboto',
-                          'Inter', 'Plus Jakarta Sans', 'Montserrat', 'Open Sans'
-                        ].map(font => (
+                        {FONT_OPTIONS.map(font => (
                           <option key={font} value={font}>{font}</option>
                         ))}
                       </select>
