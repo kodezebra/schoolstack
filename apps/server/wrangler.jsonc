@@ -3,6 +3,9 @@
 	"name": "server",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-03-10",
+	"assets": {
+		"directory": "public"
+	},
 	"d1_databases": [
 		{
 			"binding": "DB",

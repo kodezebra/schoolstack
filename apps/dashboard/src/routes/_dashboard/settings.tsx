@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { apiFetch } from '@/lib/api'
-import { SITE_URL } from '@/config'
+// import { SITE_URL } from '@/config'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { IconPicker } from '@/components/cms-editor/IconPicker'
 import { MediaPicker } from '@/components/cms-editor/MediaPicker'
-import { cn } from '@/lib/utils'
+// import { cn } from '@/lib/utils'
 import {
   Palette,
   Link as LinkIcon,
@@ -30,7 +30,9 @@ import {
   Image as ImageIcon,
   Type,
   Hash,
-  LayoutTemplate
+  LayoutTemplate,
+  Monitor,
+  Check
 } from 'lucide-react'
 
 export const Route = createFileRoute('/_dashboard/settings')({
@@ -73,6 +75,12 @@ interface SiteSettings {
   navbarCta: string | null
   footerConfig: string | null
   footerSocials: string | null
+  // Theme fields
+  theme: string
+  fontDisplay: string
+  fontBody: string
+  borderRadius: string
+  darkMode: string
 }
 
 interface ParsedSettings {
@@ -88,6 +96,12 @@ interface ParsedSettings {
   navbarCta: NavbarCta
   footerColumns: FooterColumn[]
   footerSocials: FooterSocial[]
+  // Theme fields
+  theme: string
+  fontDisplay: string
+  fontBody: string
+  borderRadius: string
+  darkMode: 'light' | 'dark' | 'system'
 }
 
 const DEFAULT_SETTINGS: ParsedSettings = {
@@ -112,7 +126,13 @@ const DEFAULT_SETTINGS: ParsedSettings = {
     { platform: 'Globe', url: '#', icon: 'globe' },
     { platform: 'Mail', url: '#', icon: 'mail' },
     { platform: 'Share', url: '#', icon: 'share-2' }
-  ]
+  ],
+  // Theme defaults
+  theme: 'modern',
+  fontDisplay: 'Quicksand',
+  fontBody: 'Plus Jakarta Sans',
+  borderRadius: 'lg',
+  darkMode: 'system'
 }
 
 function SettingsPage() {
@@ -142,13 +162,13 @@ function SettingsPage() {
   useEffect(() => {
     if (settingsData) {
       try {
-        const navbarConfig = settingsData.navbarConfig && settingsData.navbarConfig.trim() !== '' 
-          ? JSON.parse(settingsData.navbarConfig) 
+        const navbarConfig = settingsData.navbarConfig && settingsData.navbarConfig.trim() !== ''
+          ? JSON.parse(settingsData.navbarConfig)
           : null
         const footerConfig = settingsData.footerConfig && settingsData.footerConfig.trim() !== ''
           ? JSON.parse(settingsData.footerConfig)
           : null
-        
+
         setParsedSettings({
           logoText: settingsData.logoText || DEFAULT_SETTINGS.logoText,
           logoType: (settingsData.logoType as 'icon' | 'image') || DEFAULT_SETTINGS.logoType,
@@ -160,12 +180,18 @@ function SettingsPage() {
           accentColor: settingsData.accentColor || DEFAULT_SETTINGS.accentColor,
           navbarLinks: navbarConfig?.links || DEFAULT_SETTINGS.navbarLinks,
           navbarCta: settingsData.navbarCta && settingsData.navbarCta.trim() !== ''
-            ? JSON.parse(settingsData.navbarCta) 
+            ? JSON.parse(settingsData.navbarCta)
             : DEFAULT_SETTINGS.navbarCta,
           footerColumns: footerConfig?.columns || DEFAULT_SETTINGS.footerColumns,
           footerSocials: settingsData.footerSocials && settingsData.footerSocials.trim() !== ''
-            ? JSON.parse(settingsData.footerSocials) 
-            : DEFAULT_SETTINGS.footerSocials
+            ? JSON.parse(settingsData.footerSocials)
+            : DEFAULT_SETTINGS.footerSocials,
+          // Theme fields
+          theme: settingsData.theme || DEFAULT_SETTINGS.theme,
+          fontDisplay: settingsData.fontDisplay || DEFAULT_SETTINGS.fontDisplay,
+          fontBody: settingsData.fontBody || DEFAULT_SETTINGS.fontBody,
+          borderRadius: settingsData.borderRadius || DEFAULT_SETTINGS.borderRadius,
+          darkMode: (settingsData.darkMode as 'light' | 'dark' | 'system') || DEFAULT_SETTINGS.darkMode
         })
       } catch (parseError) {
         console.error('Failed to parse settings:', parseError)
@@ -198,7 +224,13 @@ function SettingsPage() {
           logoIcon: settings.logoIcon,
           columns: settings.footerColumns
         }),
-        footerSocials: JSON.stringify(settings.footerSocials)
+        footerSocials: JSON.stringify(settings.footerSocials),
+        // Theme fields
+        theme: settings.theme,
+        fontDisplay: settings.fontDisplay,
+        fontBody: settings.fontBody,
+        borderRadius: settings.borderRadius,
+        darkMode: settings.darkMode
       }
 
       const res = await apiFetch('/settings', {
@@ -393,6 +425,10 @@ function SettingsPage() {
               <Palette className="h-4 w-4" />
               Branding
             </TabsTrigger>
+            <TabsTrigger value="theme" className="gap-2">
+              <LayoutTemplate className="h-4 w-4" />
+              Theme
+            </TabsTrigger>
             <TabsTrigger value="navbar" className="gap-2">
               <LinkIcon className="h-4 w-4" />
               Navigation
@@ -581,6 +617,214 @@ function SettingsPage() {
                     placeholder="Describe your business..."
                     rows={3}
                   />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="theme" className="mt-0 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <LayoutTemplate className="h-5 w-5" />
+                    Theme Preset
+                  </CardTitle>
+                  <CardDescription>Choose a pre-designed theme or customize individual settings</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[
+                      { id: 'modern', name: 'Modern', colors: ['#6366f1', '#ff6b35'], radius: 'lg' },
+                      { id: 'minimal', name: 'Minimal', colors: ['#171717', '#737373'], radius: 'none' },
+                      { id: 'bold', name: 'Bold', colors: ['#dc2626', '#fbbf24'], radius: 'xl' },
+                      { id: 'playful', name: 'Playful', colors: ['#ec4899', '#8b5cf6'], radius: 'full' },
+                      { id: 'corporate', name: 'Corporate', colors: ['#1e40af', '#0ea5e9'], radius: 'md' },
+                      { id: 'nature', name: 'Nature', colors: ['#16a34a', '#d97706'], radius: 'lg' },
+                    ].map((theme) => (
+                      <button
+                        key={theme.id}
+                        onClick={() => {
+                          updateSetting('theme', theme.id)
+                          updateSetting('primaryColor', theme.colors[0])
+                          updateSetting('accentColor', theme.colors[1])
+                          updateSetting('borderRadius', theme.radius)
+                          if (theme.id === 'minimal') {
+                            updateSetting('fontDisplay', 'Inter')
+                            updateSetting('fontBody', 'Inter')
+                            updateSetting('darkMode', 'light')
+                          } else if (theme.id === 'bold') {
+                            updateSetting('fontDisplay', 'Poppins')
+                            updateSetting('fontBody', 'Inter')
+                            updateSetting('darkMode', 'dark')
+                          } else if (theme.id === 'corporate') {
+                            updateSetting('fontDisplay', 'Inter')
+                            updateSetting('fontBody', 'Plus Jakarta Sans')
+                            updateSetting('darkMode', 'light')
+                          } else if (theme.id === 'nature') {
+                            updateSetting('fontDisplay', 'Quicksand')
+                            updateSetting('fontBody', 'Inter')
+                            updateSetting('darkMode', 'system')
+                          } else {
+                            updateSetting('fontDisplay', 'Quicksand')
+                            updateSetting('fontBody', 'Plus Jakarta Sans')
+                            updateSetting('darkMode', 'system')
+                          }
+                        }}
+                        className={`group relative p-4 rounded-xl border-2 text-left transition-all ${
+                          parsedSettings.theme === theme.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-slate-200 hover:border-primary/50'
+                        }`}
+                      >
+                        {parsedSettings.theme === theme.id && (
+                          <div className="absolute top-2 right-2 text-primary">
+                            <Check className="h-5 w-5" />
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2 mb-3">
+                          <div
+                            className="w-8 h-8 rounded-lg shadow-sm"
+                            style={{ backgroundColor: theme.colors[0] }}
+                          />
+                          <div
+                            className="w-6 h-6 rounded-full shadow-sm"
+                            style={{ backgroundColor: theme.colors[1] }}
+                          />
+                        </div>
+                        <div className="font-semibold text-sm">{theme.name}</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          {theme.id === 'modern' && 'Clean & professional'}
+                          {theme.id === 'minimal' && 'Monochrome elegance'}
+                          {theme.id === 'bold' && 'High contrast & energetic'}
+                          {theme.id === 'playful' && 'Fun & friendly'}
+                          {theme.id === 'corporate' && 'Trustworthy & enterprise'}
+                          {theme.id === 'nature' && 'Earth tones & organic'}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Type className="h-5 w-5" />
+                    Typography
+                  </CardTitle>
+                  <CardDescription>Choose fonts for your site</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fontDisplay">Display Font (Headings)</Label>
+                      <select
+                        id="fontDisplay"
+                        value={parsedSettings.fontDisplay}
+                        onChange={(e) => updateSetting('fontDisplay', e.target.value)}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      >
+                        {[
+                          'Quicksand', 'Playfair Display', 'Poppins', 'Roboto',
+                          'Inter', 'Plus Jakarta Sans', 'Montserrat', 'Open Sans'
+                        ].map(font => (
+                          <option key={font} value={font}>{font}</option>
+                        ))}
+                      </select>
+                      <div
+                        className="text-sm p-2 rounded border bg-muted/30"
+                        style={{ fontFamily: parsedSettings.fontDisplay }}
+                      >
+                        The quick brown fox jumps over the lazy dog
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fontBody">Body Font</Label>
+                      <select
+                        id="fontBody"
+                        value={parsedSettings.fontBody}
+                        onChange={(e) => updateSetting('fontBody', e.target.value)}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      >
+                        {[
+                          'Quicksand', 'Playfair Display', 'Poppins', 'Roboto',
+                          'Inter', 'Plus Jakarta Sans', 'Montserrat', 'Open Sans'
+                        ].map(font => (
+                          <option key={font} value={font}>{font}</option>
+                        ))}
+                      </select>
+                      <div
+                        className="text-sm p-2 rounded border bg-muted/30"
+                        style={{ fontFamily: parsedSettings.fontBody }}
+                      >
+                        The quick brown fox jumps over the lazy dog
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Monitor className="h-5 w-5" />
+                    Appearance
+                  </CardTitle>
+                  <CardDescription>Visual styling preferences</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Border Radius</Label>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                      {[
+                        { id: 'none', name: 'Square', value: '0' },
+                        { id: 'sm', name: 'Slight', value: '0.125rem' },
+                        { id: 'md', name: 'Moderate', value: '0.375rem' },
+                        { id: 'lg', name: 'Rounded', value: '0.5rem' },
+                        { id: 'xl', name: 'Very Rounded', value: '0.75rem' },
+                        { id: 'full', name: 'Pill', value: '9999px' },
+                      ].map((option) => (
+                        <button
+                          key={option.id}
+                          onClick={() => updateSetting('borderRadius', option.id)}
+                          className={`p-3 rounded-lg border text-center transition-all ${
+                            parsedSettings.borderRadius === option.id
+                              ? 'border-primary bg-primary/5 text-primary'
+                              : 'border-slate-200 hover:border-primary/50'
+                          }`}
+                        >
+                          <div
+                            className="w-full h-8 bg-slate-200 dark:bg-slate-700 mb-2"
+                            style={{ borderRadius: option.value }}
+                          />
+                          <div className="text-xs font-medium">{option.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Dark Mode</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'light', name: 'Light', icon: '☀️' },
+                        { id: 'dark', name: 'Dark', icon: '🌙' },
+                        { id: 'system', name: 'System', icon: '💻' },
+                      ].map((option) => (
+                        <button
+                          key={option.id}
+                          onClick={() => updateSetting('darkMode', option.id as 'light' | 'dark' | 'system')}
+                          className={`p-3 rounded-lg border flex items-center justify-center gap-2 transition-all ${
+                            parsedSettings.darkMode === option.id
+                              ? 'border-primary bg-primary/5 text-primary'
+                              : 'border-slate-200 hover:border-primary/50'
+                          }`}
+                        >
+                          <span>{option.icon}</span>
+                          <span className="text-sm font-medium">{option.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -917,10 +1161,11 @@ function SettingsPage() {
                       {parsedSettings.footerDescription}
                     </p>
                     <div className="flex gap-2">
-                      {parsedSettings.footerSocials.slice(0, 3).map((social, i) => (
+                      {parsedSettings.footerSocials.slice(0, 3).map((socialItem, i) => (
                         <div
                           key={i}
                           className="w-8 h-8 rounded-lg bg-background border flex items-center justify-center"
+                          title={socialItem.platform}
                         >
                           <Globe className="h-4 w-4 text-muted-foreground" />
                         </div>

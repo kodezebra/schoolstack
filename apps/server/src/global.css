@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors */
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  
+  /* Dynamic Backgrounds */
+  --color-app-bg: var(--app-bg);
+  --color-app-text: var(--app-text);
+  
+  /* Typography */
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-sans: var(--font-body);
+
+  /* Border Radius Scaling */
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.5);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-3xl: calc(var(--radius) * 3);
+  
+  /* Custom utility */
+  --color-electric-teal: #00f5d4;
+}
+
+/* Force Tailwind to respect .dark class */
+@variant dark (&:where(.dark, .dark *));

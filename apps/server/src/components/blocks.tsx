@@ -39,7 +39,15 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
             </span>
           </div>
           <div className="hidden md:block">
-            <div className="flex items-center space-x-10">
+            <div className="flex items-center space-x-6">
+              <button 
+                onclick="window.toggleTheme()"
+                className="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors cursor-pointer"
+                title="Toggle Theme"
+              >
+                <i data-lucide="sun" className="hidden dark:block w-5 h-5"></i>
+                <i data-lucide="moon" className="block dark:hidden w-5 h-5"></i>
+              </button>
               {content.links?.map((link: any) => (
                 <a href={link.href} className="text-sm font-semibold hover:text-primary transition-colors">
                   {link.label}
@@ -48,14 +56,21 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
               {content.cta && (
                 <a
                   href={content.cta.href}
-                  className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-bold hover:bg-indigo-600 hover:shadow-lg hover:shadow-primary/30 transition-all"
+                  className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-bold hover:brightness-110 hover:shadow-lg hover:shadow-primary/30 transition-all"
                 >
                   {content.cta.label}
                 </a>
               )}
             </div>
           </div>
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center gap-4">
+            <button 
+              onclick="window.toggleTheme()"
+              className="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors cursor-pointer"
+            >
+              <i data-lucide="sun" className="hidden dark:block w-5 h-5"></i>
+              <i data-lucide="moon" className="block dark:hidden w-5 h-5"></i>
+            </button>
             <button 
               id="mobile-menu-button"
               className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
@@ -82,7 +97,7 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
             <div className="pt-4 px-3">
               <a
                 href={content.cta.href}
-                className="block w-full text-center bg-primary text-white px-6 py-3.5 rounded-xl text-base font-bold shadow-lg shadow-primary/20"
+                className="block w-full text-center bg-primary text-white px-6 py-3.5 rounded-xl text-base font-bold shadow-lg shadow-primary/20 hover:brightness-110 transition-all"
               >
                 {content.cta.label}
               </a>
@@ -123,7 +138,7 @@ export const Hero = ({ content }: { content: any }) => (
           {content.primaryCta && (
             <a
               href={content.primaryCta.href || "#"}
-              className="bg-accent text-white px-10 py-5 rounded-2xl font-display font-bold text-xl hover:bg-orange-600 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-accent/20 inline-block text-center"
+              className="bg-accent text-white px-10 py-5 rounded-2xl font-display font-bold text-xl hover:brightness-110 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-accent/30 inline-block text-center"
             >
               {content.primaryCta.label}
             </a>
@@ -139,7 +154,7 @@ export const Hero = ({ content }: { content: any }) => (
         </div>
       </div>
     </div>
-    {!content.image && <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-electric-teal rounded-full blur-[120px] opacity-20 pointer-events-none"></div>}
+    {!content.image && <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-primary rounded-full blur-[120px] opacity-20 pointer-events-none"></div>}
   </header>
 )
 
@@ -159,8 +174,8 @@ export const Features = ({ content }: { content: any }) => (
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
         {content.items?.map((item: any) => (
-          <div className="group p-10 rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-primary/50 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none hover:-translate-y-2">
-            <div className={`w-16 h-16 ${item.bgClass || "bg-primary/10"} rounded-2xl flex items-center justify-center mb-8 ${item.iconClass || "text-primary"} group-hover:scale-110 transition-transform`}>
+          <div className="group p-10 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-primary/50 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none hover:-translate-y-2">
+            <div className={`w-16 h-16 ${item.bgClass || "bg-primary/10"} rounded-xl flex items-center justify-center mb-8 ${item.iconClass || "text-primary"} group-hover:scale-110 transition-transform`}>
               <i data-lucide={item.icon || "zap"} className="w-10 h-10"></i>
             </div>
             <h4 className="text-2xl font-display font-bold mb-4">{item.title}</h4>
@@ -177,8 +192,8 @@ export const Content = ({ content }: { content: any }) => (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className={`lg:flex lg:items-center lg:gap-24 ${content.reverse ? "lg:flex-row-reverse" : ""}`}>
         <div className="lg:w-1/2 relative">
-          <div 
-            className="relative rounded-[2.5rem] overflow-hidden shadow-2xl z-10 aspect-square sm:aspect-video lg:aspect-square bg-slate-200 dark:bg-slate-800 bg-cover bg-center" 
+          <div
+            className="relative rounded-2xl overflow-hidden shadow-2xl z-10 aspect-square sm:aspect-video lg:aspect-square bg-slate-200 dark:bg-slate-800 bg-cover bg-center"
             style={{ backgroundImage: `url('${content.image || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80"}')` }}
           >
             <div className="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
@@ -205,7 +220,7 @@ export const Content = ({ content }: { content: any }) => (
             ))}
           </ul>
           {content.cta && (
-            <a href={content.cta.href} className="text-primary font-display font-bold text-lg flex items-center gap-3 group hover:text-indigo-700 transition-all">
+            <a href={content.cta.href} className="text-primary font-display font-bold text-lg flex items-center gap-3 group hover:brightness-125 transition-all">
               <span className="relative">
                 {content.cta.label}
                 <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/30 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
@@ -298,13 +313,13 @@ export const Cta = ({ content }: { content: any }) => (
       <h2 className="text-4xl font-display font-bold text-white sm:text-5xl mb-8">
         {content.title || "Ready to Revolutionize Your Digital Strategy?"}
       </h2>
-      <p className="text-xl text-indigo-100 mb-12 max-w-2xl mx-auto font-medium">
+      <p className="text-xl text-white/90 mb-12 max-w-2xl mx-auto font-medium">
         {content.subtitle || "Join hundreds of forward-thinking companies already using KZ Cloud to drive growth and innovation."}
       </p>
       <div className="flex justify-center">
         <a
-          href={content.ctaHref || "#"}
-          className="bg-accent text-white px-12 py-5 rounded-2xl font-display font-bold text-xl hover:bg-orange-600 hover:scale-[1.05] active:scale-[0.98] transition-all shadow-2xl shadow-black/20 inline-block"
+          href={content.ctaLabel || "#"}
+          className="bg-accent text-white px-12 py-5 rounded-2xl font-display font-bold text-xl hover:brightness-110 hover:scale-[1.05] active:scale-[0.98] transition-all shadow-2xl shadow-black/20 inline-block"
         >
           {content.ctaLabel || "Start Your Journey Today"}
         </a>
@@ -401,7 +416,7 @@ export const SplitContent = ({ content, settings }: { content: any; settings?: a
         <div className={`lg:flex lg:items-center lg:gap-24 ${isReversed ? 'lg:flex-row-reverse' : ''}`}>
           <div className={`relative ${isReversed ? 'lg:w-1/2' : 'lg:w-1/2'}`}>
             <div
-              className="relative rounded-[2.5rem] overflow-hidden shadow-2xl z-10 aspect-square sm:aspect-video lg:aspect-square bg-slate-200 dark:bg-slate-800 bg-cover bg-center"
+              className="relative rounded-2xl overflow-hidden shadow-2xl z-10 aspect-square sm:aspect-video lg:aspect-square bg-slate-200 dark:bg-slate-800 bg-cover bg-center"
               style={{ backgroundImage: `url('${content.image || "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80"}')` }}
             >
               <div className="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>
@@ -422,7 +437,7 @@ export const SplitContent = ({ content, settings }: { content: any; settings?: a
             {content.cta && (
               <a
                 href={content.cta.href || "#"}
-                className="text-primary font-display font-bold text-lg flex items-center gap-3 group hover:text-indigo-700 transition-all"
+                className="text-primary font-display font-bold text-lg flex items-center gap-3 group hover:brightness-125 transition-all"
               >
                 <span className="relative">
                   {content.cta.label || "Learn More"}
@@ -458,7 +473,7 @@ export const VideoGallery = ({ content }: { content: any }) => (
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {content.items?.map((item: any, index: number) => (
-          <div key={index} className="group relative rounded-3xl overflow-hidden aspect-video bg-slate-200 dark:bg-slate-800 shadow-lg">
+          <div key={index} className="group relative rounded-2xl overflow-hidden aspect-video bg-slate-200 dark:bg-slate-800 shadow-lg">
             {item.thumbnail ? (
               <img src={item.thumbnail} alt={item.title || `Video ${index + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
             ) : (
@@ -466,13 +481,13 @@ export const VideoGallery = ({ content }: { content: any }) => (
                 <i data-lucide="video" className="w-12 h-12 text-slate-500 dark:text-slate-600"></i>
               </div>
             )}
-            <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               {item.videoUrl ? (
-                <a href={item.videoUrl} className="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50 cursor-pointer hover:scale-110 transition-transform">
+                <a href={item.videoUrl} className="w-16 h-16 bg-primary/90 backdrop-blur-md rounded-full flex items-center justify-center border border-primary/50 cursor-pointer hover:scale-110 transition-transform">
                   <i data-lucide="play" className="w-8 h-8 text-white fill-white"></i>
                 </a>
               ) : (
-                <div className="w-16 h-16 bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center border border-white/50">
+                <div className="w-16 h-16 bg-primary/90 backdrop-blur-md rounded-full flex items-center justify-center border border-primary/50">
                   <i data-lucide="play" className="w-8 h-8 text-white fill-white"></i>
                 </div>
               )}

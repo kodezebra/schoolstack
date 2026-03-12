@@ -59,5 +59,11 @@ export const siteSettings = sqliteTable('site_settings', {
   navbarCta: text('navbar_cta'), // { label: string, url: string, show: boolean }
   footerConfig: text('footer_config'),
   footerSocials: text('footer_socials'), // Array<{ platform: string, url: string }>
+  // Theme configuration
+  theme: text('theme').notNull().default('modern'), // 'modern' | 'minimal' | 'bold' | 'playful'
+  fontDisplay: text('font_display').notNull().default('Quicksand'), // Font for headings
+  fontBody: text('font_body').notNull().default('Plus Jakarta Sans'), // Font for body text
+  borderRadius: text('border_radius').notNull().default('lg'), // 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
+  darkMode: text('dark_mode').notNull().default('system'), // 'light' | 'dark' | 'system'
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });

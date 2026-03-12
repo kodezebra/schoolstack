@@ -41,7 +41,9 @@ app.put('/', async (c) => {
   const fields = [
     'logoText', 'logoType', 'logoIcon', 'logoImage', 'favicon',
     'footerDescription', 'primaryColor', 'accentColor',
-    'navbarConfig', 'navbarCta', 'footerConfig', 'footerSocials'
+    'navbarConfig', 'navbarCta', 'footerConfig', 'footerSocials',
+    // Theme fields
+    'theme', 'fontDisplay', 'fontBody', 'borderRadius', 'darkMode'
   ]
 
   for (const field of fields) {
