@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button"
 import * as LucideIcons from 'lucide-react'
-import { 
-  Monitor, Smartphone, Tablet, Plus, PanelLeft, PanelRight, 
-  Image as ImageIcon, Users, 
-  MessageSquare, PanelBottom, Globe, Mail, Share2
+import {
+  Monitor, Smartphone, Tablet, Plus, PanelLeft, PanelRight,
+  Image as ImageIcon, Users,
+  MessageSquare, PanelBottom, Globe, Mail, Share2,
+  GripVertical, Copy, Trash2
 } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from "@/lib/utils"
@@ -14,29 +15,52 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-export function EditorCanvas({ 
-  blocks, 
-  onSelectBlock, 
+export function EditorCanvas({
+  blocks,
+  onSelectBlock,
   selectedBlockId,
   onToggleLeft,
   onToggleRight,
   leftOpen,
-  rightOpen
-}: { 
-  blocks: any[], 
-  onSelectBlock: (id: string) => void, 
+  rightOpen,
+  onDuplicateBlock,
+  onRemoveBlock,
+  onMoveBlock
+}: {
+  blocks: any[],
+  onSelectBlock: (id: string) => void,
   selectedBlockId: string | null,
   onToggleLeft: () => void,
   onToggleRight: () => void,
   leftOpen: boolean,
-  rightOpen: boolean
+  rightOpen: boolean,
+  onDuplicateBlock: (id: string) => void,
+  onRemoveBlock: (id: string) => void,
+  onMoveBlock: (fromIndex: number, toIndex: number) => void
 }) {
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
 
   const containerWidths = {
     desktop: 'w-full max-w-[1200px]',
     tablet: 'w-[768px]',
     mobile: 'w-[375px]'
+  }
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault()
+    if (draggedIndex === null || draggedIndex === index) return
+    onMoveBlock(draggedIndex, index)
+    setDraggedIndex(index)
+  }
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null)
   }
 
   const renderDynamicIcon = (name: string, className?: string) => {
@@ -139,18 +163,62 @@ export function EditorCanvas({
             const paddingY = styles.paddingY !== undefined ? `${styles.paddingY}px` : '48px'
             
             return (
-              <div 
-                key={block.id} 
+              <div
+                key={block.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragEnd={handleDragEnd}
                 onClick={(e) => {
                   e.stopPropagation()
                   onSelectBlock(block.id)
                 }}
                 style={{ paddingTop: paddingY, paddingBottom: paddingY }}
                 className={cn(
-                  "relative transition-all",
-                  isSelected ? "ring-2 ring-primary ring-inset z-10" : "hover:bg-slate-50/50"
+                  "relative transition-all group/block",
+                  isSelected ? "ring-2 ring-primary ring-inset z-10" : "hover:bg-slate-50/50",
+                  draggedIndex === index ? "opacity-50" : ""
                 )}
               >
+                {/* Drag Handle & Actions */}
+                <div className="absolute -left-3 top-2 opacity-0 group-hover/block:opacity-100 transition-opacity flex flex-col gap-1 z-20">
+                  <button
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, index)}
+                    className="h-6 w-6 rounded bg-background border shadow-sm flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary cursor-grab active:cursor-grabbing"
+                    title="Drag to reorder"
+                  >
+                    <GripVertical className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                
+                {/* Block Actions */}
+                <div className="absolute -right-2 top-2 opacity-0 group-hover/block:opacity-100 transition-opacity flex items-center gap-1 z-20">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 bg-background border shadow-sm hover:border-primary"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDuplicateBlock(block.id)
+                    }}
+                    title="Duplicate block"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 bg-background border shadow-sm hover:border-destructive text-muted-foreground hover:text-destructive"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onRemoveBlock(block.id)
+                    }}
+                    title="Delete block"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
                 {/* Render Block Content */}
                 <div className="group/block relative">
                   {block.type === 'navbar' && (

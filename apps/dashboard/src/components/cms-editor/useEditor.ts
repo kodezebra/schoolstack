@@ -1,25 +1,48 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Block, BlockContent } from './types'
+
+const MAX_HISTORY = 50
+const STORAGE_KEY = 'cms_editor_history'
 
 export function useEditor(initialBlocks: any[] = []) {
   const [localBlocks, setLocalBlocks] = useState<Block[]>([])
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true)
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
+  
+  // Undo/Redo history
+  const [history, setHistory] = useState<Block[][]>([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
+  const skipSaveRef = useRef(false)
 
   // Initialize blocks when data is fetched
   useEffect(() => {
     if (initialBlocks?.length > 0 && localBlocks.length === 0) {
-      setLocalBlocks(initialBlocks.map((b: any) => ({
+      const parsed = initialBlocks.map((b: any) => ({
         ...b,
         content: typeof b.content === 'string' ? JSON.parse(b.content) : b.content
-      })))
+      }))
+      setLocalBlocks(parsed)
+      setHistory([parsed])
+      setHistoryIndex(0)
     }
   }, [initialBlocks])
 
+  // Save to history for undo/redo
+  const saveToHistory = useCallback((blocks: Block[]) => {
+    if (skipSaveRef.current) return
+    
+    setHistory(prev => {
+      const newHistory = prev.slice(0, historyIndex + 1)
+      const updated = [...newHistory, blocks]
+      return updated.slice(-MAX_HISTORY)
+    })
+    setHistoryIndex(prev => Math.min(prev + 1, MAX_HISTORY - 1))
+  }, [historyIndex])
+
   const addBlock = useCallback((type: string) => {
     let content: BlockContent = {}
-    
+
     switch (type) {
       case 'navbar':
         content = { logoText: 'KZ Cloud', links: [{ label: 'Features', href: '#' }, { label: 'About', href: '#' }], cta: { label: 'Get Started', href: '#' } }
@@ -48,6 +71,21 @@ export function useEditor(initialBlocks: any[] = []) {
       case 'footer':
         content = { logoText: 'KZ Cloud', description: 'Empowering businesses with cutting-edge solutions.' }
         break
+      case 'steps':
+        content = { tagline: 'How It Works', title: 'Our Process', subtitle: 'Simple steps to get started.', items: [{ icon: 'zap', title: 'Step 1', description: 'First step description.' }, { icon: 'settings', title: 'Step 2', description: 'Second step description.' }] }
+        break
+      case 'values':
+        content = { tagline: 'Our Values', title: 'What We Believe', subtitle: 'Core principles guiding us.', items: [{ icon: 'heart', title: 'Integrity', description: 'We do the right thing.' }, { icon: 'users', title: 'Teamwork', description: 'Together we achieve more.' }] }
+        break
+      case 'splitContent':
+        content = { eyebrow: 'Since 2024', title: 'About Our Vision', description: 'We believe in innovation.', image: '', cta: { label: 'Learn More', href: '#' }, imagePosition: 'left' }
+        break
+      case 'videoGallery':
+        content = { tagline: 'Portfolio', title: 'Video Showcase', subtitle: 'See our work in action.', items: [{ title: 'Project Demo', thumbnail: '', videoUrl: '' }] }
+        break
+      case 'faq':
+        content = { tagline: 'FAQ', title: 'Common Questions', subtitle: 'Find answers here.', items: [{ question: 'How do I get started?', answer: 'Contact us to begin.' }] }
+        break
       default:
         content = { text: 'New content block.' }
     }
@@ -57,25 +95,97 @@ export function useEditor(initialBlocks: any[] = []) {
       type,
       content,
     }
-    setLocalBlocks(prev => [...prev, newBlock])
+    const newBlocks = [...localBlocks, newBlock]
+    setLocalBlocks(newBlocks)
+    saveToHistory(newBlocks)
     setSelectedBlockId(newBlock.id)
     setRightSidebarOpen(true)
-  }, [])
+  }, [localBlocks, saveToHistory])
 
   const updateBlockContent = useCallback((id: string, content: BlockContent) => {
-    setLocalBlocks(prev => prev.map(b => b.id === id ? { ...b, content } : b))
-  }, [])
+    const newBlocks = localBlocks.map(b => b.id === id ? { ...b, content } : b)
+    setLocalBlocks(newBlocks)
+    saveToHistory(newBlocks)
+  }, [localBlocks, saveToHistory])
 
   const updateBlockStyles = useCallback((id: string, styles: any) => {
-    setLocalBlocks(prev => prev.map(b => 
+    const newBlocks = localBlocks.map(b =>
       b.id === id ? { ...b, content: { ...b.content, styles } } : b
-    ))
-  }, [])
+    )
+    setLocalBlocks(newBlocks)
+    saveToHistory(newBlocks)
+  }, [localBlocks, saveToHistory])
 
   const removeBlock = useCallback((id: string) => {
     if (id === selectedBlockId) setSelectedBlockId(null)
-    setLocalBlocks(prev => prev.filter(b => b.id !== id))
-  }, [selectedBlockId])
+    const newBlocks = localBlocks.filter(b => b.id !== id)
+    setLocalBlocks(newBlocks)
+    saveToHistory(newBlocks)
+  }, [localBlocks, selectedBlockId, saveToHistory])
+
+  const duplicateBlock = useCallback((id: string) => {
+    const block = localBlocks.find(b => b.id === id)
+    if (!block) return
+    
+    const index = localBlocks.findIndex(b => b.id === id)
+    const newBlock: Block = {
+      ...block,
+      id: `temp-${Date.now()}`,
+      content: JSON.parse(JSON.stringify(block.content)) // Deep clone
+    }
+    
+    const newBlocks = [...localBlocks]
+    newBlocks.splice(index + 1, 0, newBlock)
+    setLocalBlocks(newBlocks)
+    saveToHistory(newBlocks)
+    setSelectedBlockId(newBlock.id)
+  }, [localBlocks, saveToHistory])
+
+  const moveBlock = useCallback((fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= localBlocks.length) return
+    
+    const newBlocks = [...localBlocks]
+    const [removed] = newBlocks.splice(fromIndex, 1)
+    newBlocks.splice(toIndex, 0, removed)
+    setLocalBlocks(newBlocks)
+    saveToHistory(newBlocks)
+  }, [localBlocks, saveToHistory])
+
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      skipSaveRef.current = true
+      setHistoryIndex(historyIndex - 1)
+      setLocalBlocks(history[historyIndex - 1])
+      setTimeout(() => { skipSaveRef.current = false }, 0)
+    }
+  }, [history, historyIndex])
+
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      skipSaveRef.current = true
+      setHistoryIndex(historyIndex + 1)
+      setLocalBlocks(history[historyIndex + 1])
+      setTimeout(() => { skipSaveRef.current = false }, 0)
+    }
+  }, [history, historyIndex])
+
+  const canUndo = historyIndex > 0
+  const canRedo = historyIndex < history.length - 1
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.length > 0) {
+          setHistory(parsed)
+          setHistoryIndex(parsed.length - 1)
+          setLocalBlocks(parsed[parsed.length - 1])
+        }
+      }
+    } catch {}
+  }, [])
 
   return {
     localBlocks,
@@ -89,6 +199,12 @@ export function useEditor(initialBlocks: any[] = []) {
     addBlock,
     updateBlockContent,
     updateBlockStyles,
-    removeBlock
+    removeBlock,
+    duplicateBlock,
+    moveBlock,
+    undo,
+    redo,
+    canUndo,
+    canRedo
   }
 }

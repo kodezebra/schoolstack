@@ -2,9 +2,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Button } from "@/components/ui/button"
-import { 
-  SlidersVertical, MousePointer2, Trash2, ImagePlus, 
-  Plus, X, ChevronDown, ChevronUp 
+import {
+  SlidersVertical, MousePointer2, Trash2, ImagePlus,
+  Plus, X, ChevronDown, ChevronUp, Copy, AlertCircle
 } from 'lucide-react'
 import { MediaPicker } from './MediaPicker'
 import { IconPicker } from './IconPicker'
@@ -55,16 +55,18 @@ const ItemAccordion = ({
 
 // --- Main Inspector Component ---
 
-export function EditorInspector({ 
-  selectedBlock, 
+export function EditorInspector({
+  selectedBlock,
   onUpdateContent,
   onUpdateStyles,
-  onRemoveBlock
-}: { 
-  selectedBlock: any | null, 
+  onRemoveBlock,
+  onDuplicateBlock
+}: {
+  selectedBlock: any | null,
   onUpdateContent: (content: any) => void,
   onUpdateStyles: (styles: any) => void,
-  onRemoveBlock: (id: string) => void
+  onRemoveBlock: (id: string) => void,
+  onDuplicateBlock: (id: string) => void
 }) {
   const [openItems, setOpenItems] = useState<Record<string, number | null>>({})
 
@@ -76,6 +78,13 @@ export function EditorInspector({
       </div>
     )
   }
+
+  // Validation: Check for empty required fields
+  const hasEmptyRequired = !selectedBlock.content.title && 
+    !selectedBlock.content.text && 
+    selectedBlock.type !== 'navbar' && 
+    selectedBlock.type !== 'footer' &&
+    selectedBlock.type !== 'stats'
 
   const toggleItem = (blockId: string, index: number) => {
     setOpenItems(prev => ({
@@ -111,15 +120,36 @@ export function EditorInspector({
            <SlidersVertical className="h-4 w-4 text-primary" />
            <h2 className="font-bold text-[10px] uppercase tracking-widest">{selectedBlock.type}</h2>
         </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-          onClick={() => onRemoveBlock(selectedBlock.id)}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            onClick={() => onDuplicateBlock(selectedBlock.id)}
+            title="Duplicate block"
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            onClick={() => onRemoveBlock(selectedBlock.id)}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        </div>
       </div>
+
+      {/* Validation Warning */}
+      {hasEmptyRequired && (
+        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 flex items-start gap-2">
+          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
+            This block appears to be empty. Add some content to make it visible.
+          </p>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-6 space-y-8">
         

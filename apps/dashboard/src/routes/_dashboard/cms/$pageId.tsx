@@ -75,7 +75,7 @@ function CMSPage() {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden bg-background font-sans">
-      <EditorHeader 
+      <EditorHeader
         pageData={pageData}
         settings={settings}
         setSettings={setSettings}
@@ -83,37 +83,45 @@ function CMSPage() {
         onSaveBlocks={() => saveBlocks.mutate(editor.localBlocks)}
         isSavingBlocks={saveBlocks.isPending}
         isSavingSettings={updateSettings.isPending}
+        canUndo={editor.canUndo}
+        canRedo={editor.canRedo}
+        onUndo={editor.undo}
+        onRedo={editor.redo}
       />
 
       <main className="flex-1 flex overflow-hidden">
         <aside className={cn("transition-all duration-300 border-r shrink-0 overflow-hidden bg-card", editor.leftSidebarOpen ? "w-[280px]" : "w-0")}>
           <div className="w-[280px] h-full">
-            <EditorSidebar 
-              blocks={editor.localBlocks} 
-              activeBlockId={editor.selectedBlockId} 
-              onSelectBlock={editor.setSelectedBlockId} 
-              onAddBlock={editor.addBlock} 
+            <EditorSidebar
+              blocks={editor.localBlocks}
+              activeBlockId={editor.selectedBlockId}
+              onSelectBlock={editor.setSelectedBlockId}
+              onAddBlock={editor.addBlock}
             />
           </div>
         </aside>
 
-        <EditorCanvas 
-          blocks={editor.localBlocks} 
-          onSelectBlock={editor.setSelectedBlockId} 
+        <EditorCanvas
+          blocks={editor.localBlocks}
+          onSelectBlock={editor.setSelectedBlockId}
           selectedBlockId={editor.selectedBlockId}
           onToggleLeft={() => editor.setLeftSidebarOpen(!editor.leftSidebarOpen)}
           onToggleRight={() => editor.setRightSidebarOpen(!editor.rightSidebarOpen)}
           leftOpen={editor.leftSidebarOpen}
           rightOpen={editor.rightSidebarOpen}
+          onDuplicateBlock={editor.duplicateBlock}
+          onRemoveBlock={editor.removeBlock}
+          onMoveBlock={editor.moveBlock}
         />
 
         <aside className={cn("transition-all duration-300 border-l shrink-0 overflow-hidden bg-card", editor.rightSidebarOpen ? "w-[320px]" : "w-0")}>
           <div className="w-[320px] h-full">
-            <EditorInspector 
-              selectedBlock={editor.localBlocks.find(b => b.id === editor.selectedBlockId)} 
-              onUpdateContent={(content) => editor.updateBlockContent(editor.selectedBlockId!, content)} 
+            <EditorInspector
+              selectedBlock={editor.localBlocks.find(b => b.id === editor.selectedBlockId)}
+              onUpdateContent={(content) => editor.updateBlockContent(editor.selectedBlockId!, content)}
               onUpdateStyles={(styles) => editor.updateBlockStyles(editor.selectedBlockId!, styles)}
               onRemoveBlock={editor.removeBlock}
+              onDuplicateBlock={editor.duplicateBlock}
             />
           </div>
         </aside>

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Settings2, Globe, ExternalLink, Rocket } from 'lucide-react'
+import { ArrowLeft, Settings2, Globe, ExternalLink, Rocket, Undo2, Redo2 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Sheet,
   SheetContent,
@@ -15,23 +15,32 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { SITE_URL } from '@/config'
+import { cn } from "@/lib/utils"
 
 export function EditorHeader({ 
   pageData, 
   settings, 
-  setSettings, 
-  onSaveSettings, 
+  setSettings,
+  onSaveSettings,
   onSaveBlocks,
   isSavingBlocks,
-  isSavingSettings
-}: { 
-  pageData: any, 
-  settings: any, 
+  isSavingSettings,
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo
+}: {
+  pageData: any,
+  settings: any,
   setSettings: (s: any) => void,
   onSaveSettings: () => void,
   onSaveBlocks: () => void,
   isSavingBlocks: boolean,
-  isSavingSettings: boolean
+  isSavingSettings: boolean,
+  canUndo: boolean,
+  canRedo: boolean,
+  onUndo: () => void,
+  onRedo: () => void
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
@@ -39,6 +48,26 @@ export function EditorHeader({
     onSaveSettings()
     setIsSettingsOpen(false)
   }
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger when typing in inputs
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault()
+        if (e.shiftKey) {
+          onRedo()
+        } else {
+          onUndo()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onUndo, onRedo])
 
   return (
     <header className="h-14 border-b flex items-center justify-between px-4 bg-background z-20 shadow-sm shrink-0">
@@ -60,6 +89,30 @@ export function EditorHeader({
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Undo/Redo */}
+        <div className="flex items-center gap-1 mr-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onUndo}
+            disabled={!canUndo}
+            title="Undo (Ctrl+Z)"
+          >
+            <Undo2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={onRedo}
+            disabled={!canRedo}
+            title="Redo (Ctrl+Shift+Z)"
+          >
+            <Redo2 className="h-4 w-4" />
+          </Button>
+        </div>
+
         <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground hover:bg-muted h-8 px-3 gap-2 text-[10px] font-bold uppercase tracking-wider">
