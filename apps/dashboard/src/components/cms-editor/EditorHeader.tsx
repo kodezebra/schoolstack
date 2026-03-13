@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Settings2, Globe, ExternalLink, Rocket, Undo2, Redo2 } from 'lucide-react'
+import { ArrowLeft, Settings2, Globe, ExternalLink, Rocket, Undo2, Redo2, Trash2 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import {
@@ -11,6 +11,14 @@ import {
   SheetTrigger,
   SheetFooter,
 } from "@/components/ui/sheet"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
@@ -23,6 +31,8 @@ export function EditorHeader({
   setSettings,
   onSaveSettings,
   onSaveBlocks,
+  onDeletePage,
+  isDeletingPage,
   isSavingBlocks,
   isSavingSettings,
   canUndo,
@@ -35,6 +45,8 @@ export function EditorHeader({
   setSettings: (s: any) => void,
   onSaveSettings: () => void,
   onSaveBlocks: () => void,
+  onDeletePage: () => void,
+  isDeletingPage: boolean,
   isSavingBlocks: boolean,
   isSavingSettings: boolean,
   canUndo: boolean,
@@ -43,9 +55,16 @@ export function EditorHeader({
   onRedo: () => void
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const handleUpdateSettings = () => {
     onSaveSettings()
+    setIsSettingsOpen(false)
+  }
+
+  const handleDeletePage = () => {
+    onDeletePage()
+    setIsDeleteDialogOpen(false)
     setIsSettingsOpen(false)
   }
 
@@ -168,6 +187,22 @@ export function EditorHeader({
                    </div>
                  </div>
               </div>
+
+              <div className="mt-4 border-t pt-6">
+                <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+                  <h4 className="text-sm font-semibold text-destructive mb-1">Danger Zone</h4>
+                  <p className="text-xs text-muted-foreground mb-4">Permanently delete this page and all its content blocks.</p>
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    className="w-full text-xs font-bold"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                    Delete Page
+                  </Button>
+                </div>
+              </div>
             </div>
             <SheetFooter className="mt-4">
               <Button className="w-full" onClick={handleUpdateSettings} disabled={isSavingSettings}>
@@ -176,6 +211,28 @@ export function EditorHeader({
             </SheetFooter>
           </SheetContent>
         </Sheet>
+
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Page</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete <span className="font-semibold">{pageData?.title}</span>? 
+                This action cannot be undone and will permanently remove all associated content blocks.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>Cancel</Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleDeletePage}
+                disabled={isDeletingPage}
+              >
+                {isDeletingPage ? 'Deleting...' : 'Delete Page'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <div className="h-4 w-[1px] bg-border mx-2" />
 

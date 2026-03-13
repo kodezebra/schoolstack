@@ -35,6 +35,7 @@ export const blocks = sqliteTable('blocks', {
   order: integer('order').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
+export type Block = typeof blocks.$inferSelect;
 
 export const assets = sqliteTable('assets', {
   id: text('id').primaryKey().$defaultFn(() => createId()),

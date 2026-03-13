@@ -71,6 +71,18 @@ function CMSPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['page', pageId] }),
   })
 
+  const deletePage = useMutation({
+    mutationFn: async () => {
+      await apiFetch(`/pages/${pageId}`, {
+        method: 'DELETE',
+      })
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['pages'] })
+      navigate({ to: '/cms' })
+    },
+  })
+
   if (isLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading Editor...</div>
 
   return (
@@ -81,6 +93,8 @@ function CMSPage() {
         setSettings={setSettings}
         onSaveSettings={() => updateSettings.mutate(settings)}
         onSaveBlocks={() => saveBlocks.mutate(editor.localBlocks)}
+        onDeletePage={() => deletePage.mutate()}
+        isDeletingPage={deletePage.isPending}
         isSavingBlocks={saveBlocks.isPending}
         isSavingSettings={updateSettings.isPending}
         canUndo={editor.canUndo}

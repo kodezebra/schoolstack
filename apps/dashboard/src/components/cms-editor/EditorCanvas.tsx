@@ -6,7 +6,7 @@ import {
   MessageSquare, PanelBottom, Globe, Mail, Share2,
   Copy, Trash2
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { cn } from "@/lib/utils"
 import {
   Tooltip,
@@ -37,6 +37,16 @@ export function EditorCanvas({
   onRemoveBlock: (id: string) => void
 }) {
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
+  const blockRefs = useRef<{ [key: string]: HTMLDivElement | null }>({})
+
+  useEffect(() => {
+    if (selectedBlockId && blockRefs.current[selectedBlockId]) {
+      blockRefs.current[selectedBlockId]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      })
+    }
+  }, [selectedBlockId])
 
   const containerWidths = {
     desktop: 'w-full max-w-[1200px]',
@@ -146,6 +156,7 @@ export function EditorCanvas({
             return (
               <div
                 key={block.id}
+                ref={(el) => (blockRefs.current[block.id] = el)}
                 onClick={(e) => {
                   e.stopPropagation()
                   onSelectBlock(block.id)

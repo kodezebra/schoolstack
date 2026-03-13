@@ -5,6 +5,7 @@ import publicApp from './routes/public'
 import authApp from './routes/auth'
 import assetsApp from './routes/assets'
 import settingsApp from './routes/settings'
+import templatesApp from './routes/templates' // Import new templates app
 
 type Bindings = {
   DB: D1Database
@@ -34,6 +35,9 @@ app.route('/api/assets', assetsApp)
 
 // Settings Routes
 app.route('/api/settings', settingsApp)
+
+// Templates Routes
+app.route('/api/templates', templatesApp)
 
 // CMS Admin Routes
 app.route('/api/pages', pagesApp)

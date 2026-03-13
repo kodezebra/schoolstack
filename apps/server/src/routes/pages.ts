@@ -38,15 +38,26 @@ app.get('/:id', async (c) => {
 app.post('/', async (c) => {
   const db = drizzle(c.env.DB)
   const body = await c.req.json()
+  const { title, slug, description, status, metaTitle, metaDescription, blocks: initialBlocks } = body;
   
   const [newPage] = await db.insert(pages).values({
-    title: body.title,
-    slug: body.slug,
-    description: body.description,
-    status: body.status,
-    metaTitle: body.metaTitle,
-    metaDescription: body.metaDescription,
+    title,
+    slug,
+    description,
+    status,
+    metaTitle,
+    metaDescription,
   }).returning()
+
+  if (initialBlocks && initialBlocks.length > 0) {
+    const blocksToInsert = initialBlocks.map((b: any, index: number) => ({
+      pageId: newPage.id,
+      type: b.type,
+      content: typeof b.content === 'string' ? b.content : JSON.stringify(b.content),
+      order: index,
+    }))
+    await db.insert(blocks).values(blocksToInsert)
+  }
 
   return c.json(newPage)
 })
@@ -95,6 +106,24 @@ app.put('/:id/blocks', async (c) => {
   await db.update(pages)
     .set({ updatedAt: new Date() })
     .where(eq(pages.id, pageId))
+
+  return c.json({ success: true })
+})
+
+// DELETE page
+app.delete('/:id', async (c) => {
+  const db = drizzle(c.env.DB)
+  const id = c.req.param('id')
+
+  // Delete blocks first (though they might be cascade deleted depending on schema, 
+  // let's be explicit if not sure, or just rely on schema if it's there)
+  await db.delete(blocks).where(eq(blocks.pageId, id))
+  
+  const result = await db.delete(pages).where(eq(pages.id, id)).returning()
+
+  if (result.length === 0) {
+    return c.json({ error: 'Page not found' }, 404)
+  }
 
   return c.json({ success: true })
 })

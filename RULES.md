@@ -12,13 +12,8 @@ PROJECT CODING RULES & STANDARDS
    - If props are simple, you can skip the interface and just type them inline in the function arguments.
 
 4. JSX SYNTAX
-   - Use standard HTML attributes: `class` (NOT `className`), `for` (NOT `htmlFor`).
    - Use lowercase for standard HTML tags (`<div>`, `<span>`).
    - Use PascalCase only for custom Components (`<MyCard />`).
-
-5. STYLING
-   - Use inline styles or standard CSS classes.
-   - Do not use CSS-in-JS libraries (like styled-components) unless I explicitly ask for them.
 
 6. LOGIC
    - Use standard JavaScript `.map()` for lists.
