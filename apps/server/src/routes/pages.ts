@@ -15,6 +15,8 @@ const createPageSchema = z.object({
   title: z.string().min(1),
   slug: z.string().min(1),
   description: z.string().optional(),
+  parentId: z.string().nullable().optional(),
+  order: z.number().optional().default(0),
   status: z.enum(['draft', 'published']).default('draft'),
   metaTitle: z.string().optional(),
   metaDescription: z.string().optional(),
@@ -23,11 +25,22 @@ const createPageSchema = z.object({
 
 const updatePageSchema = createPageSchema.partial()
 
-// GET all pages
+// GET all pages with hierarchy
 app.get('/', async (c) => {
   const db = drizzle(c.env.DB)
-  const result = await db.select().from(pages).orderBy(desc(pages.updatedAt))
-  return c.json(result)
+  const result = await db.select().from(pages).orderBy(pages.order, desc(pages.updatedAt))
+  
+  // Build hierarchical structure
+  const parentPages = result.filter(page => !page.parentId)
+  const childPages = result.filter(page => page.parentId)
+  
+  // Add children to parent pages
+  const pagesWithChildren = parentPages.map(parent => ({
+    ...parent,
+    children: childPages.filter(child => child.parentId === parent.id)
+  }))
+  
+  return c.json(pagesWithChildren)
 })
 
 // GET single page with blocks
@@ -58,12 +71,14 @@ app.post('/', async (c) => {
     return c.json({ error: 'Invalid input', details: validation.error.format() }, 400)
   }
 
-  const { title, slug, description, status, metaTitle, metaDescription, blocks: initialBlocks } = validation.data;
-  
+  const { title, slug, description, parentId, order, status, metaTitle, metaDescription, blocks: initialBlocks } = validation.data;
+
   const [newPage] = await db.insert(pages).values({
     title,
     slug,
     description,
+    parentId: parentId || null,
+    order,
     status,
     metaTitle,
     metaDescription,

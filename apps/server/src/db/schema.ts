@@ -20,10 +20,12 @@ export const sessions = sqliteTable('sessions', {
 export const pages = sqliteTable('pages', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   title: text('title').notNull(),
-  slug: text('slug').notNull().unique(),
+  slug: text('slug').notNull(),
   description: text('description'),
   metaTitle: text('meta_title'),
   metaDescription: text('meta_description'),
+  parentId: text('parent_id').references(() => pages.id, { onDelete: 'set null' }),
+  order: integer('order').notNull().default(0),
   status: text('status', { enum: ['draft', 'published'] }).notNull().default('draft'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),

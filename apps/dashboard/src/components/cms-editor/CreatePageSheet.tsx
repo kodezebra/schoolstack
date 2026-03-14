@@ -13,10 +13,24 @@ import {
 } from '@/components/ui/sheet'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { FileText, Layout, Megaphone, Phone, User, Briefcase, Loader2, Star } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
+
+interface Page {
+  id: string
+  title: string
+  slug: string
+  children?: Page[]
+}
 
 interface Template {
   id: string
@@ -34,6 +48,8 @@ interface CreatePageSheetProps {
     status: 'draft' | 'published'
     template: string
     blocks: any[]
+    parentId?: string | null
+    order?: number
     metaTitle?: string
     metaDescription?: string
   }) => void
@@ -63,6 +79,7 @@ export function CreatePageSheet({ open, onOpenChange, onCreate, isCreating }: Cr
   const [metaTitle, setMetaTitle] = useState('')
   const [metaDescription, setMetaDescription] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
+  const [parentId, setParentId] = useState<string | null>(null)
 
   // Fetch templates from server
   const { data: templates, isLoading: isLoadingTemplates } = useQuery({
@@ -71,6 +88,16 @@ export function CreatePageSheet({ open, onOpenChange, onCreate, isCreating }: Cr
       const res = await apiFetch('/templates')
       if (!res.ok) return []
       return res.json() as Promise<Template[]>
+    }
+  })
+
+  // Fetch pages for parent selection
+  const { data: pages } = useQuery({
+    queryKey: ['pages'],
+    queryFn: async () => {
+      const res = await apiFetch('/pages')
+      if (!res.ok) return []
+      return res.json() as Promise<Page[]>
     }
   })
 
@@ -120,6 +147,8 @@ export function CreatePageSheet({ open, onOpenChange, onCreate, isCreating }: Cr
       status: isPublished ? 'published' : 'draft',
       template: selectedTemplate,
       blocks: templateBlocks,
+      parentId,
+      order: 0,
       metaTitle: metaTitle || title,
       metaDescription: metaDescription || `Learn more about ${title}`
     })
@@ -196,6 +225,30 @@ export function CreatePageSheet({ open, onOpenChange, onCreate, isCreating }: Cr
               checked={isPublished}
               onCheckedChange={setIsPublished}
             />
+          </div>
+
+          {/* Parent Page Selector */}
+          <div className="grid gap-2">
+            <Label htmlFor="parent-page" className="text-base font-semibold">Parent Page (Optional)</Label>
+            <Select
+              value={parentId || 'null'}
+              onValueChange={(value) => setParentId(value === 'null' ? null : value)}
+            >
+              <SelectTrigger id="parent-page" className="h-11">
+                <SelectValue placeholder="Select a parent page" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="null">None (Top-level page)</SelectItem>
+                {pages?.map((page) => (
+                  <SelectItem key={page.id} value={page.id}>
+                    {page.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Choose a parent page to create a nested page (e.g., Services &gt; Web Design)
+            </p>
           </div>
 
           {/* Template Selection */}
