@@ -20,26 +20,27 @@ async function hashPassword(password: string) {
 // BOOTSTRAP: Create first user only
 app.post('/bootstrap', async (c) => {
   const db = drizzle(c.env.DB)
-  
+
   // Check if any user exists
   const userCount = await db.select({ count: sql<number>`count(*)` }).from(users).get()
-  
+
   if (userCount && userCount.count > 0) {
     return c.json({ error: 'Forbidden: Admin already exists' }, 403)
   }
 
   const { email, password, name } = await c.req.json()
   const passwordHash = await hashPassword(password)
-  
+
   const [newUser] = await db.insert(users).values({
     email,
     passwordHash,
     name: name || 'Admin',
+    role: 'owner', // First user is owner
   }).returning()
 
-  return c.json({ 
-    message: 'Admin created successfully', 
-    user: { id: newUser.id, email: newUser.email } 
+  return c.json({
+    message: 'Admin created successfully',
+    user: { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role }
   })
 })
 
@@ -118,7 +119,7 @@ app.get('/me', async (c) => {
   const user = await db.select().from(users).where(eq(users.id, session.userId as string)).get()
   if (!user) return c.json(null)
 
-  return c.json({ id: user.id, email: user.email, name: user.name })
+  return c.json({ id: user.id, email: user.email, name: user.name, role: user.role })
 })
 
 // PATCH ME - Update profile
@@ -151,7 +152,7 @@ app.patch('/me', async (c) => {
       .where(eq(users.id, session.userId as string))
       .returning()
 
-    return c.json({ id: updatedUser.id, email: updatedUser.email, name: updatedUser.name })
+    return c.json({ id: updatedUser.id, email: updatedUser.email, name: updatedUser.name, role: updatedUser.role })
   } catch (e: any) {
     // Handle unique constraint violation for email
     if (e.message?.includes('UNIQUE') || e.message?.includes('duplicate')) {

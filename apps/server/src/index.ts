@@ -5,7 +5,8 @@ import publicApp from './routes/public'
 import authApp from './routes/auth'
 import assetsApp from './routes/assets'
 import settingsApp from './routes/settings'
-import templatesApp from './routes/templates' // Import new templates app
+import templatesApp from './routes/templates'
+import usersApp from './routes/users' // Import users app
 
 type Bindings = {
   DB: D1Database
@@ -29,6 +30,9 @@ app.use('*', async (c, next) => {
 
 // Auth Routes
 app.route('/api/auth', authApp)
+
+// Users Routes (must come before pages to avoid route conflicts)
+app.route('/api/users', usersApp)
 
 // Assets Routes
 app.route('/api/assets', assetsApp)
