@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -41,6 +41,7 @@ export const Route = createFileRoute('/_dashboard/cms/')({
 
 function CMSPageList() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false)
@@ -60,12 +61,10 @@ function CMSPageList() {
       slug: string
       status: 'draft' | 'published'
       template: string
+      blocks: any[]
       metaTitle?: string
       metaDescription?: string
     }) => {
-      // Get template blocks
-      const templateBlocks = getTemplateBlocks(newPage.template)
-      
       const res = await apiFetch('/pages', {
         method: 'POST',
         body: JSON.stringify({
@@ -74,7 +73,7 @@ function CMSPageList() {
           status: newPage.status,
           metaTitle: newPage.metaTitle,
           metaDescription: newPage.metaDescription,
-          blocks: templateBlocks
+          blocks: newPage.blocks
         })
       })
       if (!res.ok) throw new Error('Failed to create page')
@@ -83,8 +82,8 @@ function CMSPageList() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['pages'] })
       setIsCreateSheetOpen(false)
-      // Could add toast notification here
-      console.log('Page created:', data)
+      // Redirect to edit the new page
+      navigate({ to: '/cms/$pageId', params: { pageId: data.id } })
     }
   })
 
@@ -100,45 +99,6 @@ function CMSPageList() {
       queryClient.invalidateQueries({ queryKey: ['pages'] })
     }
   })
-
-  const getTemplateBlocks = (templateId: string) => {
-    const templates: Record<string, any[]> = {
-      'blank': [],
-      'hero-basic': [
-        { type: 'navbar', content: {} },
-        { type: 'hero', content: {} },
-        { type: 'content', content: {} },
-        { type: 'footer', content: {} }
-      ],
-      'landing': [
-        { type: 'navbar', content: {} },
-        { type: 'hero', content: {} },
-        { type: 'features', content: {} },
-        { type: 'cta', content: {} },
-        { type: 'footer', content: {} }
-      ],
-      'contact': [
-        { type: 'navbar', content: {} },
-        { type: 'content', content: {} },
-        { type: 'contact-form', content: {} },
-        { type: 'footer', content: {} }
-      ],
-      'about': [
-        { type: 'navbar', content: {} },
-        { type: 'content', content: {} },
-        { type: 'team', content: {} },
-        { type: 'footer', content: {} }
-      ],
-      'service': [
-        { type: 'navbar', content: {} },
-        { type: 'hero', content: {} },
-        { type: 'services', content: {} },
-        { type: 'testimonials', content: {} },
-        { type: 'footer', content: {} }
-      ]
-    }
-    return templates[templateId] || []
-  }
 
   const handleCreatePage = () => {
     setIsCreateSheetOpen(true)
