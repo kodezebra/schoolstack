@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input"
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { SITE_URL } from '@/config'
+import { CreatePageSheet } from '@/components/cms-editor/CreatePageSheet'
 
 export const Route = createFileRoute('/_dashboard/cms/')({
   component: CMSPageList,
@@ -42,6 +43,7 @@ function CMSPageList() {
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false)
 
   const { data: pages, isLoading } = useQuery({
     queryKey: ['pages'],
@@ -53,16 +55,36 @@ function CMSPageList() {
   })
 
   const createPageMutation = useMutation({
-    mutationFn: async (newPage: any) => {
+    mutationFn: async (newPage: {
+      title: string
+      slug: string
+      status: 'draft' | 'published'
+      template: string
+      metaTitle?: string
+      metaDescription?: string
+    }) => {
+      // Get template blocks
+      const templateBlocks = getTemplateBlocks(newPage.template)
+      
       const res = await apiFetch('/pages', {
         method: 'POST',
-        body: JSON.stringify(newPage)
+        body: JSON.stringify({
+          title: newPage.title,
+          slug: newPage.slug,
+          status: newPage.status,
+          metaTitle: newPage.metaTitle,
+          metaDescription: newPage.metaDescription,
+          blocks: templateBlocks
+        })
       })
       if (!res.ok) throw new Error('Failed to create page')
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['pages'] })
+      setIsCreateSheetOpen(false)
+      // Could add toast notification here
+      console.log('Page created:', data)
     }
   })
 
@@ -79,17 +101,47 @@ function CMSPageList() {
     }
   })
 
+  const getTemplateBlocks = (templateId: string) => {
+    const templates: Record<string, any[]> = {
+      'blank': [],
+      'hero-basic': [
+        { type: 'navbar', content: {} },
+        { type: 'hero', content: {} },
+        { type: 'content', content: {} },
+        { type: 'footer', content: {} }
+      ],
+      'landing': [
+        { type: 'navbar', content: {} },
+        { type: 'hero', content: {} },
+        { type: 'features', content: {} },
+        { type: 'cta', content: {} },
+        { type: 'footer', content: {} }
+      ],
+      'contact': [
+        { type: 'navbar', content: {} },
+        { type: 'content', content: {} },
+        { type: 'contact-form', content: {} },
+        { type: 'footer', content: {} }
+      ],
+      'about': [
+        { type: 'navbar', content: {} },
+        { type: 'content', content: {} },
+        { type: 'team', content: {} },
+        { type: 'footer', content: {} }
+      ],
+      'service': [
+        { type: 'navbar', content: {} },
+        { type: 'hero', content: {} },
+        { type: 'services', content: {} },
+        { type: 'testimonials', content: {} },
+        { type: 'footer', content: {} }
+      ]
+    }
+    return templates[templateId] || []
+  }
+
   const handleCreatePage = () => {
-    const title = window.prompt('Enter page title:')
-    if (!title) return
-    
-    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
-    
-    createPageMutation.mutate({
-      title,
-      slug,
-      status: 'draft'
-    })
+    setIsCreateSheetOpen(true)
   }
 
   const filteredPages = pages?.filter((page: any) => 
@@ -98,7 +150,7 @@ function CMSPageList() {
   )
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-8 max-w-7xl mx-auto space-y-8 overflow-x-hidden">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Content Management</h1>
@@ -250,8 +302,8 @@ function CMSPageList() {
           ))}
         </div>
       ) : (
-        <div className="bg-background rounded-xl border shadow-sm overflow-hidden">
-          <table className="w-full text-left border-collapse">
+        <div className="bg-background rounded-xl border shadow-sm overflow-hidden overflow-x-auto">
+          <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
               <tr className="bg-muted/50 border-b">
                 <th className="p-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">Page</th>
@@ -332,6 +384,14 @@ function CMSPageList() {
           </table>
         </div>
       )}
+
+      {/* Create Page Sheet */}
+      <CreatePageSheet
+        open={isCreateSheetOpen}
+        onOpenChange={setIsCreateSheetOpen}
+        onCreate={createPageMutation.mutate}
+        isCreating={createPageMutation.isPending}
+      />
     </div>
   )
 }
