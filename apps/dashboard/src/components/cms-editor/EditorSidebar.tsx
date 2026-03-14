@@ -394,7 +394,7 @@ export function EditorSidebar({
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
                 className={cn(
-                  "h-full flex items-center justify-center w-6 shrink-0 cursor-grab active:cursor-grabbing",
+                  "h-full flex items-center justify-center w-6 shrink-0 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity",
                   isActive ? "text-white/60" : "text-muted-foreground/40"
                 )}
                 title="Drag to reorder"
@@ -405,7 +405,7 @@ export function EditorSidebar({
               </div>
 
               {/* Move Up/Down Buttons */}
-              <div className="flex flex-col gap-0.5 shrink-0">
+              <div className="flex flex-col gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={(e) => { e.stopPropagation(); onMoveBlockUp(index); }}
                   disabled={isFirst}
@@ -449,7 +449,7 @@ export function EditorSidebar({
                 <Icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-muted-foreground/60")} />
                 <div className="flex-1 min-w-0">
                   <div className="text-[11px] font-bold uppercase tracking-tight truncate">
-                    {block.type}
+                    {blockDef?.label || block.type}
                   </div>
                   <div className={cn(
                     "text-[10px] truncate opacity-60 font-medium",

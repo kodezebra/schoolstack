@@ -97,12 +97,15 @@ export function EditorCanvas({
       case 'contact-form': return <ContactFormBlock content={block.content as any} />
       default:
         return (
-          <div className="px-12 py-12 border-2 border-dashed rounded-xl m-4 text-center bg-muted/30">
-            <div className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-1">
-              {(block as any).type} Block
+          <div className="px-12 py-16 border-2 border-dashed rounded-2xl m-6 text-center bg-muted/30 border-muted-foreground/10">
+            <div className="h-12 w-12 rounded-full bg-background border shadow-sm flex items-center justify-center mx-auto mb-4">
+              <Plus className="h-6 w-6 text-muted-foreground/40" />
             </div>
-            <div className="text-xs text-muted-foreground opacity-60 italic">
-              (Preview rendering in progress)
+            <div className="text-sm font-bold uppercase tracking-widest text-muted-foreground mb-1">
+              {(block as any).type} Component
+            </div>
+            <div className="text-xs text-muted-foreground/60 max-w-[200px] mx-auto italic">
+              This component is currently being updated or is not yet available in the preview canvas.
             </div>
           </div>
         )

@@ -199,6 +199,11 @@ export function CreatePageSheet({ open, onOpenChange, onCreate, isCreating }: Cr
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground bg-muted px-3 py-2.5 rounded-md border whitespace-nowrap">
                 yourcms.com/
+                {parentId && (
+                  <span className="text-primary font-medium">
+                    {pages?.find(p => p.id === parentId)?.slug}/
+                  </span>
+                )}
               </span>
               <Input
                 id="create-slug"

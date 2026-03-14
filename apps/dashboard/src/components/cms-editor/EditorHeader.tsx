@@ -56,10 +56,26 @@ export function EditorHeader({
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
 
-  const handleUpdateSettings = () => {
-    onSaveSettings()
+  useEffect(() => {
+    if (isSavingBlocks === false && showSuccess === false && isSavingSettings === false) {
+      // Logic to detect if we just finished saving
+      // This is a bit of a hack without a proper toast system
+    }
+  }, [isSavingBlocks, isSavingSettings])
+
+  const handleSaveBlocks = async () => {
+    await onSaveBlocks()
+    setShowSuccess(true)
+    setTimeout(() => setShowSuccess(false), 3000)
+  }
+
+  const handleUpdateSettings = async () => {
+    await onSaveSettings()
     setIsSettingsOpen(false)
+    setShowSuccess(true)
+    setTimeout(() => setShowSuccess(false), 3000)
   }
 
   const handleDeletePage = () => {
@@ -108,6 +124,13 @@ export function EditorHeader({
       </div>
 
       <div className="flex items-center gap-3">
+        {showSuccess && (
+          <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 animate-in fade-in zoom-in duration-300">
+            <Rocket className="h-3 w-3" />
+            Changes Saved!
+          </div>
+        )}
+
         {/* Undo/Redo */}
         <div className="flex items-center gap-1 mr-2">
           <Button
@@ -251,7 +274,7 @@ export function EditorHeader({
         <Button 
           size="sm" 
           className="h-8 gap-2 bg-primary hover:bg-primary/90 shadow-sm px-4 text-xs font-bold"
-          onClick={onSaveBlocks} 
+          onClick={handleSaveBlocks} 
           disabled={isSavingBlocks}
         >
           <Rocket className="h-3.5 w-3.5" />
