@@ -124,91 +124,101 @@ function CMSPageList() {
   const filteredPages = filterPages(pages || [], searchQuery)
 
   // Render a single page item (reusable for grid/list)
-  const renderPageCard = (page: any, isChild = false) => (
-    <Card key={page.id} className={cn(
-      "group overflow-hidden hover:shadow-xl transition-all duration-300 border-muted-foreground/10 flex flex-col",
-      isChild && "border-l-4 border-l-primary/30 ml-4 scale-[0.98]"
-    )}>
-      <CardHeader className="p-0">
-        <div className="h-40 bg-muted/30 flex items-center justify-center relative group-hover:bg-muted/50 transition-colors">
-          <FileText className="h-12 w-12 text-muted-foreground/20 group-hover:scale-110 transition-transform duration-500" />
-          <div className="absolute top-3 right-3">
-            <span className={cn(
-              "text-[10px] font-bold px-2 py-1 rounded-full border uppercase tracking-widest",
-              page.status === 'published' 
-                ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
-                : "bg-amber-50 text-amber-700 border-amber-200"
-            )}>
-              {page.status}
-            </span>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-6 flex-1">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
-            <CardTitle className="text-xl group-hover:text-primary transition-colors line-clamp-1">{page.title}</CardTitle>
-            <CardDescription className="flex items-center gap-1 font-mono text-xs">
-              /{page.slug === 'home' ? '' : page.slug}
-            </CardDescription>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <Link to="/cms/$pageId" params={{ pageId: page.id }}>
-                <DropdownMenuItem className="gap-2">
-                  <Settings2 className="h-4 w-4" />
-                  Edit Page
-                </DropdownMenuItem>
-              </Link>
-              {page.status === 'published' && (
-                <DropdownMenuItem className="gap-2" asChild>
-                  <a href={`${SITE_URL}/${page.slug === 'home' ? '' : page.slug}`} target="_blank" rel="noreferrer">
-                    <Globe className="h-4 w-4" />
-                    View Public Site
-                  </a>
-                </DropdownMenuItem>
+  const renderPageCard = (page: any, isChild = false, depth = 0) => (
+    <React.Fragment key={page.id}>
+      <Card className={cn(
+        "group overflow-hidden hover:shadow-xl transition-all duration-300 border-muted-foreground/10 flex flex-col",
+        isChild && "border-l-4 border-l-primary/30",
+        depth > 0 && `ml-${Math.min(depth * 4, 12)} scale-[0.98]`
+      )}>
+        <CardHeader className="p-0">
+          <div className="h-40 bg-muted/30 flex items-center justify-center relative group-hover:bg-muted/50 transition-colors">
+            <FileText className="h-12 w-12 text-muted-foreground/20 group-hover:scale-110 transition-transform duration-500" />
+            <div className="absolute top-3 right-3 flex gap-2">
+              {depth > 0 && (
+                <span className="text-[10px] font-bold px-2 py-1 rounded-full border uppercase tracking-widest bg-primary/10 text-primary border-primary/20">
+                  Sub-page
+                </span>
               )}
-              <DropdownMenuItem 
-                className="gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
-                onClick={() => setPageToDelete({ id: page.id, title: page.title })}
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete Page
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        
-        <div className="mt-6 flex items-center gap-4 text-xs text-muted-foreground border-t pt-4">
-          <div className="flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5" />
-            {new Date(page.updatedAt).toLocaleDateString()}
-          </div>
-          {page.children?.length > 0 && (
-            <div className="ml-auto text-primary font-bold uppercase tracking-tighter text-[10px]">
-              {page.children.length} {page.children.length === 1 ? 'Sub-page' : 'Sub-pages'}
+              <span className={cn(
+                "text-[10px] font-bold px-2 py-1 rounded-full border uppercase tracking-widest",
+                page.status === 'published' 
+                  ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                  : "bg-amber-50 text-amber-700 border-amber-200"
+              )}>
+                {page.status}
+              </span>
             </div>
-          )}
-        </div>
-      </CardContent>
-      <CardFooter className="p-0 border-t">
-        <Link
-          to="/cms/$pageId"
-          params={{ pageId: page.id }}
-          className="w-full"
-        >
-          <Button variant="ghost" className="w-full h-12 rounded-none gap-2 text-xs font-bold uppercase tracking-wider hover:bg-primary hover:text-primary-foreground">
-            Edit Content
-            <Settings2 className="h-3.5 w-3.5" />
-          </Button>
-        </Link>
-      </CardFooter>
-    </Card>
+          </div>
+        </CardHeader>
+        <CardContent className="p-6 flex-1">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <CardTitle className="text-xl group-hover:text-primary transition-colors line-clamp-1">{page.title}</CardTitle>
+              <CardDescription className="flex items-center gap-1 font-mono text-xs">
+                /{page.slug === 'home' ? '' : page.slug}
+              </CardDescription>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <Link to="/cms/$pageId" params={{ pageId: page.id }}>
+                  <DropdownMenuItem className="gap-2">
+                    <Settings2 className="h-4 w-4" />
+                    Edit Page
+                  </DropdownMenuItem>
+                </Link>
+                {page.status === 'published' && (
+                  <DropdownMenuItem className="gap-2" asChild>
+                    <a href={`${SITE_URL}/${page.slug === 'home' ? '' : page.slug}`} target="_blank" rel="noreferrer">
+                      <Globe className="h-4 w-4" />
+                      View Public Site
+                    </a>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem 
+                  className="gap-2 text-destructive focus:text-destructive focus:bg-destructive/10"
+                  onClick={() => setPageToDelete({ id: page.id, title: page.title })}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete Page
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          
+          <div className="mt-6 flex items-center gap-4 text-xs text-muted-foreground border-t pt-4">
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5" />
+              {new Date(page.updatedAt).toLocaleDateString()}
+            </div>
+            {page.children?.length > 0 && (
+              <div className="ml-auto text-primary font-bold uppercase tracking-tighter text-[10px] flex items-center gap-1">
+                <List className="h-3 w-3" />
+                {page.children.length} {page.children.length === 1 ? 'Sub-page' : 'Sub-pages'}
+              </div>
+            )}
+          </div>
+        </CardContent>
+        <CardFooter className="p-0 border-t">
+          <Link
+            to="/cms/$pageId"
+            params={{ pageId: page.id }}
+            className="w-full"
+          >
+            <Button variant="ghost" className="w-full h-12 rounded-none gap-2 text-xs font-bold uppercase tracking-wider hover:bg-primary hover:text-primary-foreground">
+              Edit Content
+              <Settings2 className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </CardFooter>
+      </Card>
+      {page.children?.map((child: any) => renderPageCard(child, true, depth + 1))}
+    </React.Fragment>
   )
 
   const renderPageRow = (page: any, depth = 0) => (
@@ -392,12 +402,7 @@ function CMSPageList() {
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredPages?.map((page: any) => (
-            <React.Fragment key={page.id}>
-              {renderPageCard(page)}
-              {page.children?.map((child: any) => renderPageCard(child, true))}
-            </React.Fragment>
-          ))}
+          {filteredPages?.map((page: any) => renderPageCard(page))}
         </div>
       ) : (
         <div className="bg-background rounded-xl border shadow-sm overflow-hidden overflow-x-auto">

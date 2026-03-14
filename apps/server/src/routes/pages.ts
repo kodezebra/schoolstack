@@ -30,17 +30,20 @@ app.get('/', async (c) => {
   const db = drizzle(c.env.DB)
   const result = await db.select().from(pages).orderBy(pages.order, desc(pages.updatedAt))
   
-  // Build hierarchical structure
-  const parentPages = result.filter(page => !page.parentId)
-  const childPages = result.filter(page => page.parentId)
+  // Build hierarchical structure recursively
+  const pageMap = new Map(result.map(p => [p.id, { ...p, children: [] as any[] }]))
+  const rootPages: any[] = []
+
+  for (const page of result) {
+    const pageWithChildren = pageMap.get(page.id)
+    if (page.parentId && pageMap.has(page.parentId)) {
+      pageMap.get(page.parentId)!.children.push(pageWithChildren)
+    } else {
+      rootPages.push(pageWithChildren)
+    }
+  }
   
-  // Add children to parent pages
-  const pagesWithChildren = parentPages.map(parent => ({
-    ...parent,
-    children: childPages.filter(child => child.parentId === parent.id)
-  }))
-  
-  return c.json(pagesWithChildren)
+  return c.json(rootPages)
 })
 
 // GET single page with blocks
