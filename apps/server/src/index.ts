@@ -20,7 +20,7 @@ app.use('*', async (c, next) => {
   const origin = c.env.FRONTEND_URL || 'http://localhost:5173'
   const corsMiddleware = cors({
     origin: origin,
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   })

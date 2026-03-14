@@ -1,23 +1,21 @@
-import { Link, Outlet, useNavigate } from '@tanstack/react-router'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { 
-  LayoutDashboard, 
-  Settings, 
-  Users, 
-  Globe, 
-  ShieldCheck, 
-  Zap, 
+import { Link, Outlet } from '@tanstack/react-router'
+import {
+  LayoutDashboard,
+  Settings,
+  Users,
+  Globe,
+  ShieldCheck,
+  Zap,
   Menu,
   Search,
   Bell,
-  CircleUser,
   FileCode2,
-  LogOut
+  User,
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
-import { Route } from '@/routes/_dashboard/route' // Import the specific Route object
-
-import { apiFetch } from '@/lib/api'
+import { Route } from '@/routes/_dashboard/route'
+import { UserMenu } from '@/components/user-menu'
+import { useState } from 'react'
 
 const navigation = [
   { name: 'Dashboard', to: '/', icon: LayoutDashboard },
@@ -26,31 +24,28 @@ const navigation = [
   { name: 'Security', to: '/security', icon: ShieldCheck },
   { name: 'Performance', to: '/performance', icon: Zap },
   { name: 'Users', to: '/users', icon: Users },
+  { name: 'Profile', to: '/profile', icon: User },
   { name: 'Settings', to: '/settings', icon: Settings },
 ]
 
 export function DashboardLayout() {
-  const queryClient = useQueryClient()
-  const navigate = useNavigate()
-  
-  // Access the user from the route context, which is set by beforeLoad
-  const { user } = Route.useRouteContext(); // Now correctly accessing the route context
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await apiFetch('/auth/logout', { method: 'POST' })
-    },
-    onSuccess: () => {
-      // Invalidate the 'me' query to clear the user from cache
-      queryClient.invalidateQueries({ queryKey: ['me'] })
-      navigate({ to: '/login' })
-    }
-  })
+  // Access the user from the route context, which is set by beforeLoad
+  const { user } = Route.useRouteContext();
 
   return (
     <div className="flex min-h-screen w-full bg-background">
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="hidden w-64 border-r bg-muted/40 md:block">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r bg-background transition-transform duration-300 md:block md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex h-full flex-col gap-2">
           <div className="flex h-14 items-center border-b px-6">
             <Link to="/" className="flex items-center gap-2 font-semibold text-primary">
@@ -65,6 +60,7 @@ export function DashboardLayout() {
                   key={item.name}
                   to={item.to}
                   className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary [&.active]:bg-muted [&.active]:text-primary"
+                  onClick={() => setSidebarOpen(false)}
                 >
                   <item.icon className="h-4 w-4" />
                   {item.name}
@@ -72,10 +68,10 @@ export function DashboardLayout() {
               ))}
             </nav>
           </div>
-          
-          {/* User Info & Logout */}
-          <div className="mt-auto p-4 border-t bg-muted/20">
-            <div className="flex items-center gap-3 mb-4 px-2">
+
+          {/* User Info */}
+          <div className="mt-auto p-4 border-t bg-muted">
+            <div className="flex items-center gap-3 px-2">
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs uppercase">
                 {user?.name?.[0] || user?.email?.[0]}
               </div>
@@ -84,25 +80,15 @@ export function DashboardLayout() {
                 <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="w-full text-xs h-8 text-muted-foreground hover:text-destructive hover:border-destructive/20"
-              onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
-            >
-              <LogOut className="mr-2 h-3.5 w-3.5" />
-              Sign out
-            </Button>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col md:ml-64">
         {/* Header */}
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-6">
-          <Button variant="outline" size="icon" className="md:hidden">
+          <Button variant="outline" size="icon" className="md:hidden" onClick={() => setSidebarOpen(!sidebarOpen)}>
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
@@ -123,9 +109,7 @@ export function DashboardLayout() {
               <Bell className="h-5 w-5" />
               <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
             </Button>
-            <Button variant="ghost" size="icon">
-              <CircleUser className="h-6 w-6" />
-            </Button>
+            <UserMenu user={user} />
           </div>
         </header>
 

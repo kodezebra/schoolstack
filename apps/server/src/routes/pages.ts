@@ -2,12 +2,26 @@ import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, desc } from 'drizzle-orm'
 import { pages, blocks } from '../db/schema'
+import { z } from 'zod'
 
 type Bindings = {
   DB: D1Database
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
+
+// Validation Schemas
+const createPageSchema = z.object({
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string().optional(),
+  status: z.enum(['draft', 'published']).default('draft'),
+  metaTitle: z.string().optional(),
+  metaDescription: z.string().optional(),
+  blocks: z.array(z.any()).optional(),
+})
+
+const updatePageSchema = createPageSchema.partial()
 
 // GET all pages
 app.get('/', async (c) => {
@@ -38,7 +52,13 @@ app.get('/:id', async (c) => {
 app.post('/', async (c) => {
   const db = drizzle(c.env.DB)
   const body = await c.req.json()
-  const { title, slug, description, status, metaTitle, metaDescription, blocks: initialBlocks } = body;
+  
+  const validation = createPageSchema.safeParse(body)
+  if (!validation.success) {
+    return c.json({ error: 'Invalid input', details: validation.error.format() }, 400)
+  }
+
+  const { title, slug, description, status, metaTitle, metaDescription, blocks: initialBlocks } = validation.data;
   
   const [newPage] = await db.insert(pages).values({
     title,
@@ -68,14 +88,14 @@ app.patch('/:id', async (c) => {
   const id = c.req.param('id')
   const body = await c.req.json()
   
+  const validation = updatePageSchema.safeParse(body)
+  if (!validation.success) {
+    return c.json({ error: 'Invalid input', details: validation.error.format() }, 400)
+  }
+
   const [updatedPage] = await db.update(pages)
     .set({
-      title: body.title,
-      slug: body.slug,
-      description: body.description,
-      status: body.status,
-      metaTitle: body.metaTitle,
-      metaDescription: body.metaDescription,
+      ...validation.data,
       updatedAt: new Date()
     })
     .where(eq(pages.id, id))

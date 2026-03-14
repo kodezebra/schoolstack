@@ -17,6 +17,7 @@ import { Route as DashboardWebsitesRouteImport } from './routes/_dashboard/websi
 import { Route as DashboardUsersRouteImport } from './routes/_dashboard/users'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard/settings'
 import { Route as DashboardSecurityRouteImport } from './routes/_dashboard/security'
+import { Route as DashboardProfileRouteImport } from './routes/_dashboard/profile'
 import { Route as DashboardPerformanceRouteImport } from './routes/_dashboard/performance'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as DashboardCmsIndexRouteImport } from './routes/_dashboard/cms/index'
@@ -60,6 +61,11 @@ const DashboardSecurityRoute = DashboardSecurityRouteImport.update({
   path: '/security',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardProfileRoute = DashboardProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const DashboardPerformanceRoute = DashboardPerformanceRouteImport.update({
   id: '/performance',
   path: '/performance',
@@ -86,6 +92,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/login': typeof AuthLoginRoute
   '/performance': typeof DashboardPerformanceRoute
+  '/profile': typeof DashboardProfileRoute
   '/security': typeof DashboardSecurityRoute
   '/settings': typeof DashboardSettingsRoute
   '/users': typeof DashboardUsersRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/login': typeof AuthLoginRoute
   '/performance': typeof DashboardPerformanceRoute
+  '/profile': typeof DashboardProfileRoute
   '/security': typeof DashboardSecurityRoute
   '/settings': typeof DashboardSettingsRoute
   '/users': typeof DashboardUsersRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/_auth/login': typeof AuthLoginRoute
   '/_dashboard/performance': typeof DashboardPerformanceRoute
+  '/_dashboard/profile': typeof DashboardProfileRoute
   '/_dashboard/security': typeof DashboardSecurityRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
   '/_dashboard/users': typeof DashboardUsersRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/performance'
+    | '/profile'
     | '/security'
     | '/settings'
     | '/users'
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/login'
     | '/performance'
+    | '/profile'
     | '/security'
     | '/settings'
     | '/users'
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/_auth/login'
     | '/_dashboard/performance'
+    | '/_dashboard/profile'
     | '/_dashboard/security'
     | '/_dashboard/settings'
     | '/_dashboard/users'
@@ -225,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSecurityRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/_dashboard/profile': {
+      id: '/_dashboard/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/_dashboard/performance': {
       id: '/_dashboard/performance'
       path: '/performance'
@@ -270,6 +289,7 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 
 interface DashboardRouteRouteChildren {
   DashboardPerformanceRoute: typeof DashboardPerformanceRoute
+  DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardSecurityRoute: typeof DashboardSecurityRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardUsersRoute: typeof DashboardUsersRoute
@@ -281,6 +301,7 @@ interface DashboardRouteRouteChildren {
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardPerformanceRoute: DashboardPerformanceRoute,
+  DashboardProfileRoute: DashboardProfileRoute,
   DashboardSecurityRoute: DashboardSecurityRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardUsersRoute: DashboardUsersRoute,

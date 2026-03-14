@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { Block, BlockContent } from './types'
+import type { Block } from './types'
 
 const MAX_HISTORY = 50
 const STORAGE_KEY = 'cms_editor_history'
@@ -9,7 +9,7 @@ export function useEditor(initialBlocks: any[] = []) {
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true)
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
-  
+
   // Undo/Redo history
   const [history, setHistory] = useState<Block[][]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
@@ -31,7 +31,7 @@ export function useEditor(initialBlocks: any[] = []) {
   // Save to history for undo/redo
   const saveToHistory = useCallback((blocks: Block[]) => {
     if (skipSaveRef.current) return
-    
+
     setHistory(prev => {
       const newHistory = prev.slice(0, historyIndex + 1)
       const updated = [...newHistory, blocks]
@@ -41,7 +41,7 @@ export function useEditor(initialBlocks: any[] = []) {
   }, [historyIndex])
 
   const addBlock = useCallback((type: string) => {
-    let content: BlockContent = {}
+    let content: any = {}
 
     switch (type) {
       case 'navbar':
@@ -86,13 +86,25 @@ export function useEditor(initialBlocks: any[] = []) {
       case 'faq':
         content = { tagline: 'FAQ', title: 'Common Questions', subtitle: 'Find answers here.', items: [{ question: 'How do I get started?', answer: 'Contact us to begin.' }] }
         break
+      case 'pricing':
+        content = { tagline: 'Pricing', title: 'Simple Pricing', tiers: [{ name: 'Basic', price: '9', period: 'month', features: ['Feature 1'], ctaLabel: 'Get Started', ctaHref: '#', recommended: false }] }
+        break
+      case 'gallery':
+        content = { tagline: 'Gallery', title: 'Our Work', layout: 'grid', images: [{ src: '/image1.jpg', alt: 'Image 1' }] }
+        break
+      case 'services':
+        content = { tagline: 'Services', title: 'What We Offer', layout: 'grid', items: [{ icon: 'zap', title: 'Service 1', description: 'Description 1' }] }
+        break
+      case 'contact-form':
+        content = { tagline: 'Contact', title: 'Get In Touch', submitLabel: 'Send Message', fields: [{ name: 'name', label: 'Name', type: 'text', required: true }] }
+        break
       default:
         content = { text: 'New content block.' }
     }
 
     const newBlock: Block = {
       id: `temp-${Date.now()}`,
-      type,
+      type: type as any,
       content,
     }
     const newBlocks = [...localBlocks, newBlock]
@@ -102,7 +114,7 @@ export function useEditor(initialBlocks: any[] = []) {
     setRightSidebarOpen(true)
   }, [localBlocks, saveToHistory])
 
-  const updateBlockContent = useCallback((id: string, content: BlockContent) => {
+  const updateBlockContent = useCallback((id: string, content: any) => {
     const newBlocks = localBlocks.map(b => b.id === id ? { ...b, content } : b)
     setLocalBlocks(newBlocks)
     saveToHistory(newBlocks)

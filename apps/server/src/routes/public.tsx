@@ -72,16 +72,20 @@ const renderPage = async (c: any, slug: string) => {
     >
       {contentBlocks.map((block) => {
         const content = typeof block.content === 'string' ? JSON.parse(block.content) : block.content
-        const typeName = block.type.charAt(0).toUpperCase() + block.type.slice(1).toLowerCase()
+        // Convert kebab-case to PascalCase (e.g., 'contact-form' -> 'ContactForm')
+        const typeName = block.type
+          .split('-')
+          .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+          .join('')
         const BlockComponent = (Blocks as any)[typeName]
-        
+
         if (BlockComponent) {
           if (block.type === 'hero') {
             return <BlockComponent content={content} settings={settings} />
           }
           return <BlockComponent content={content} />
         }
-        
+
         return null
       })}
     </PublicLayout>
