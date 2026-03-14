@@ -23,14 +23,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { SITE_URL } from '@/config'
 import { CreatePageSheet } from '@/components/cms-editor/CreatePageSheet'
@@ -322,8 +317,6 @@ function CMSPageList() {
         </DialogContent>
       </Dialog>
 
-  return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8 overflow-x-hidden">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Content Management</h1>
