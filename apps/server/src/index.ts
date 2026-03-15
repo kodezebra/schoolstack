@@ -29,7 +29,9 @@ app.use('*', async (c, next) => {
   return corsMiddleware(c, next)
 })
 
-app.use('*', secureHeaders())
+app.use('*', secureHeaders({
+  crossOriginResourcePolicy: false,
+}))
 
 // Auth Routes
 app.route('/api/auth', authApp)
