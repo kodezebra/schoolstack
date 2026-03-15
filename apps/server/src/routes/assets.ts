@@ -58,6 +58,8 @@ app.get('/:key', async (c) => {
   const headers = new Headers()
   object.writeHttpMetadata(headers)
   headers.set('etag', object.httpEtag)
+  headers.set('Cross-Origin-Resource-Policy', 'cross-origin')
+  headers.set('Access-Control-Allow-Origin', '*')
 
   return c.body(object.body, 200, Object.fromEntries(headers))
 })
