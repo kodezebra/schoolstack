@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, desc } from 'drizzle-orm'
-import { assets } from '../db/schema'
+import { assets } from '@/db/schema'
 import { createId } from '@paralleldrive/cuid2'
-import { authMiddleware, requireRole } from '../middleware/auth'
+import { authMiddleware, requireRole } from '@/middleware/auth'
 
 type Bindings = {
   DB: D1Database

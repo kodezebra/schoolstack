@@ -1,4 +1,4 @@
-import { Block } from '../db/schema';
+import { Block } from '@/db/schema';
 
 export interface PageTemplate {
   id: string;

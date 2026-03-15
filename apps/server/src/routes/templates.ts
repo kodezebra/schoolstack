@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { PAGE_TEMPLATES } from '../lib/page-templates'
+import { PAGE_TEMPLATES } from '@/lib/page-templates'
 
 const app = new Hono()
 

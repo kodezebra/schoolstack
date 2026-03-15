@@ -1,8 +1,8 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq } from 'drizzle-orm'
-import { siteSettings } from '../db/schema'
-import { authMiddleware, requireRole } from '../middleware/auth'
+import { siteSettings } from '@/db/schema'
+import { authMiddleware, requireRole } from '@/middleware/auth'
 
 type Bindings = {
   DB: D1Database

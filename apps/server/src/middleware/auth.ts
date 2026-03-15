@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/d1'
 import { eq } from 'drizzle-orm'
-import { users, sessions } from '../db/schema'
+import { users, sessions } from '@/db/schema'
 import { getCookie } from 'hono/cookie'
 
 export const authMiddleware = async (c: any, next: any) => {

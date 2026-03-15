@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, desc, sql } from 'drizzle-orm'
-import { users, sessions } from '../db/schema'
+import { users, sessions } from '@/db/schema'
 import { getCookie } from 'hono/cookie'
 import { createId } from '@paralleldrive/cuid2'
 
