@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import type { Block } from './types'
 
 const MAX_HISTORY = 50
-const STORAGE_KEY = 'cms_editor_history'
 
 export function useEditor(initialBlocks: any[] = []) {
   const [localBlocks, setLocalBlocks] = useState<Block[]>([])
