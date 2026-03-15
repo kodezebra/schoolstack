@@ -77,7 +77,7 @@ app.post('/login', async (c) => {
   // Create Session
   const sessionId = createId() + createId() // Extra long
   const expiresAt = new Date()
-  expiresAt.setDate(expiresAt.getDate() + 30) // 30 days
+  expiresAt.setDate(expiresAt.getDate() + 7) // 7 days
 
   await db.insert(sessions).values({
     id: sessionId,

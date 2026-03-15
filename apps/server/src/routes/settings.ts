@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq } from 'drizzle-orm'
 import { siteSettings } from '../db/schema'
+import { authMiddleware, requireRole } from '../middleware/auth'
 
 type Bindings = {
   DB: D1Database
@@ -9,7 +10,9 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>()
 
-// GET site settings
+app.use('*', authMiddleware)
+app.use('/', requireRole('owner', 'admin'))
+
 app.get('/', async (c) => {
   const db = drizzle(c.env.DB)
   let settings = await db.select().from(siteSettings).where(eq(siteSettings.id, 'default')).get()

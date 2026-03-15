@@ -3,12 +3,16 @@ import { drizzle } from 'drizzle-orm/d1'
 import { eq, desc } from 'drizzle-orm'
 import { pages, blocks } from '../db/schema'
 import { z } from 'zod'
+import { authMiddleware, requireRole } from '../middleware/auth'
 
 type Bindings = {
   DB: D1Database
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
+
+app.use('*', authMiddleware)
+app.use('/', requireRole('owner', 'admin', 'editor'))
 
 // Validation Schemas
 const createPageSchema = z.object({
@@ -76,7 +80,7 @@ app.post('/', async (c) => {
 
   const { title, slug, description, parentId, order, status, metaTitle, metaDescription, blocks: initialBlocks } = validation.data;
 
-  const [newPage] = await db.insert(pages).values({
+  const newPage = await db.insert(pages).values({
     title,
     slug,
     description,
@@ -85,7 +89,7 @@ app.post('/', async (c) => {
     status,
     metaTitle,
     metaDescription,
-  }).returning()
+  }).returning().get()
 
   if (initialBlocks && initialBlocks.length > 0) {
     const blocksToInsert = initialBlocks.map((b: any, index: number) => ({
@@ -157,9 +161,9 @@ app.delete('/:id', async (c) => {
   // let's be explicit if not sure, or just rely on schema if it's there)
   await db.delete(blocks).where(eq(blocks.pageId, id))
   
-  const result = await db.delete(pages).where(eq(pages.id, id)).returning()
+  const deleted = await db.delete(pages).where(eq(pages.id, id)).returning().get()
 
-  if (result.length === 0) {
+  if (!deleted) {
     return c.json({ error: 'Page not found' }, 404)
   }
 

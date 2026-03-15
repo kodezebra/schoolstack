@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { secureHeaders } from 'hono/secure-headers'
 import pagesApp from './routes/pages'
 import publicApp from './routes/public'
 import authApp from './routes/auth'
@@ -27,6 +28,8 @@ app.use('*', async (c, next) => {
   })
   return corsMiddleware(c, next)
 })
+
+app.use('*', secureHeaders())
 
 // Auth Routes
 app.route('/api/auth', authApp)

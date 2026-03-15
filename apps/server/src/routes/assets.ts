@@ -1,9 +1,9 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
 import { eq, desc } from 'drizzle-orm'
-import { assets, sessions } from '../db/schema'
-import { getCookie } from 'hono/cookie'
+import { assets } from '../db/schema'
 import { createId } from '@paralleldrive/cuid2'
+import { authMiddleware, requireRole } from '../middleware/auth'
 
 type Bindings = {
   DB: D1Database
@@ -12,22 +12,12 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>()
 
-// Auth Middleware Helper
-const getSession = async (c: any) => {
-  const db = drizzle(c.env.DB)
-  const sessionId = getCookie(c, 'session')
-  if (!sessionId) return null
+// List & Upload: editor+
+// Delete: admin+
+// Serve: public (needed for public pages)
 
-  const session = await db.select().from(sessions).where(eq(sessions.id, sessionId as string)).get()
-  if (!session || session.expiresAt < new Date()) return null
-  return session
-}
-
-// UPLOAD
-app.post('/upload', async (c) => {
-  const session = await getSession(c)
-  if (!session) return c.json({ error: 'Unauthorized' }, 401)
-
+// UPLOAD - editor+
+app.post('/upload', authMiddleware, requireRole('owner', 'admin', 'editor'), async (c) => {
   const formData = await c.req.parseBody()
   const file = formData['file'] as File
 
@@ -36,13 +26,11 @@ app.post('/upload', async (c) => {
   const db = drizzle(c.env.DB)
   const key = `${createId()}-${file.name}`
   
-  // Upload to R2
   await c.env.ASSETS.put(key, file.stream(), {
     httpMetadata: { contentType: file.type },
     customMetadata: { originalName: file.name }
   })
 
-  // Save to DB
   const [asset] = await db.insert(assets).values({
     name: file.name,
     key,
@@ -53,17 +41,14 @@ app.post('/upload', async (c) => {
   return c.json(asset)
 })
 
-// LIST
-app.get('/', async (c) => {
-  const session = await getSession(c)
-  if (!session) return c.json({ error: 'Unauthorized' }, 401)
-
+// LIST - editor+
+app.get('/', authMiddleware, requireRole('owner', 'admin', 'editor'), async (c) => {
   const db = drizzle(c.env.DB)
   const result = await db.select().from(assets).orderBy(desc(assets.createdAt))
   return c.json(result)
 })
 
-// SERVE / PROXY
+// SERVE - Public (needed for public pages)
 app.get('/:key', async (c) => {
   const key = c.req.param('key')
   const object = await c.env.ASSETS.get(key)
@@ -77,21 +62,15 @@ app.get('/:key', async (c) => {
   return c.body(object.body, 200, Object.fromEntries(headers))
 })
 
-// DELETE
-app.delete('/:id', async (c) => {
-  const session = await getSession(c)
-  if (!session) return c.json({ error: 'Unauthorized' }, 401)
-
+// DELETE - admin+
+app.delete('/:id', authMiddleware, requireRole('owner', 'admin'), async (c) => {
   const id = c.req.param('id')
   const db = drizzle(c.env.DB)
 
   const asset = await db.select().from(assets).where(eq(assets.id, id)).get()
   if (!asset) return c.notFound()
 
-  // Delete from R2
   await c.env.ASSETS.delete(asset.key)
-
-  // Delete from DB
   await db.delete(assets).where(eq(assets.id, id))
 
   return c.json({ success: true })

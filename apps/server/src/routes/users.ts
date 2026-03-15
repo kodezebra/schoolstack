@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { drizzle } from 'drizzle-orm/d1'
-import { eq, desc } from 'drizzle-orm'
+import { eq, desc, sql } from 'drizzle-orm'
 import { users, sessions } from '../db/schema'
 import { getCookie } from 'hono/cookie'
 import { createId } from '@paralleldrive/cuid2'
@@ -109,7 +109,7 @@ app.patch('/:id', async (c) => {
 
   // Prevent deleting last owner
   if (targetUser.role === 'owner' && role && role !== 'owner') {
-    const ownerCount = await db.select({ count: eq(users.role, 'owner') }).from(users).get()
+    const ownerCount = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, 'owner')).get()
     if (ownerCount && ownerCount.count <= 1) {
       return c.json({ error: 'Cannot remove the last owner' }, 400)
     }
@@ -155,7 +155,7 @@ app.delete('/:id', async (c) => {
 
   // Prevent deleting last owner
   if (targetUser.role === 'owner') {
-    const ownerCount = await db.select({ count: eq(users.role, 'owner') }).from(users).get()
+    const ownerCount = await db.select({ count: sql<number>`count(*)` }).from(users).where(eq(users.role, 'owner')).get()
     if (ownerCount && ownerCount.count <= 1) {
       return c.json({ error: 'Cannot delete the last owner' }, 400)
     }

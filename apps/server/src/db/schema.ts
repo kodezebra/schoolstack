@@ -24,7 +24,7 @@ export const pages = sqliteTable('pages', {
   description: text('description'),
   metaTitle: text('meta_title'),
   metaDescription: text('meta_description'),
-  parentId: text('parent_id').references(() => pages.id, { onDelete: 'set null' }),
+  parentId: text('parent_id'),
   order: integer('order').notNull().default(0),
   status: text('status', { enum: ['draft', 'published'] }).notNull().default('draft'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
@@ -33,7 +33,7 @@ export const pages = sqliteTable('pages', {
 
 export const blocks = sqliteTable('blocks', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  pageId: text('page_id').notNull().references(() => pages.id, { onDelete: 'cascade' }),
+  pageId: text('page_id').notNull(),
   type: text('type').notNull(),
   content: text('content').notNull(),
   order: integer('order').notNull().default(0),
