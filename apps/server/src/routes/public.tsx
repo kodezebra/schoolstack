@@ -44,21 +44,10 @@ const renderPage = async (c: any, slug: string) => {
     .where(eq(blocks.pageId, page.id))
     .orderBy(blocks.order)
 
-  // Identify overrides
-  let navbarOverride = null
-  let footerOverride = null
-  
-  const contentBlocks = pageBlocks.filter(block => {
+  // Filter out navbar and footer blocks - they come from global settings
+  const contentBlocks = pageBlocks.filter((block: any) => {
     const type = block.type.toLowerCase()
-    if (type === 'navbar') {
-      navbarOverride = typeof block.content === 'string' ? JSON.parse(block.content) : block.content
-      return false
-    }
-    if (type === 'footer') {
-      footerOverride = typeof block.content === 'string' ? JSON.parse(block.content) : block.content
-      return false
-    }
-    return true
+    return type !== 'navbar' && type !== 'footer'
   })
 
   return c.html(
@@ -67,8 +56,6 @@ const renderPage = async (c: any, slug: string) => {
       description={page.metaDescription || page.description || ''}
       dashboardUrl={dashboardUrl}
       settings={settings}
-      navbarOverride={navbarOverride}
-      footerOverride={footerOverride}
     >
       {contentBlocks.map((block) => {
         const content = typeof block.content === 'string' ? JSON.parse(block.content) : block.content

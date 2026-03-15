@@ -13,12 +13,18 @@ export interface CommonBlockContent {
 
 // --- Specific Block Contents ---
 
+export interface NavbarLink {
+  label: string;
+  href: string;
+  children?: Array<{ label: string; href: string }>;
+}
+
 export interface NavbarContent extends CommonBlockContent {
   logoText: string;
   logoIcon: string;
   logoType?: 'icon' | 'image';
   logoImage?: string;
-  links: Array<{ label: string; href: string }>;
+  links: NavbarLink[];
   cta: { label: string; href: string };
 }
 

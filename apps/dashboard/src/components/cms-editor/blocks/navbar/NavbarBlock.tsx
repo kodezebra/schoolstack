@@ -1,7 +1,7 @@
 import { renderDynamicIcon } from '../utils'
+import { ChevronDown } from 'lucide-react'
 import type { NavbarContent } from '../../types'
 
-// Navbar rendering for the editor canvas
 export function NavbarBlock({ content }: { content: NavbarContent }) {
   return (
     <div className="border-b px-8 py-4 flex items-center justify-between bg-white/50 backdrop-blur-sm">
@@ -12,7 +12,14 @@ export function NavbarBlock({ content }: { content: NavbarContent }) {
         {content.logoText}
       </div>
       <div className="flex items-center gap-6 text-sm font-medium text-muted-foreground">
-        {content.links?.map((l: any) => <span key={l.label}>{l.label}</span>)}
+        {content.links?.map((link: any) => (
+          <div key={link.label} className="flex items-center gap-1">
+            <span>{link.label}</span>
+            {link.children && link.children.length > 0 && (
+              <ChevronDown className="h-3 w-3" />
+            )}
+          </div>
+        ))}
         <div className="bg-primary text-white px-4 py-1.5 rounded-full text-xs font-bold">
           {content.cta?.label}
         </div>

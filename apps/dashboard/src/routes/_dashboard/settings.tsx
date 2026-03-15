@@ -43,6 +43,7 @@ export const Route = createFileRoute('/_dashboard/settings')({
 interface NavLink {
   label: string
   href: string
+  children?: NavLink[]
 }
 
 interface NavbarCta {
@@ -460,6 +461,25 @@ function SettingsPage() {
     const newIndex = direction === 'up' ? index - 1 : index + 1
     if (newIndex < 0 || newIndex >= newLinks.length) return
     ;[newLinks[index], newLinks[newIndex]] = [newLinks[newIndex], newLinks[index]]
+    updateSetting('navbarLinks', newLinks)
+  }
+
+  const addNavbarChildLink = (parentIndex: number) => {
+    const newLinks = [...parsedSettings.navbarLinks]
+    newLinks[parentIndex].children = [...(newLinks[parentIndex].children || []), { label: '', href: '' }]
+    updateSetting('navbarLinks', newLinks)
+  }
+
+  const updateNavbarChildLink = (parentIndex: number, childIndex: number, field: keyof NavLink, value: string) => {
+    const newLinks = [...parsedSettings.navbarLinks]
+    newLinks[parentIndex].children = [...(newLinks[parentIndex].children || [])]
+    newLinks[parentIndex].children[childIndex] = { ...newLinks[parentIndex].children[childIndex], [field]: value }
+    updateSetting('navbarLinks', newLinks)
+  }
+
+  const removeNavbarChildLink = (parentIndex: number, childIndex: number) => {
+    const newLinks = [...parsedSettings.navbarLinks]
+    newLinks[parentIndex].children = (newLinks[parentIndex].children || []).filter((_, i) => i !== childIndex)
     updateSetting('navbarLinks', newLinks)
   }
 
@@ -1011,46 +1031,85 @@ function SettingsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {parsedSettings.navbarLinks.map((link, index) => (
-                    <div key={index} className="flex items-center gap-2 p-3 rounded-lg border bg-muted/20">
-                      <div className="flex flex-col gap-1">
+                    <div key={index} className="space-y-2">
+                      <div className="flex items-center gap-2 p-3 rounded-lg border bg-muted/20">
+                        <div className="flex flex-col gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => moveNavbarLink(index, 'up')}
+                            disabled={index === 0}
+                          >
+                            <ArrowUp className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => moveNavbarLink(index, 'down')}
+                            disabled={index === parsedSettings.navbarLinks.length - 1}
+                          >
+                            <ArrowDown className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <Input
+                          value={link.label}
+                          onChange={(e) => updateNavbarLink(index, 'label', e.target.value)}
+                          placeholder="Link label"
+                          className="flex-1"
+                        />
+                        <Input
+                          value={link.href}
+                          onChange={(e) => updateNavbarLink(index, 'href', e.target.value)}
+                          placeholder="/page"
+                          className="flex-1 font-mono text-sm"
+                        />
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6"
-                          onClick={() => moveNavbarLink(index, 'up')}
-                          disabled={index === 0}
+                          onClick={() => removeNavbarLink(index)}
+                          disabled={parsedSettings.navbarLinks.length <= 1}
                         >
-                          <ArrowUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => moveNavbarLink(index, 'down')}
-                          disabled={index === parsedSettings.navbarLinks.length - 1}
-                        >
-                          <ArrowDown className="h-3 w-3" />
+                          <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
                       </div>
-                      <Input
-                        value={link.label}
-                        onChange={(e) => updateNavbarLink(index, 'label', e.target.value)}
-                        placeholder="Link label"
-                        className="flex-1"
-                      />
-                      <Input
-                        value={link.href}
-                        onChange={(e) => updateNavbarLink(index, 'href', e.target.value)}
-                        placeholder="/page"
-                        className="flex-1 font-mono text-sm"
-                      />
+                      {link.children && link.children.length > 0 && (
+                        <div className="ml-8 pl-4 border-l-2 border-slate-200 dark:border-slate-700 space-y-2">
+                          {link.children.map((child, childIndex) => (
+                            <div key={childIndex} className="flex items-center gap-2">
+                              <span className="text-sm text-muted-foreground w-4">└</span>
+                              <Input
+                                value={child.label}
+                                onChange={(e) => updateNavbarChildLink(index, childIndex, 'label', e.target.value)}
+                                placeholder="Child label"
+                                className="flex-1"
+                              />
+                              <Input
+                                value={child.href}
+                                onChange={(e) => updateNavbarChildLink(index, childIndex, 'href', e.target.value)}
+                                placeholder="/child"
+                                className="flex-1 font-mono text-sm"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeNavbarChildLink(index, childIndex)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <Button
                         variant="ghost"
-                        size="icon"
-                        onClick={() => removeNavbarLink(index)}
-                        disabled={parsedSettings.navbarLinks.length <= 1}
+                        size="sm"
+                        onClick={() => addNavbarChildLink(index)}
+                        className="ml-8 text-muted-foreground"
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Dropdown Item
                       </Button>
                     </div>
                   ))}

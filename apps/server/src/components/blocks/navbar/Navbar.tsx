@@ -19,7 +19,35 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
             </span>
           </div>
           <div className="hidden md:block">
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center gap-8">
+              {content.links?.map((link: any, index: number) => (
+                link.children && link.children.length > 0 ? (
+                  <div key={link.label} className="relative">
+                    <button 
+                      className="flex items-center gap-1 text-base font-medium hover:text-primary transition-colors py-6"
+                      onclick={`document.getElementById('dropdown-${index}').classList.toggle('hidden'); document.getElementById('dropdown-${index}').classList.toggle('block')`}
+                    >
+                      {link.label}
+                      <i data-lucide="chevron-down" className="w-4 h-4"></i>
+                    </button>
+                    <div id={`dropdown-${index}`} className="hidden absolute top-full left-0 mt-2 w-56 py-2 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-50">
+                      {link.children.map((child: any) => (
+                        <a 
+                          key={child.label} 
+                          href={child.href}
+                          className="block px-4 py-2.5 text-base text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 whitespace-nowrap"
+                        >
+                          {child.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <a key={link.label} href={link.href} className="text-base font-medium hover:text-primary transition-colors py-6">
+                    {link.label}
+                  </a>
+                )
+              ))}
               <button 
                 onclick="window.toggleTheme()"
                 className="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors cursor-pointer"
@@ -28,11 +56,6 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
                 <i data-lucide="sun" className="hidden dark:block w-5 h-5"></i>
                 <i data-lucide="moon" className="block dark:hidden w-5 h-5"></i>
               </button>
-              {content.links?.map((link: any) => (
-                <a href={link.href} className="text-sm font-semibold hover:text-primary transition-colors">
-                  {link.label}
-                </a>
-              ))}
               {content.cta && (
                 <a
                   href={content.cta.href}
@@ -65,13 +88,38 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
       {/* Mobile Menu */}
       <div id="mobile-menu" className="hidden md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-in slide-in-from-top duration-300">
         <div className="px-4 pt-2 pb-6 space-y-1">
-          {content.links?.map((link: any) => (
-            <a 
-              href={link.href} 
-              className="block px-3 py-4 text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl"
-            >
-              {link.label}
-            </a>
+          {content.links?.map((link: any, index: number) => (
+            <div key={link.label}>
+              {link.children && link.children.length > 0 ? (
+                <div>
+                  <button 
+                    className="flex items-center justify-between w-full px-3 py-4 text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl"
+                    onclick={`document.getElementById('mobile-dropdown-${index}').classList.toggle('hidden')`}
+                  >
+                    {link.label}
+                    <i data-lucide="chevron-down" className="w-5 h-5"></i>
+                  </button>
+                  <div id={`mobile-dropdown-${index}`} className="hidden pl-4 space-y-1">
+                    {link.children.map((child: any) => (
+                      <a 
+                        key={child.label}
+                        href={child.href} 
+                        className="block px-3 py-3 text-base font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl"
+                      >
+                        {child.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <a 
+                  href={link.href} 
+                  className="block px-3 py-4 text-base font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl"
+                >
+                  {link.label}
+                </a>
+              )}
+            </div>
           ))}
           {content.cta && (
             <div className="pt-4 px-3">

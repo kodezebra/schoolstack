@@ -63,6 +63,15 @@ export const BaseLayout = ({ title, description, children, settings }: BaseLayou
         if (window.lucide) window.lucide.createIcons();
         console.log('Theme toggled to:', newTheme);
       }
+
+      document.addEventListener('click', function(e) {
+        document.querySelectorAll('[id^="dropdown-"]').forEach(function(dropdown) {
+          if (!dropdown.contains(e.target) && !e.target.closest('button[onclick^="document.getElementById"]')) {
+            dropdown.classList.add('hidden');
+            dropdown.classList.remove('block');
+          }
+        });
+      });
     })();
   `
 
