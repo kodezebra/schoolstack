@@ -83,6 +83,7 @@ export const BaseLayout = ({ title, description, children, settings }: BaseLayou
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>${title}</title>
       <meta name="description" content="${description || ''}" />
+      <link rel="icon" type="image/png" href="${settings?.favicon || '/favicon.png'}" />
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="${fontUrl}" rel="stylesheet" />

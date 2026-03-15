@@ -299,7 +299,7 @@ const BORDER_RADIUS_OPTIONS = [
 function SettingsPage() {
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState('branding')
-  const [showPreview, setShowPreview] = useState(true)
+  const [showPreview, setShowPreview] = useState(false)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [showPreviewDarkMode, setShowPreviewDarkMode] = useState(false) // New state for preview dark mode
 

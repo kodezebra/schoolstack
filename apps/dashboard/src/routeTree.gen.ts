@@ -13,12 +13,9 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as DashboardRouteRouteImport } from './routes/_dashboard/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as DashboardIndexRouteImport } from './routes/_dashboard/index'
-import { Route as DashboardWebsitesRouteImport } from './routes/_dashboard/websites'
 import { Route as DashboardUsersRouteImport } from './routes/_dashboard/users'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard/settings'
-import { Route as DashboardSecurityRouteImport } from './routes/_dashboard/security'
 import { Route as DashboardProfileRouteImport } from './routes/_dashboard/profile'
-import { Route as DashboardPerformanceRouteImport } from './routes/_dashboard/performance'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as DashboardCmsIndexRouteImport } from './routes/_dashboard/cms/index'
 import { Route as DashboardCmsPageIdRouteImport } from './routes/_dashboard/cms/$pageId'
@@ -41,11 +38,6 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const DashboardWebsitesRoute = DashboardWebsitesRouteImport.update({
-  id: '/websites',
-  path: '/websites',
-  getParentRoute: () => DashboardRouteRoute,
-} as any)
 const DashboardUsersRoute = DashboardUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -56,19 +48,9 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const DashboardSecurityRoute = DashboardSecurityRouteImport.update({
-  id: '/security',
-  path: '/security',
-  getParentRoute: () => DashboardRouteRoute,
-} as any)
 const DashboardProfileRoute = DashboardProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
-  getParentRoute: () => DashboardRouteRoute,
-} as any)
-const DashboardPerformanceRoute = DashboardPerformanceRouteImport.update({
-  id: '/performance',
-  path: '/performance',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -91,12 +73,9 @@ export interface FileRoutesByFullPath {
   '/': typeof DashboardIndexRoute
   '/about': typeof AboutRoute
   '/login': typeof AuthLoginRoute
-  '/performance': typeof DashboardPerformanceRoute
   '/profile': typeof DashboardProfileRoute
-  '/security': typeof DashboardSecurityRoute
   '/settings': typeof DashboardSettingsRoute
   '/users': typeof DashboardUsersRoute
-  '/websites': typeof DashboardWebsitesRoute
   '/cms/$pageId': typeof DashboardCmsPageIdRoute
   '/cms/': typeof DashboardCmsIndexRoute
 }
@@ -104,12 +83,9 @@ export interface FileRoutesByTo {
   '/': typeof DashboardIndexRoute
   '/about': typeof AboutRoute
   '/login': typeof AuthLoginRoute
-  '/performance': typeof DashboardPerformanceRoute
   '/profile': typeof DashboardProfileRoute
-  '/security': typeof DashboardSecurityRoute
   '/settings': typeof DashboardSettingsRoute
   '/users': typeof DashboardUsersRoute
-  '/websites': typeof DashboardWebsitesRoute
   '/cms/$pageId': typeof DashboardCmsPageIdRoute
   '/cms': typeof DashboardCmsIndexRoute
 }
@@ -119,12 +95,9 @@ export interface FileRoutesById {
   '/_dashboard': typeof DashboardRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/_auth/login': typeof AuthLoginRoute
-  '/_dashboard/performance': typeof DashboardPerformanceRoute
   '/_dashboard/profile': typeof DashboardProfileRoute
-  '/_dashboard/security': typeof DashboardSecurityRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
   '/_dashboard/users': typeof DashboardUsersRoute
-  '/_dashboard/websites': typeof DashboardWebsitesRoute
   '/_dashboard/': typeof DashboardIndexRoute
   '/_dashboard/cms/$pageId': typeof DashboardCmsPageIdRoute
   '/_dashboard/cms/': typeof DashboardCmsIndexRoute
@@ -135,12 +108,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/login'
-    | '/performance'
     | '/profile'
-    | '/security'
     | '/settings'
     | '/users'
-    | '/websites'
     | '/cms/$pageId'
     | '/cms/'
   fileRoutesByTo: FileRoutesByTo
@@ -148,12 +118,9 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/login'
-    | '/performance'
     | '/profile'
-    | '/security'
     | '/settings'
     | '/users'
-    | '/websites'
     | '/cms/$pageId'
     | '/cms'
   id:
@@ -162,12 +129,9 @@ export interface FileRouteTypes {
     | '/_dashboard'
     | '/about'
     | '/_auth/login'
-    | '/_dashboard/performance'
     | '/_dashboard/profile'
-    | '/_dashboard/security'
     | '/_dashboard/settings'
     | '/_dashboard/users'
-    | '/_dashboard/websites'
     | '/_dashboard/'
     | '/_dashboard/cms/$pageId'
     | '/_dashboard/cms/'
@@ -209,13 +173,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/_dashboard/websites': {
-      id: '/_dashboard/websites'
-      path: '/websites'
-      fullPath: '/websites'
-      preLoaderRoute: typeof DashboardWebsitesRouteImport
-      parentRoute: typeof DashboardRouteRoute
-    }
     '/_dashboard/users': {
       id: '/_dashboard/users'
       path: '/users'
@@ -230,25 +187,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardSettingsRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/_dashboard/security': {
-      id: '/_dashboard/security'
-      path: '/security'
-      fullPath: '/security'
-      preLoaderRoute: typeof DashboardSecurityRouteImport
-      parentRoute: typeof DashboardRouteRoute
-    }
     '/_dashboard/profile': {
       id: '/_dashboard/profile'
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof DashboardProfileRouteImport
-      parentRoute: typeof DashboardRouteRoute
-    }
-    '/_dashboard/performance': {
-      id: '/_dashboard/performance'
-      path: '/performance'
-      fullPath: '/performance'
-      preLoaderRoute: typeof DashboardPerformanceRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/_auth/login': {
@@ -288,24 +231,18 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 )
 
 interface DashboardRouteRouteChildren {
-  DashboardPerformanceRoute: typeof DashboardPerformanceRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
-  DashboardSecurityRoute: typeof DashboardSecurityRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardUsersRoute: typeof DashboardUsersRoute
-  DashboardWebsitesRoute: typeof DashboardWebsitesRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardCmsPageIdRoute: typeof DashboardCmsPageIdRoute
   DashboardCmsIndexRoute: typeof DashboardCmsIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
-  DashboardPerformanceRoute: DashboardPerformanceRoute,
   DashboardProfileRoute: DashboardProfileRoute,
-  DashboardSecurityRoute: DashboardSecurityRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardUsersRoute: DashboardUsersRoute,
-  DashboardWebsitesRoute: DashboardWebsitesRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardCmsPageIdRoute: DashboardCmsPageIdRoute,
   DashboardCmsIndexRoute: DashboardCmsIndexRoute,

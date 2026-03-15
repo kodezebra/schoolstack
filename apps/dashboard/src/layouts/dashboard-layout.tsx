@@ -1,13 +1,10 @@
-import { Link, Outlet } from '@tanstack/react-router'
+import { Link, Outlet, useLocation } from '@tanstack/react-router'
 import {
   LayoutDashboard,
   Settings,
   Users,
-  Globe,
   ShieldCheck,
-  Zap,
   Menu,
-  Search,
   Bell,
   FileCode2,
   User,
@@ -15,14 +12,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Route } from '@/routes/_dashboard/route'
 import { UserMenu } from '@/components/user-menu'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { apiFetch } from '@/lib/api'
 
 const navigation = [
   { name: 'Dashboard', to: '/', icon: LayoutDashboard },
   { name: 'CMS Pages', to: '/cms', icon: FileCode2 },
-  { name: 'Websites', to: '/websites', icon: Globe },
-  { name: 'Security', to: '/security', icon: ShieldCheck },
-  { name: 'Performance', to: '/performance', icon: Zap },
   { name: 'Users', to: '/users', icon: Users },
   { name: 'Profile', to: '/profile', icon: User },
   { name: 'Settings', to: '/settings', icon: Settings },
@@ -30,9 +26,45 @@ const navigation = [
 
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const location = useLocation()
 
   // Access the user from the route context, which is set by beforeLoad
   const { user } = Route.useRouteContext();
+
+  // Fetch settings to update title and favicon
+  const { data: settings } = useQuery({
+    queryKey: ['siteSettings'],
+    queryFn: async () => {
+      const res = await apiFetch('/settings')
+      if (!res.ok) return null
+      return res.json()
+    }
+  })
+
+  // Dynamically update document title and favicon
+  useEffect(() => {
+    if (settings) {
+      // Find current page name from navigation
+      const currentPage = navigation.find(item => 
+        item.to === location.pathname || (item.to !== '/' && location.pathname.startsWith(item.to))
+      )
+      const pageName = currentPage?.name || 'Dashboard'
+      
+      // Update title: "App Name | Page Name"
+      const brandName = settings.logoText || 'KZ Cloud'
+      document.title = `${brandName} | ${pageName}`
+
+      // Update favicon
+      const faviconUrl = settings.favicon || '/favicon.png'
+      let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']")
+      if (!link) {
+        link = document.createElement('link')
+        link.rel = 'icon'
+        document.getElementsByTagName('head')[0].appendChild(link)
+      }
+      link.href = faviconUrl
+    }
+  }, [settings, location.pathname])
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -50,7 +82,7 @@ export function DashboardLayout() {
           <div className="flex h-14 items-center border-b px-6">
             <Link to="/" className="flex items-center gap-2 font-semibold text-primary">
               <ShieldCheck className="h-6 w-6" />
-              <span className="font-bold tracking-tight text-slate-900">KZ Cloud</span>
+              <span className="font-bold tracking-tight text-slate-900">{settings?.logoText || 'KZ Cloud'}</span>
             </Link>
           </div>
           <div className="flex-1 overflow-auto py-2">
@@ -92,18 +124,7 @@ export function DashboardLayout() {
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle navigation menu</span>
           </Button>
-          <div className="w-full flex-1">
-            <form>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="search"
-                  placeholder="Search resources..."
-                  className="w-full bg-background pl-8 py-2 text-sm rounded-md border border-input focus:outline-none focus:ring-1 focus:ring-primary md:w-2/3 lg:w-1/3"
-                />
-              </div>
-            </form>
-          </div>
+          <div className="flex-1" />
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
