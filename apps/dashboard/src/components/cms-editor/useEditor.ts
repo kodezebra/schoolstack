@@ -194,20 +194,16 @@ export function useEditor(initialBlocks: any[] = []) {
   const canUndo = historyIndex > 0
   const canRedo = historyIndex < history.length - 1
 
-  // Load history from localStorage on mount
+  // Track if there are unsaved changes relative to initial data
+  const [isDirty, setIsDirty] = useState(false)
+
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (parsed.length > 0) {
-          setHistory(parsed)
-          setHistoryIndex(parsed.length - 1)
-          setLocalBlocks(parsed[parsed.length - 1])
-        }
-      }
-    } catch {}
-  }, [])
+    if (initialBlocks && localBlocks.length > 0) {
+      // Very simple dirty check: if history index > 0, something changed
+      // Or we could do a deep comparison, but history index is a good proxy for "user did something"
+      setIsDirty(historyIndex > 0)
+    }
+  }, [historyIndex, initialBlocks, localBlocks])
 
   return {
     localBlocks,
@@ -229,6 +225,8 @@ export function useEditor(initialBlocks: any[] = []) {
     undo,
     redo,
     canUndo,
-    canRedo
+    canRedo,
+    isDirty,
+    setIsDirty
   }
 }

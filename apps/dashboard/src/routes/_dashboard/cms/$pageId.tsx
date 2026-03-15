@@ -46,8 +46,22 @@ function CMSPageEditor() {
     undo,
     redo,
     canUndo,
-    canRedo
+    canRedo,
+    isDirty,
+    setIsDirty
   } = useEditor(pageData?.blocks || [])
+
+  // Prompt before leaving with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
+  }, [isDirty])
 
   // Initialize settings when pageData is loaded
   useEffect(() => {
@@ -85,6 +99,7 @@ function CMSPageEditor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pages', pageId] })
       queryClient.invalidateQueries({ queryKey: ['pages'] })
+      setIsDirty(false)
     }
   })
 

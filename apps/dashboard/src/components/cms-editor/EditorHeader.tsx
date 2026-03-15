@@ -108,8 +108,9 @@ export function EditorHeader({
     <header className="h-14 border-b flex items-center justify-between px-4 bg-background z-20 shadow-sm shrink-0">
       <div className="flex items-center gap-3">
         <Link to="/cms">
-          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted">
+          <Button variant="ghost" size="sm" className="h-8 gap-2 hover:bg-muted px-2">
             <ArrowLeft className="h-4 w-4" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Back</span>
           </Button>
         </Link>
         <div className="h-4 w-[1px] bg-border mx-1" />
@@ -278,7 +279,7 @@ export function EditorHeader({
           disabled={isSavingBlocks}
         >
           <Rocket className="h-3.5 w-3.5" />
-          {isSavingBlocks ? 'Saving...' : 'Publish'}
+          {isSavingBlocks ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
     </header>
