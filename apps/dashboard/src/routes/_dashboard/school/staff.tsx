@@ -30,6 +30,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -359,13 +365,12 @@ function StaffPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Staff Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={(open) => { setIsEditDialogOpen(open); if (!open) setEditingStaff(null) }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Staff</DialogTitle>
-            <DialogDescription>Update staff member details.</DialogDescription>
-          </DialogHeader>
+      {/* Edit Staff Sheet */}
+      <Sheet open={isEditDialogOpen} onOpenChange={(open) => { setIsEditDialogOpen(open); if (!open) setEditingStaff(null) }}>
+        <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Staff</SheetTitle>
+          </SheetHeader>
           {editingStaff && (
             <form onSubmit={(e) => {
               e.preventDefault()
@@ -384,7 +389,7 @@ function StaffPage() {
                   status: formData.get('status'),
                 }
               })
-            }} className="space-y-4">
+            }} className="space-y-4 mt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Employee No.</label>
@@ -459,8 +464,8 @@ function StaffPage() {
               </div>
             </form>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

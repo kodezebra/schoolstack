@@ -118,7 +118,6 @@ export const students = sqliteTable('students', {
   dob: integer('dob', { mode: 'timestamp' }),
   gradeId: text('grade_id').notNull().references(() => grades.id, { onDelete: 'cascade' }),
   rollNo: text('roll_no'),
-  image: text('image'), // URL to student photo
   parentName: text('parent_name').notNull(),
   parentPhone: text('parent_phone').notNull(),
   parentEmail: text('parent_email'),
@@ -136,7 +135,6 @@ export const staff = sqliteTable('staff', {
   lastName: text('last_name').notNull(),
   email: text('email').notNull(),
   phone: text('phone'),
-  image: text('image'), // URL to staff photo
   role: text('role', { enum: ['teacher', 'admin', 'counselor', 'principal'] }).notNull().default('teacher'),
   department: text('department'),
   qualifications: text('qualifications'),

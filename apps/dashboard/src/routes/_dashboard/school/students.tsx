@@ -41,6 +41,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -403,13 +409,12 @@ function StudentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Student Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={(open) => { setIsEditDialogOpen(open); if (!open) setEditingStudent(null) }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Student</DialogTitle>
-            <DialogDescription>Update student information.</DialogDescription>
-          </DialogHeader>
+      {/* Edit Student Sheet */}
+      <Sheet open={isEditDialogOpen} onOpenChange={(open) => { setIsEditDialogOpen(open); if (!open) setEditingStudent(null) }}>
+        <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Student</SheetTitle>
+          </SheetHeader>
           {editingStudent && (
             <form onSubmit={(e) => {
               e.preventDefault()
@@ -429,7 +434,7 @@ function StudentsPage() {
                   status: formData.get('status'),
                 }
               })
-            }} className="space-y-4">
+            }} className="space-y-4 mt-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Admission No.</label>
@@ -516,8 +521,8 @@ function StudentsPage() {
               </div>
             </form>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
       {/* Student Details Dialog */}
       <Dialog open={!!selectedStudent} onOpenChange={(open) => !open && setSelectedStudent(null)}>
