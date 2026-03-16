@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
 import { 
   Mail, 
   Trash2, 
@@ -27,7 +28,11 @@ import {
   User, 
   Calendar,
   ChevronRight,
-  Inbox
+  Inbox,
+  Search,
+  RotateCcw,
+  Copy,
+  Reply
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -37,6 +42,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs"
 
 export const Route = createFileRoute('/_dashboard/submissions')({
   component: SubmissionsPage,
@@ -50,12 +60,17 @@ interface Submission {
   message: string
   status: 'pending' | 'read' | 'archived'
   createdAt: string
-  data: string // JSON string
+  data: string
 }
+
+type FilterStatus = 'all' | 'pending' | 'read' | 'archived'
 
 function SubmissionsPage() {
   const queryClient = useQueryClient()
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null)
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [copiedEmail, setCopiedEmail] = useState<string | null>(null)
 
   const { data: submissions, isLoading } = useQuery<Submission[]>({
     queryKey: ['submissions'],
@@ -94,6 +109,15 @@ function SubmissionsPage() {
     }
   })
 
+  const filteredSubmissions = submissions?.filter(sub => {
+    const matchesStatus = filterStatus === 'all' || sub.status === filterStatus
+    const matchesSearch = !searchQuery || 
+      sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.message.toLowerCase().includes(searchQuery.toLowerCase())
+    return matchesStatus && matchesSearch
+  }) ?? []
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -126,8 +150,8 @@ function SubmissionsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inbox</h1>
-          <p className="text-muted-foreground">Manage your website's contact form submissions.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Contact Submissions</h1>
+          <p className="text-muted-foreground">Manage messages sent through your contact forms.</p>
         </div>
         <div className="flex items-center gap-2">
            <Badge variant="outline" className="px-3 py-1">
@@ -138,10 +162,25 @@ function SubmissionsPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle>Contact Submissions</CardTitle>
-          <CardDescription>
-            A list of all messages sent through your contact forms.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <Tabs value={filterStatus} onValueChange={(v) => setFilterStatus(v as FilterStatus)}>
+              <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="pending">New</TabsTrigger>
+                <TabsTrigger value="read">Read</TabsTrigger>
+                <TabsTrigger value="archived">Archived</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="relative w-64">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search messages..." 
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -149,23 +188,23 @@ function SubmissionsPage() {
               <TableRow>
                 <TableHead>Status</TableHead>
                 <TableHead>From</TableHead>
-                <TableHead>Subject</TableHead>
+                <TableHead>Message</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {submissions?.length === 0 ? (
+              {filteredSubmissions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Inbox className="h-8 w-8 opacity-20" />
-                      <p>No submissions yet.</p>
+                      <p>{searchQuery ? 'No messages found.' : 'No submissions yet.'}</p>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : (
-                submissions?.map((submission) => (
+                filteredSubmissions.map((submission) => (
                   <TableRow 
                     key={submission.id} 
                     className="cursor-pointer hover:bg-muted/50 transition-colors"
@@ -178,10 +217,10 @@ function SubmissionsPage() {
                         <span className="text-xs text-muted-foreground">{submission.email}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate font-medium">
-                      {submission.subject}
+                    <TableCell className="max-w-[300px] truncate text-sm text-muted-foreground">
+                      {submission.message}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
+                    <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
                       {new Date(submission.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-right">
@@ -213,14 +252,39 @@ function SubmissionsPage() {
                 <div className="flex items-center gap-2 mb-2">
                   {getStatusBadge(selectedSubmission.status)}
                 </div>
-                <DialogTitle className="text-2xl">{selectedSubmission.subject}</DialogTitle>
-                <DialogDescription className="flex items-center gap-4 pt-2">
+                <DialogTitle className="text-2xl">Message from {selectedSubmission.name}</DialogTitle>
+                <DialogDescription className="flex items-center gap-4 pt-2 flex-wrap">
                   <span className="flex items-center gap-1"><User className="h-3 w-3" /> {selectedSubmission.name}</span>
-                  <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {selectedSubmission.email}</span>
                   <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {new Date(selectedSubmission.createdAt).toLocaleString()}</span>
                 </DialogDescription>
               </DialogHeader>
               
+              <div className="flex items-center gap-2 mt-4 p-3 bg-muted/50 rounded-lg">
+                <Mail className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm flex-1">{selectedSubmission.email}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(selectedSubmission.email)
+                    setCopiedEmail(selectedSubmission.email)
+                    setTimeout(() => setCopiedEmail(null), 2000)
+                  }}
+                >
+                  {copiedEmail === selectedSubmission.email ? 'Copied!' : <><Copy className="h-3 w-3 mr-1" /> Copy</>}
+                </Button>
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  onClick={() => window.location.href = `mailto:${selectedSubmission.email}?subject=Re: Contact Form Submission`}
+                >
+                  <Reply className="h-3 w-3 mr-1" /> Reply
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Hint: Requires an email client (like Gmail or Outlook) to be set up on your device.
+              </p>
+
               <div className="mt-6 p-6 bg-muted/30 rounded-lg border min-h-[200px] whitespace-pre-wrap text-sm leading-relaxed">
                 {selectedSubmission.message}
               </div>
@@ -243,7 +307,7 @@ function SubmissionsPage() {
                       onClick={() => updateStatusMutation.mutate({ id: selectedSubmission.id, status: 'read' })}
                       disabled={updateStatusMutation.isPending}
                     >
-                      <Clock className="mr-2 h-4 w-4" /> Mark as Active
+                      <RotateCcw className="mr-2 h-4 w-4" /> Mark as Unread
                     </Button>
                   )}
                 </div>

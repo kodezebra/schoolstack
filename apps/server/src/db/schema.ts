@@ -86,3 +86,86 @@ export const contactSubmissions = sqliteTable('contact_submissions', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
+
+// =======================
+// School Management
+// =======================
+
+export const academicYears = sqliteTable('academic_years', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull(), // e.g., "2024-2025"
+  startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+  endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
+  isCurrent: integer('is_current', { mode: 'boolean' }).notNull().default(false),
+  status: text('status', { enum: ['active', 'closed'] }).notNull().default('active'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const grades = sqliteTable('grades', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull(), // Nursery, LKG, UKG, 1-12
+  order: integer('order').notNull().default(0),
+  academicYearId: text('academic_year_id').notNull().references(() => academicYears.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const students = sqliteTable('students', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  admissionNo: text('admission_no').notNull().unique(),
+  firstName: text('first_name').notNull(),
+  lastName: text('last_name').notNull(),
+  gender: text('gender', { enum: ['male', 'female', 'other'] }).notNull(),
+  dob: integer('dob', { mode: 'timestamp' }),
+  gradeId: text('grade_id').notNull().references(() => grades.id, { onDelete: 'cascade' }),
+  rollNo: text('roll_no'),
+  parentName: text('parent_name').notNull(),
+  parentPhone: text('parent_phone').notNull(),
+  parentEmail: text('parent_email'),
+  address: text('address'),
+  status: text('status', { enum: ['active', 'transferred', 'graduated', 'withdrawn'] }).notNull().default('active'),
+  enrollmentDate: integer('enrollment_date', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const staff = sqliteTable('staff', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  employeeNo: text('employee_no').notNull().unique(),
+  firstName: text('first_name').notNull(),
+  lastName: text('last_name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  role: text('role', { enum: ['teacher', 'admin', 'counselor', 'principal'] }).notNull().default('teacher'),
+  department: text('department'),
+  qualifications: text('qualifications'),
+  experience: text('experience'), // years of experience
+  status: text('status', { enum: ['active', 'inactive'] }).notNull().default('active'),
+  joinDate: integer('join_date', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const feeStructures = sqliteTable('fee_structures', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  gradeId: text('grade_id').notNull().references(() => grades.id, { onDelete: 'cascade' }),
+  academicYearId: text('academic_year_id').notNull().references(() => academicYears.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(), // e.g., "Term 1 Fees", "Annual Fees"
+  description: text('description'),
+  amount: integer('amount').notNull(), // in UGX (integer)
+  dueDate: integer('due_date', { mode: 'timestamp' }),
+  status: text('status', { enum: ['active', 'closed'] }).notNull().default('active'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const feePayments = sqliteTable('fee_payments', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  studentId: text('student_id').notNull().references(() => students.id, { onDelete: 'cascade' }),
+  feeStructureId: text('fee_structure_id').notNull().references(() => feeStructures.id, { onDelete: 'cascade' }),
+  amount: integer('amount').notNull(), // in UGX (integer)
+  paymentDate: integer('payment_date', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  paymentMethod: text('payment_method', { enum: ['cash', 'mobile_money', 'bank', 'school_pay'] }).notNull(),
+  transactionNo: text('transaction_no'),
+  receiptNo: text('receipt_no'),
+  notes: text('notes'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});

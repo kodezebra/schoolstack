@@ -50,6 +50,7 @@ const AVAILABLE_BLOCKS: BlockDefinition[] = [
   { type: 'videoGallery', icon: ImagePlay, label: 'Video Gallery', description: 'Grid of video thumbnails', category: 'media', color: 'from-red-500 to-rose-500' },
   
   { type: 'cta', icon: Megaphone, label: 'Call to Action', description: 'Urge users to take action', category: 'interactive', color: 'from-orange-500 to-amber-500' },
+  { type: 'contact-form', icon: MessageCircle, label: 'Contact Form', description: 'Add a contact form with custom fields', category: 'interactive', color: 'from-green-500 to-emerald-500' },
 ]
 
 const CATEGORIES: { id: BlockCategory; label: string; icon: any }[] = [

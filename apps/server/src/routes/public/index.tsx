@@ -83,53 +83,41 @@ const renderPage = async (c: any, slug: string) => {
 app.get('/', (c) => renderPage(c, 'home'))
 
 // DEDICATED CONTACT PAGE (Ensures /contact always works)
-app.get('/contact', async (c) => {
-  const db = drizzle(c.env.DB)
-  const dashboardUrl = c.env.FRONTEND_URL || 'http://localhost:5173'
+// app.get('/contact-us', async (c) => {
+//   const db = drizzle(c.env.DB)
+//   const dashboardUrl = c.env.FRONTEND_URL || 'http://localhost:5173'
 
-  // Try to find a custom contact page first
-  const page = await db
-    .select()
-    .from(pages)
-    .where(and(eq(pages.slug, 'contact'), eq(pages.status, 'published')))
-    .get()
+//   // Try to find a custom contact page first
+//   const page = await db
+//     .select()
+//     .from(pages)
+//     .where(and(eq(pages.slug, 'contact'), eq(pages.status, 'published')))
+//     .get()
 
-  if (page) {
-    return renderPage(c, 'contact')
-  }
+//   if (page) {
+//     return renderPage(c, 'contact')
+//   }
 
-  // Fallback to a default contact page if no CMS page exists
-  const settings = await db.select().from(siteSettings).where(eq(siteSettings.id, 'default')).get()
+//   // Fallback to a default contact page if no CMS page exists
+//   const settings = await db.select().from(siteSettings).where(eq(siteSettings.id, 'default')).get()
   
-  return c.html(
-    <PublicLayout 
-      title="Contact Us" 
-      description="Get in touch with us. We'd love to hear from you."
-      dashboardUrl={dashboardUrl}
-      settings={settings}
-    >
-      <Blocks.ContactForm 
-        content={{
-          tagline: "Contact Us",
-          title: "Get In Touch",
-          subtitle: "We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
-          fields: [
-            { name: 'name', label: 'Name', type: 'text', required: true },
-            { name: 'email', label: 'Email', type: 'email', required: true },
-            { name: 'subject', label: 'Subject', type: 'text', required: false },
-            { name: 'message', label: 'Message', type: 'textarea', required: true }
-          ],
-          submitLabel: "Send Message",
-          successMessage: "Thank you for your message! We will get back to you soon.",
-          contactInfo: {
-            email: settings?.logoText ? `info@${settings.logoText.toLowerCase().replace(/\s+/g, '')}.com` : "contact@example.com",
-            address: "123 Business Ave, Digital City"
-          }
-        }} 
-      />
-    </PublicLayout>
-  )
-})
+//   return c.html(
+//     <PublicLayout 
+//       title="Contact Us" 
+//       description="Get in touch with us. We'd love to hear from you."
+//       dashboardUrl={dashboardUrl}
+//       settings={settings}
+//     >
+//       <Blocks.ContactForm 
+//         content={{
+//           tagline: "Contact Us",
+//           title: "Get In Touch",
+//           subtitle: "We'd love to hear from you. Send us a message and we'll respond as soon as possible."
+//         }} 
+//       />
+//     </PublicLayout>
+//   )
+// })
 
 // ANY SLUG
 app.get('/:slug', (c) => renderPage(c, c.req.param('slug')))
