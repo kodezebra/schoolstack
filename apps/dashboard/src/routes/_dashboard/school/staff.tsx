@@ -18,7 +18,8 @@ import {
   Search,
   Mail,
   Phone,
-  Trash2
+  Trash2,
+  Pencil
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -61,6 +62,8 @@ function StaffPage() {
   const [roleFilter, setRoleFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [editingStaff, setEditingStaff] = useState<Staff | null>(null)
 
   const { data: staff, isLoading } = useQuery<Staff[]>({
     queryKey: ['school-staff', roleFilter, statusFilter],
@@ -86,6 +89,22 @@ function StaffPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-staff'] })
       setIsAddDialogOpen(false)
+    }
+  })
+
+  const editMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      const res = await apiFetch(`/school/staff/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      })
+      if (!res.ok) throw new Error('Failed to update staff')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['school-staff'] })
+      setIsEditDialogOpen(false)
+      setEditingStaff(null)
     }
   })
 
@@ -234,18 +253,31 @@ function StaffPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => {
-                          if (confirm('Are you sure you want to remove this staff member?')) {
-                            deleteMutation.mutate(member.id)
-                          }
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            setEditingStaff(member)
+                            setIsEditDialogOpen(true)
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => {
+                            if (confirm('Are you sure you want to remove this staff member?')) {
+                              deleteMutation.mutate(member.id)
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -324,6 +356,109 @@ function StaffPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Staff Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => { setIsEditDialogOpen(open); if (!open) setEditingStaff(null) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Staff</DialogTitle>
+            <DialogDescription>Update staff member details.</DialogDescription>
+          </DialogHeader>
+          {editingStaff && (
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              const formData = new FormData(e.currentTarget)
+              editMutation.mutate({
+                id: editingStaff.id,
+                data: {
+                  firstName: formData.get('firstName'),
+                  lastName: formData.get('lastName'),
+                  email: formData.get('email'),
+                  phone: formData.get('phone') || undefined,
+                  role: formData.get('role'),
+                  department: formData.get('department') || undefined,
+                  qualifications: formData.get('qualifications') || undefined,
+                  experience: formData.get('experience') || undefined,
+                  status: formData.get('status'),
+                }
+              })
+            }} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Employee No.</label>
+                  <Input name="employeeNo" defaultValue={editingStaff.employeeNo} disabled />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Role</label>
+                  <Select name="role" defaultValue={editingStaff.role} required>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="teacher">Teacher</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="counselor">Counselor</SelectItem>
+                      <SelectItem value="principal">Principal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">First Name</label>
+                  <Input name="firstName" defaultValue={editingStaff.firstName} required />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Last Name</label>
+                  <Input name="lastName" defaultValue={editingStaff.lastName} required />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Email</label>
+                <Input name="email" type="email" defaultValue={editingStaff.email} required />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Phone</label>
+                  <Input name="phone" defaultValue={editingStaff.phone || ''} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Department</label>
+                  <Input name="department" defaultValue={editingStaff.department || ''} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Qualifications</label>
+                  <Input name="qualifications" defaultValue={editingStaff.qualifications || ''} />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Experience</label>
+                  <Input name="experience" defaultValue={editingStaff.experience || ''} />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Status</label>
+                <Select name="status" defaultValue={editingStaff.status} required>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => { setIsEditDialogOpen(false); setEditingStaff(null) }}>Cancel</Button>
+                <Button type="submit" disabled={editMutation.isPending}>
+                  {editMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </div>

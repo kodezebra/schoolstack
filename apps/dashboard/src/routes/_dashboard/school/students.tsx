@@ -28,9 +28,11 @@ import {
   Mail,
   MapPin,
   Pencil,
-  Trash2
+  Trash2,
+  Image
 } from 'lucide-react'
 import { useState } from 'react'
+import { MediaPicker } from '@/components/cms-editor/MediaPicker'
 import {
   Dialog,
   DialogContent,
@@ -80,7 +82,9 @@ function StudentsPage() {
   const [gradeFilter, setGradeFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null)
 
   const { data: students, isLoading } = useQuery<Student[]>({
     queryKey: ['school-students', gradeFilter, statusFilter],
@@ -115,6 +119,22 @@ function StudentsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-students'] })
       setIsAddDialogOpen(false)
+    }
+  })
+
+  const editMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      const res = await apiFetch(`/school/students/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      })
+      if (!res.ok) throw new Error('Failed to update student')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['school-students'] })
+      setIsEditDialogOpen(false)
+      setEditingStudent(null)
     }
   })
 
@@ -275,6 +295,17 @@ function StudentsPage() {
                         <Button 
                           variant="ghost" 
                           size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            setEditingStudent(student)
+                            setIsEditDialogOpen(true)
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => {
                             if (confirm('Are you sure you want to withdraw this student?')) {
@@ -369,6 +400,122 @@ function StudentsPage() {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Student Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => { setIsEditDialogOpen(open); if (!open) setEditingStudent(null) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Student</DialogTitle>
+            <DialogDescription>Update student information.</DialogDescription>
+          </DialogHeader>
+          {editingStudent && (
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              const formData = new FormData(e.currentTarget)
+              editMutation.mutate({
+                id: editingStudent.id,
+                data: {
+                  firstName: formData.get('firstName'),
+                  lastName: formData.get('lastName'),
+                  gender: formData.get('gender'),
+                  gradeId: formData.get('gradeId'),
+                  rollNo: formData.get('rollNo') || undefined,
+                  parentName: formData.get('parentName'),
+                  parentPhone: formData.get('parentPhone'),
+                  parentEmail: formData.get('parentEmail') || undefined,
+                  address: formData.get('address') || undefined,
+                  status: formData.get('status'),
+                }
+              })
+            }} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Admission No.</label>
+                  <Input name="admissionNo" defaultValue={editingStudent.admissionNo} disabled />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Grade</label>
+                  <Select name="gradeId" defaultValue={editingStudent.gradeId} required>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {grades?.map(grade => (
+                        <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">First Name</label>
+                  <Input name="firstName" defaultValue={editingStudent.firstName} required />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Last Name</label>
+                  <Input name="lastName" defaultValue={editingStudent.lastName} required />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Gender</label>
+                <Select name="gender" defaultValue={editingStudent.gender} required>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Roll No.</label>
+                <Input name="rollNo" defaultValue={editingStudent.rollNo || ''} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Parent Name</label>
+                <Input name="parentName" defaultValue={editingStudent.parentName} required />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Parent Phone</label>
+                  <Input name="parentPhone" defaultValue={editingStudent.parentPhone} required />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Parent Email</label>
+                  <Input name="parentEmail" type="email" defaultValue={editingStudent.parentEmail || ''} />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Address</label>
+                <Input name="address" defaultValue={editingStudent.address || ''} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Status</label>
+                <Select name="status" defaultValue={editingStudent.status} required>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="transferred">Transferred</SelectItem>
+                    <SelectItem value="graduated">Graduated</SelectItem>
+                    <SelectItem value="withdrawn">Withdrawn</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="outline" onClick={() => { setIsEditDialogOpen(false); setEditingStudent(null) }}>Cancel</Button>
+                <Button type="submit" disabled={editMutation.isPending}>
+                  {editMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
 
