@@ -6,6 +6,7 @@ import settingsApp from './settings'
 import templatesApp from './templates'
 import pagesApp from './pages'
 import contactApp from './contact'
+import schoolApp from './school'
 
 const api = new Hono()
 
@@ -29,5 +30,8 @@ api.route('/pages', pagesApp)
 
 // Contact Submissions
 api.route('/contact', contactApp)
+
+// School Management
+api.route('/school', schoolApp)
 
 export default api
