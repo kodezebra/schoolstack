@@ -18,6 +18,9 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>()
 
+// Apply auth middleware to all routes
+app.use('/*', authMiddleware)
+
 // =======================
 // Dashboard Stats (Public within school)
 // =======================
