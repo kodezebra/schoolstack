@@ -170,7 +170,7 @@ function FeesPage() {
   })
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-UGX', { style: 'currency', currency: 'UGX', maximumFractionDigits: 0 }).format(amount)
+    return new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', maximumFractionDigits: 0 }).format(amount)
   }
 
   const getMethodBadge = (method: string) => {
