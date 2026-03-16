@@ -9,6 +9,12 @@ import {
   FileCode2,
   User,
   Inbox,
+  GraduationCap,
+  UsersRound,
+  Banknote,
+  ScrollText,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Route } from '@/routes/_dashboard/route'
@@ -21,6 +27,12 @@ const navigation = [
   { name: 'Dashboard', to: '/', icon: LayoutDashboard },
   { name: 'CMS Pages', to: '/cms', icon: FileCode2 },
   { name: 'Inbox', to: '/submissions', icon: Inbox },
+  { name: 'School', icon: GraduationCap, children: [
+    { name: 'Students', to: '/school/students', icon: UsersRound },
+    { name: 'Staff', to: '/school/staff', icon: Users },
+    { name: 'Fees', to: '/school/fees', icon: Banknote },
+    { name: 'Settings', to: '/school/settings', icon: ScrollText },
+  ]},
   { name: 'Users', to: '/users', icon: Users },
   { name: 'Profile', to: '/profile', icon: User },
   { name: 'Settings', to: '/settings', icon: Settings },
@@ -28,6 +40,7 @@ const navigation = [
 
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [schoolOpen, setSchoolOpen] = useState(false)
   const location = useLocation()
 
   // Access the user from the route context, which is set by beforeLoad
@@ -43,14 +56,37 @@ export function DashboardLayout() {
     }
   })
 
+  // Auto-open school dropdown when child is active
+  useEffect(() => {
+    const isSchoolPage = navigation.find((item: any) => 
+      item.children?.some((child: any) => 
+        location.pathname.startsWith(child.to || '')
+      )
+    )
+    if (isSchoolPage) {
+      setSchoolOpen(true)
+    }
+  }, [location.pathname])
+
   // Dynamically update document title and favicon
   useEffect(() => {
     if (settings) {
-      // Find current page name from navigation
-      const currentPage = navigation.find(item => 
-        item.to === location.pathname || (item.to !== '/' && location.pathname.startsWith(item.to))
-      )
-      const pageName = currentPage?.name || 'Dashboard'
+      // Find current page name from navigation (including children)
+      let pageName = 'Dashboard'
+      for (const item of navigation) {
+        if (item.children) {
+          const child = item.children.find(c => 
+            c.to === location.pathname || location.pathname.startsWith(c.to || '')
+          )
+          if (child) {
+            pageName = `${item.name}: ${child.name}`
+            break
+          }
+        } else if (item.to === location.pathname || (item.to !== '/' && location.pathname.startsWith(item.to))) {
+          pageName = item.name
+          break
+        }
+      }
       
       // Update title: "App Name | Page Name"
       const brandName = settings.logoText || 'KZ Cloud'
@@ -88,17 +124,51 @@ export function DashboardLayout() {
             </Link>
           </div>
           <div className="flex-1 overflow-auto py-2">
-            <nav className="grid items-start px-4 text-sm font-medium">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.to}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary [&.active]:bg-muted [&.active]:text-primary"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className="h-4 w-4" />
-                  {item.name}
-                </Link>
+            <nav className="grid gap-1 px-4 text-sm font-medium">
+              {navigation.map((item: any) => (
+                item.children ? (
+                  <div key={item.name} className="space-y-1">
+                    <button
+                      onClick={() => setSchoolOpen(!schoolOpen)}
+                      className="flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
+                    >
+                      <div className="flex items-center gap-3">
+                        <item.icon className="h-4 w-4" />
+                        {item.name}
+                      </div>
+                      {schoolOpen ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                    {schoolOpen && (
+                      <div className="ml-6 space-y-1">
+                        {item.children.map((child: any) => (
+                          <Link
+                            key={child.name}
+                            to={child.to}
+                            className="flex items-center gap-3 rounded-lg px-3 py-1.5 text-muted-foreground transition-all hover:text-primary [&.active]:bg-muted [&.active]:text-primary"
+                            onClick={() => setSidebarOpen(false)}
+                          >
+                            <child.icon className="h-4 w-4" />
+                            {child.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    key={item.name}
+                    to={item.to}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary [&.active]:bg-muted [&.active]:text-primary"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.name}
+                  </Link>
+                )
               ))}
             </nav>
           </div>
