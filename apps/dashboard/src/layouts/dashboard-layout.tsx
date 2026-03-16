@@ -8,6 +8,7 @@ import {
   Bell,
   FileCode2,
   User,
+  Inbox,
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Route } from '@/routes/_dashboard/route'
@@ -19,6 +20,7 @@ import { apiFetch } from '@/lib/api'
 const navigation = [
   { name: 'Dashboard', to: '/', icon: LayoutDashboard },
   { name: 'CMS Pages', to: '/cms', icon: FileCode2 },
+  { name: 'Inbox', to: '/submissions', icon: Inbox },
   { name: 'Users', to: '/users', icon: Users },
   { name: 'Profile', to: '/profile', icon: User },
   { name: 'Settings', to: '/settings', icon: Settings },

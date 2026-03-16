@@ -9,8 +9,8 @@
 	"d1_databases": [
 		{
 			"binding": "DB",
-			"database_name": "kz-db",
-			"database_id": "add49257-cf28-405f-839d-7428207c576a",
+			"database_name": "kidzkave-db",
+			"database_id": "9c714e46-2ec0-4aa5-acad-0f620561570c",
 			"migrations_dir": "./drizzle"
 		}
 	],

@@ -1,13 +1,8 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
-import pagesApp from './routes/pages'
+import apiApp from './routes'
 import publicApp from './routes/public'
-import authApp from './routes/auth'
-import assetsApp from './routes/assets'
-import settingsApp from './routes/settings'
-import templatesApp from './routes/templates'
-import usersApp from './routes/users' // Import users app
 
 type Bindings = {
   DB: D1Database
@@ -33,23 +28,8 @@ app.use('*', secureHeaders({
   crossOriginResourcePolicy: false,
 }))
 
-// Auth Routes
-app.route('/api/auth', authApp)
-
-// Users Routes (must come before pages to avoid route conflicts)
-app.route('/api/users', usersApp)
-
-// Assets Routes
-app.route('/api/assets', assetsApp)
-
-// Settings Routes
-app.route('/api/settings', settingsApp)
-
-// Templates Routes
-app.route('/api/templates', templatesApp)
-
-// CMS Admin Routes
-app.route('/api/pages', pagesApp)
+// All API Routes grouped under /api
+app.route('/api', apiApp)
 
 // Public SSR Routes
 app.route('/', publicApp)

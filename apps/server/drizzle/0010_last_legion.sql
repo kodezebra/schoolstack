@@ -1,1 +1,0 @@
-ALTER TABLE `users` ADD `updated_at` integer;

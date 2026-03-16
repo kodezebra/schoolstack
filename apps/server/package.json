@@ -7,10 +7,10 @@
     "build": "tsc --noEmit",
     "deploy": "wrangler deploy --minify",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "db:create": "bunx wrangler d1 create kz-db",
+    "db:create": "bunx wrangler d1 create kidzkave-db",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "bunx wrangler d1 migrations apply kz-db --local",
-    "db:migrate:remote": "bunx wrangler d1 migrations apply kz-db --remote",
+    "db:migrate": "bunx wrangler d1 migrations apply kidzkave-db --local",
+    "db:migrate:remote": "bunx wrangler d1 migrations apply kidzkave-db --remote",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

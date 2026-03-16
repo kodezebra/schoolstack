@@ -14,6 +14,7 @@ import { Route as DashboardRouteRouteImport } from './routes/_dashboard/route'
 import { Route as AuthRouteRouteImport } from './routes/_auth/route'
 import { Route as DashboardIndexRouteImport } from './routes/_dashboard/index'
 import { Route as DashboardUsersRouteImport } from './routes/_dashboard/users'
+import { Route as DashboardSubmissionsRouteImport } from './routes/_dashboard/submissions'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard/settings'
 import { Route as DashboardProfileRouteImport } from './routes/_dashboard/profile'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
@@ -41,6 +42,11 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
 const DashboardUsersRoute = DashboardUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardSubmissionsRoute = DashboardSubmissionsRouteImport.update({
+  id: '/submissions',
+  path: '/submissions',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof AuthLoginRoute
   '/profile': typeof DashboardProfileRoute
   '/settings': typeof DashboardSettingsRoute
+  '/submissions': typeof DashboardSubmissionsRoute
   '/users': typeof DashboardUsersRoute
   '/cms/$pageId': typeof DashboardCmsPageIdRoute
   '/cms/': typeof DashboardCmsIndexRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByTo {
   '/login': typeof AuthLoginRoute
   '/profile': typeof DashboardProfileRoute
   '/settings': typeof DashboardSettingsRoute
+  '/submissions': typeof DashboardSubmissionsRoute
   '/users': typeof DashboardUsersRoute
   '/cms/$pageId': typeof DashboardCmsPageIdRoute
   '/cms': typeof DashboardCmsIndexRoute
@@ -97,6 +105,7 @@ export interface FileRoutesById {
   '/_auth/login': typeof AuthLoginRoute
   '/_dashboard/profile': typeof DashboardProfileRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
+  '/_dashboard/submissions': typeof DashboardSubmissionsRoute
   '/_dashboard/users': typeof DashboardUsersRoute
   '/_dashboard/': typeof DashboardIndexRoute
   '/_dashboard/cms/$pageId': typeof DashboardCmsPageIdRoute
@@ -110,6 +119,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/settings'
+    | '/submissions'
     | '/users'
     | '/cms/$pageId'
     | '/cms/'
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/settings'
+    | '/submissions'
     | '/users'
     | '/cms/$pageId'
     | '/cms'
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/_auth/login'
     | '/_dashboard/profile'
     | '/_dashboard/settings'
+    | '/_dashboard/submissions'
     | '/_dashboard/users'
     | '/_dashboard/'
     | '/_dashboard/cms/$pageId'
@@ -178,6 +190,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/users'
       preLoaderRoute: typeof DashboardUsersRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/_dashboard/submissions': {
+      id: '/_dashboard/submissions'
+      path: '/submissions'
+      fullPath: '/submissions'
+      preLoaderRoute: typeof DashboardSubmissionsRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/_dashboard/settings': {
@@ -233,6 +252,7 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 interface DashboardRouteRouteChildren {
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardSubmissionsRoute: typeof DashboardSubmissionsRoute
   DashboardUsersRoute: typeof DashboardUsersRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardCmsPageIdRoute: typeof DashboardCmsPageIdRoute
@@ -242,6 +262,7 @@ interface DashboardRouteRouteChildren {
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardSubmissionsRoute: DashboardSubmissionsRoute,
   DashboardUsersRoute: DashboardUsersRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardCmsPageIdRoute: DashboardCmsPageIdRoute,

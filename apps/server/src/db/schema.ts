@@ -39,7 +39,7 @@ export const blocks = sqliteTable('blocks', {
   order: integer('order').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
-export type Block = typeof blocks.$inferSelect;
+
 
 export const assets = sqliteTable('assets', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
@@ -72,5 +72,17 @@ export const siteSettings = sqliteTable('site_settings', {
   fontBody: text('font_body').notNull().default('Plus Jakarta Sans'), // Font for body text
   borderRadius: text('border_radius').notNull().default('lg'), // 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
   darkMode: text('dark_mode').notNull().default('system'), // 'light' | 'dark' | 'system'
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const contactSubmissions = sqliteTable('contact_submissions', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull(),
+  email: text('email').notNull(),
+  subject: text('subject'),
+  message: text('message').notNull(),
+  data: text('data'), // Store full form data as JSON string for custom fields
+  status: text('status', { enum: ['pending', 'read', 'archived'] }).notNull().default('pending'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
