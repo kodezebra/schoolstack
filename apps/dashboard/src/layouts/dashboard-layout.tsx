@@ -30,39 +30,43 @@ import { UserMenu } from '@/components/user-menu'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
+import { cn } from '@/lib/utils'
 
-// Navigation with user-friendly names and descriptions
+// Navigation with user-friendly names, descriptions, colors, and badges
 const navigation = [
   {
     section: 'Main',
+    color: 'border-blue-400',
     items: [
-      { name: 'Dashboard', to: '/', icon: LayoutDashboard, description: 'Home and overview' },
-      { name: 'Website Pages', to: '/cms', icon: FileCode2, description: 'Edit your website content' },
-      { name: 'Messages', to: '/submissions', icon: Inbox, description: 'Contact form submissions' },
+      { name: 'Dashboard', to: '/', icon: LayoutDashboard, description: 'Home and overview', color: 'text-blue-600' },
+      { name: 'Website Pages', to: '/cms', icon: FileCode2, description: 'Edit your website content', color: 'text-blue-600' },
+      { name: 'Messages', to: '/submissions', icon: Inbox, description: 'Contact form submissions', color: 'text-green-600', badge: 'messagesCount' },
     ]
   },
   {
     section: 'School',
     icon: GraduationCap,
+    color: 'border-purple-400',
     items: [
-      { name: 'Students', to: '/school/students/', icon: UsersRound, description: 'Manage student records' },
-      { name: 'Staff', to: '/school/staff/', icon: Users, description: 'Manage teachers and staff' },
-      { name: 'Subjects', to: '/school/subjects/', icon: BookOpen, description: 'Manage school subjects' },
-      { name: 'Exams', to: '/school/exams/', icon: FileText, description: 'Create and manage exams' },
-      { name: 'Terms', to: '/school/terms/', icon: Calendar, description: 'Academic terms and years' },
-      { name: 'Reports', to: '/school/reports/', icon: BarChart3, description: 'Student performance reports' },
-      { name: 'Outstanding Fees', to: '/school/reports/fees', icon: DollarSign, description: 'View unpaid fees' },
-      { name: 'Grading System', to: '/school/grades/', icon: Scale, description: 'Manage grade scales' },
-      { name: 'Fee Settings', to: '/school/fees', icon: Banknote, description: 'Configure fee structures' },
-      { name: 'School Settings', to: '/school/settings', icon: ScrollText, description: 'School information' },
+      { name: 'Students', to: '/school/students/', icon: UsersRound, description: 'Manage student records', color: 'text-blue-600' },
+      { name: 'Staff', to: '/school/staff/', icon: Users, description: 'Manage teachers and staff', color: 'text-green-600' },
+      { name: 'Subjects', to: '/school/subjects/', icon: BookOpen, description: 'Manage school subjects', color: 'text-purple-600' },
+      { name: 'Exams', to: '/school/exams/', icon: FileText, description: 'Create and manage exams', color: 'text-purple-600' },
+      { name: 'Terms', to: '/school/terms/', icon: Calendar, description: 'Academic terms and years', color: 'text-orange-600' },
+      { name: 'Reports', to: '/school/reports/', icon: BarChart3, description: 'Student performance reports', color: 'text-pink-600' },
+      { name: 'Outstanding Fees', to: '/school/reports/fees', icon: DollarSign, description: 'View unpaid fees', color: 'text-indigo-600', badge: 'outstandingFeesCount' },
+      { name: 'Grading System', to: '/school/grades/', icon: Scale, description: 'Manage grade scales', color: 'text-purple-600' },
+      { name: 'Fee Settings', to: '/school/fees', icon: Banknote, description: 'Configure fee structures', color: 'text-orange-600' },
+      { name: 'School Settings', to: '/school/settings', icon: ScrollText, description: 'School information', color: 'text-slate-600' },
     ]
   },
   {
     section: 'Account',
+    color: 'border-slate-400',
     items: [
-      { name: 'Users', to: '/users', icon: Users, description: 'Manage user accounts' },
-      { name: 'Profile', to: '/profile', icon: User, description: 'Your personal settings' },
-      { name: 'Settings', to: '/settings', icon: Settings, description: 'System configuration' },
+      { name: 'Users', to: '/users', icon: Users, description: 'Manage user accounts', color: 'text-purple-600' },
+      { name: 'Profile', to: '/profile', icon: User, description: 'Your personal settings', color: 'text-blue-600' },
+      { name: 'Settings', to: '/settings', icon: Settings, description: 'System configuration', color: 'text-slate-600' },
     ]
   },
 ]
@@ -85,6 +89,33 @@ export function DashboardLayout() {
       if (!res.ok) return null
       return res.json()
     }
+  })
+
+  // Fetch badge counts
+  const { data: messagesCount } = useQuery({
+    queryKey: ['messages', 'count'],
+    queryFn: async () => {
+      const res = await apiFetch('/contact?limit=100')
+      if (!res.ok) return 0
+      const all = await res.json()
+      return all.filter((m: any) => m.status === 'pending').length
+    },
+    refetchInterval: 30000 // Refresh every 30 seconds
+  })
+
+  const { data: outstandingFeesCount } = useQuery({
+    queryKey: ['fees', 'outstanding', 'count'],
+    queryFn: async () => {
+      try {
+        const res = await apiFetch('/school/reports/fees')
+        if (!res.ok) return 0
+        const data = await res.json()
+        return data?.outstandingCount || 0
+      } catch {
+        return 0
+      }
+    },
+    refetchInterval: 60000 // Refresh every minute
   })
 
   // Filter navigation items based on search
@@ -196,13 +227,14 @@ export function DashboardLayout() {
             <nav className="grid gap-1 px-2 text-sm font-medium">
               {filteredNavigation.map((section: any) => (
                 <div key={section.section} className="mb-3">
-                  {/* Section Header */}
+                  {/* Section Header with color accent */}
                   {!searchQuery && (
-                    <div className="mb-1 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <div className="mb-1 px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                      <div className={cn('h-2.5 w-0.5 rounded-full', section.color || 'border-slate-400')} />
                       {section.section}
                     </div>
                   )}
-                  
+
                   {/* Navigation Items */}
                   {section.section === 'School' ? (
                     <div className="space-y-1">
@@ -222,41 +254,65 @@ export function DashboardLayout() {
                       </button>
                       {schoolOpen && (
                         <div className="ml-4 space-y-0.5">
-                          {section.items.map((item: any) => (
-                            <Link
-                              key={item.name}
-                              to={item.to}
-                              title={item.description}
-                              className="group flex items-center justify-between gap-3 rounded-lg px-3 py-1.5 text-muted-foreground transition-all hover:text-primary [&.active]:bg-muted [&.active]:text-primary"
-                              onClick={() => setSidebarOpen(false)}
-                            >
-                              <div className="flex items-center gap-3">
-                                <item.icon className="h-4 w-4" />
-                                <span>{item.name}</span>
-                              </div>
-                              <HelpCircle className="h-3.5 w-3.5 opacity-0 group-hover:opacity-50 transition-opacity" />
-                            </Link>
-                          ))}
+                          {section.items.map((item: any) => {
+                            const badgeValue = item.badge === 'messagesCount' ? messagesCount : item.badge === 'outstandingFeesCount' ? outstandingFeesCount : undefined
+                            const hasBadge = badgeValue !== undefined && badgeValue !== null && badgeValue > 0
+                            
+                            return (
+                              <Link
+                                key={item.name}
+                                to={item.to}
+                                title={item.description}
+                                className="group flex items-center justify-between gap-3 rounded-lg px-3 py-1.5 text-muted-foreground transition-all hover:text-primary [&.active]:bg-muted [&.active]:text-primary"
+                                onClick={() => setSidebarOpen(false)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <item.icon className={cn('h-4 w-4', item.color)} />
+                                  <span>{item.name}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  {hasBadge && (
+                                    <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
+                                      {badgeValue}
+                                    </span>
+                                  )}
+                                  <HelpCircle className="h-3.5 w-3.5 opacity-0 group-hover:opacity-50 transition-opacity" />
+                                </div>
+                              </Link>
+                            )
+                          })}
                         </div>
                       )}
                     </div>
                   ) : (
                     <div className="space-y-0.5">
-                      {section.items.map((item: any) => (
-                        <Link
-                          key={item.name}
-                          to={item.to}
-                          title={item.description}
-                          className="group flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50 [&.active]:bg-muted [&.active]:text-primary"
-                          onClick={() => setSidebarOpen(false)}
-                        >
-                          <div className="flex items-center gap-3">
-                            <item.icon className="h-4 w-4" />
-                            <span>{item.name}</span>
-                          </div>
-                          <HelpCircle className="h-3.5 w-3.5 opacity-0 group-hover:opacity-50 transition-opacity" />
-                        </Link>
-                      ))}
+                      {section.items.map((item: any) => {
+                        const badgeValue = item.badge === 'messagesCount' ? messagesCount : item.badge === 'outstandingFeesCount' ? outstandingFeesCount : undefined
+                        const hasBadge = badgeValue !== undefined && badgeValue !== null && badgeValue > 0
+                        
+                        return (
+                          <Link
+                            key={item.name}
+                            to={item.to}
+                            title={item.description}
+                            className="group flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted/50 [&.active]:bg-muted [&.active]:text-primary"
+                            onClick={() => setSidebarOpen(false)}
+                          >
+                            <div className="flex items-center gap-3">
+                              <item.icon className={cn('h-4 w-4', item.color)} />
+                              <span>{item.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              {hasBadge && (
+                                <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-primary-foreground">
+                                  {badgeValue}
+                                </span>
+                              )}
+                              <HelpCircle className="h-3.5 w-3.5 opacity-0 group-hover:opacity-50 transition-opacity" />
+                            </div>
+                          </Link>
+                        )
+                      })}
                     </div>
                   )}
                 </div>
