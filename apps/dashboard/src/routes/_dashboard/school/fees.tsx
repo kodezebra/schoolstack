@@ -19,9 +19,13 @@ import {
   Search,
   DollarSign,
   Trash2,
-  Banknote
+  Banknote,
+  AlertCircle,
+  CheckCircle,
+  Users
 } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import {
   Dialog,
   DialogContent,
@@ -43,13 +47,15 @@ export const Route = createFileRoute('/_dashboard/school/fees')({
 
 interface FeeStructure {
   id: string
-  gradeId: string
-  gradeName?: string
+  levelId: string
+  levelName?: string
   academicYearId: string
   title: string
   description?: string
   amount: number
   dueDate?: string
+  scope: string
+  scopeDisplay?: string
   status: 'active' | 'closed'
 }
 
@@ -66,7 +72,7 @@ interface FeePayment {
   transactionNo?: string
 }
 
-interface Grade {
+interface Level {
   id: string
   name: string
 }
@@ -75,6 +81,27 @@ interface AcademicYear {
   id: string
   name: string
   isCurrent: boolean
+}
+
+interface StudentBalance {
+  studentId: string
+  studentName: string
+  admissionNo: string
+  levelName: string
+  levelId: string
+  totalFees: number
+  totalPaid: number
+  balance: number
+  isPaid: boolean
+}
+
+interface BalanceTotals {
+  totalFees: number
+  totalPaid: number
+  totalOutstanding: number
+  totalStudents: number
+  paidStudents: number
+  outstandingStudents: number
 }
 
 function FeesPage() {
@@ -101,10 +128,10 @@ function FeesPage() {
     }
   })
 
-  const { data: grades } = useQuery<Grade[]>({
-    queryKey: ['school-grades'],
+  const { data: levels } = useQuery<Level[]>({
+    queryKey: ['school-levels'],
     queryFn: async () => {
-      const res = await apiFetch('/school/grades')
+      const res = await apiFetch('/school/levels')
       if (!res.ok) return []
       return res.json()
     }
@@ -119,14 +146,41 @@ function FeesPage() {
     }
   })
 
-  const { data: students } = useQuery<any[]>({
-    queryKey: ['school-students', 'active'],
+  const [balanceFilters, setBalanceFilters] = useState({
+    academicYearId: 'all',
+    levelId: 'all',
+    status: 'all'
+  })
+
+  const { data: balancesData, isLoading: balancesLoading } = useQuery<{ students: StudentBalance[], totals: BalanceTotals }>({
+    queryKey: ['school-fee-balances', balanceFilters],
     queryFn: async () => {
-      const res = await apiFetch('/school/students?status=active')
-      if (!res.ok) return []
+      const params = new URLSearchParams()
+      if (balanceFilters.academicYearId && balanceFilters.academicYearId !== 'all') {
+        params.set('academicYearId', balanceFilters.academicYearId)
+      }
+      if (balanceFilters.levelId && balanceFilters.levelId !== 'all') {
+        params.set('levelId', balanceFilters.levelId)
+      }
+      if (balanceFilters.status !== 'all') {
+        params.set('status', balanceFilters.status)
+      }
+      const res = await apiFetch(`/school/fees/balances?${params}`)
+      if (!res.ok) return { students: [], totals: { totalFees: 0, totalPaid: 0, totalOutstanding: 0, totalStudents: 0, paidStudents: 0, outstandingStudents: 0 } }
       return res.json()
     }
   })
+
+  const { data: studentsData } = useQuery<{ data: any[] }>({
+    queryKey: ['school-students', 'active'],
+    queryFn: async () => {
+      const res = await apiFetch('/school/students?status=active&limit=1000')
+      if (!res.ok) return { data: [] }
+      return res.json()
+    }
+  })
+
+  const students = studentsData?.data || []
 
   const createFeeMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -204,16 +258,13 @@ function FeesPage() {
   const handleAddFee = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
-    const gradeId = formData.get('gradeId') as string
-    const academicYearId = formData.get('academicYearId') as string
-    const amount = parseInt(formData.get('amount') as string)
     
     createFeeMutation.mutate({
-      gradeId,
-      academicYearId,
+      scope: formData.get('scope'),
+      academicYearId: formData.get('academicYearId'),
       title: formData.get('title'),
       description: formData.get('description') || undefined,
-      amount,
+      amount: parseInt(formData.get('amount') as string),
       dueDate: formData.get('dueDate') || undefined,
     })
   }
@@ -275,6 +326,7 @@ function FeesPage() {
         <TabsList>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="structures">Fee Structures</TabsTrigger>
+          <TabsTrigger value="balances">Balances</TabsTrigger>
         </TabsList>
 
         <TabsContent value="payments">
@@ -341,7 +393,7 @@ function FeesPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Title</TableHead>
-                    <TableHead>Grade</TableHead>
+                    <TableHead>Scope</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Due Date</TableHead>
                     <TableHead>Status</TableHead>
@@ -359,7 +411,7 @@ function FeesPage() {
                     feeStructures?.map((fee) => (
                       <TableRow key={fee.id}>
                         <TableCell className="font-medium">{fee.title}</TableCell>
-                        <TableCell>{fee.gradeName}</TableCell>
+                        <TableCell>{fee.scopeDisplay || 'All Classes'}</TableCell>
                         <TableCell>{formatCurrency(fee.amount)}</TableCell>
                         <TableCell>{fee.dueDate ? new Date(fee.dueDate).toLocaleDateString() : '-'}</TableCell>
                         <TableCell>
@@ -389,6 +441,157 @@ function FeesPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="balances" className="space-y-4">
+          <div className="flex gap-4 items-center flex-wrap">
+            <Select 
+              value={balanceFilters.academicYearId} 
+              onValueChange={(v) => setBalanceFilters(prev => ({ ...prev, academicYearId: v }))}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Years" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Years</SelectItem>
+                {academicYears?.map(year => (
+                  <SelectItem key={year.id} value={year.id}>{year.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select 
+              value={balanceFilters.levelId} 
+              onValueChange={(v) => setBalanceFilters(prev => ({ ...prev, levelId: v }))}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="All Classes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Classes</SelectItem>
+                {levels?.map(level => (
+                  <SelectItem key={level.id} value={level.id}>{level.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select 
+              value={balanceFilters.status} 
+              onValueChange={(v) => setBalanceFilters(prev => ({ ...prev, status: v }))}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="outstanding">Outstanding</SelectItem>
+                <SelectItem value="paid">Paid Up</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Students</CardDescription>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  {balancesData?.totals.totalStudents || 0}
+                </CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Expected</CardDescription>
+                <CardTitle className="text-2xl">{formatCurrency(balancesData?.totals.totalFees || 0)}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardDescription>Total Collected</CardDescription>
+                <CardTitle className="text-2xl text-green-600">{formatCurrency(balancesData?.totals.totalPaid || 0)}</CardTitle>
+              </CardHeader>
+            </Card>
+            <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
+              <CardHeader className="pb-2">
+                <CardDescription>Outstanding</CardDescription>
+                <CardTitle className="text-2xl text-red-600">{formatCurrency(balancesData?.totals.totalOutstanding || 0)}</CardTitle>
+              </CardHeader>
+            </Card>
+          </div>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle>Student Balances</CardTitle>
+                <div className="flex gap-4 text-sm">
+                  <span className="flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    {balancesData?.totals.paidStudents || 0} Paid
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    {balancesData?.totals.outstandingStudents || 0} Outstanding
+                  </span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Student</TableHead>
+                    <TableHead>Class</TableHead>
+                    <TableHead className="text-right">Total Fees</TableHead>
+                    <TableHead className="text-right">Paid</TableHead>
+                    <TableHead className="text-right">Balance</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {balancesLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-32 text-center">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                      </TableCell>
+                    </TableRow>
+                  ) : balancesData?.students.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
+                        No students found.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    balancesData?.students.map((student) => (
+                      <TableRow key={student.studentId}>
+                        <TableCell>
+                          <Link to="/school/students/$id" params={{ id: student.studentId }} className="font-medium hover:underline">
+                            {student.studentName}
+                          </Link>
+                          <p className="text-xs text-muted-foreground">{student.admissionNo}</p>
+                        </TableCell>
+                        <TableCell>{student.levelName}</TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(student.totalFees)}</TableCell>
+                        <TableCell className="text-right text-green-600">{formatCurrency(student.totalPaid)}</TableCell>
+                        <TableCell className={`text-right font-medium ${student.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                          {formatCurrency(Math.max(0, student.balance))}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          {student.isPaid ? (
+                            <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+                              <CheckCircle className="h-3 w-3 mr-1" /> Paid
+                            </Badge>
+                          ) : (
+                            <Badge variant="destructive">
+                              <AlertCircle className="h-3 w-3 mr-1" /> Outstanding
+                            </Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Add Fee Dialog */}
@@ -396,24 +599,25 @@ function FeesPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Create Fee Structure</DialogTitle>
-            <DialogDescription>Set up a new fee for a grade.</DialogDescription>
+            <DialogDescription>Set up a new fee for a class.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddFee} className="space-y-4">
             <div>
               <label className="text-sm font-medium">Title</label>
-              <Input name="title" required placeholder="e.g., Term 1 Fees" />
+              <Input name="title" required placeholder="e.g., Tuition Fee" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Grade</label>
-                <Select name="gradeId" required>
+                <label className="text-sm font-medium">Scope</label>
+                <Select name="scope" required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select grade" />
+                    <SelectValue placeholder="Select scope" />
                   </SelectTrigger>
                   <SelectContent>
-                    {grades?.map(grade => (
-                      <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
-                    ))}
+                    <SelectItem value="all">All Classes</SelectItem>
+                    <SelectItem value="preschool">Pre-School (Day Care - Top Class)</SelectItem>
+                    <SelectItem value="lower_primary">Lower Primary (Primary 1-3)</SelectItem>
+                    <SelectItem value="upper_primary">Upper Primary (Primary 4-7)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -487,7 +691,7 @@ function FeesPage() {
                 <SelectContent>
                   {feeStructures?.filter(f => f.status === 'active').map(fee => (
                     <SelectItem key={fee.id} value={fee.id}>
-                      {fee.title} - {fee.gradeName} ({formatCurrency(fee.amount)})
+                      {fee.title} - {fee.levelName} ({formatCurrency(fee.amount)})
                     </SelectItem>
                   ))}
                 </SelectContent>

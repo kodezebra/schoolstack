@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { 
@@ -12,26 +12,21 @@ import {
 import { 
   Card, 
   CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
+  CardHeader 
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Avatar } from '@/components/ui/photo-upload'
 import { 
   Plus,
   Search,
-  MoreHorizontal,
-  User,
-  Phone,
-  Mail,
-  MapPin,
   Trash2,
-  Settings2
+  Settings2,
+  RefreshCw,
+  Camera
 } from 'lucide-react'
-import { useState } from 'react'
-import { MediaPicker } from '@/components/cms-editor/MediaPicker'
+import { useState, useEffect } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -47,7 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-export const Route = createFileRoute('/_dashboard/school/students')({
+export const Route = createFileRoute('/_dashboard/school/students/')({
   component: StudentsPage,
 })
 
@@ -58,47 +53,70 @@ interface Student {
   lastName: string
   gender: 'male' | 'female' | 'other'
   dob?: string
-  gradeId: string
-  gradeName?: string
+  levelId: string
+  levelName?: string
   rollNo?: string
   parentName: string
   parentPhone: string
   parentEmail?: string
   address?: string
+  photo?: string
   status: 'active' | 'transferred' | 'graduated' | 'withdrawn'
   enrollmentDate: string
 }
 
-interface Grade {
+interface Level {
   id: string
   name: string
   order: number
 }
 
+interface Pagination {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+}
+
+interface StudentsResponse {
+  data: Student[]
+  pagination: Pagination
+}
+
 function StudentsPage() {
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
-  const [gradeFilter, setGradeFilter] = useState<string>('all')
+  const [levelFilter, setLevelFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null)
+  const [page, setPage] = useState(1)
+  const [limit] = useState(20)
+  const [generatedAdmNo, setGeneratedAdmNo] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
 
-  const { data: students, isLoading } = useQuery<Student[]>({
-    queryKey: ['school-students', gradeFilter, statusFilter],
+  const { data: response, isLoading } = useQuery<StudentsResponse>({
+    queryKey: ['school-students', levelFilter, statusFilter, page, limit],
     queryFn: async () => {
       const params = new URLSearchParams()
-      if (gradeFilter !== 'all') params.set('gradeId', gradeFilter)
+      if (levelFilter !== 'all') params.set('levelId', levelFilter)
       if (statusFilter !== 'all') params.set('status', statusFilter)
+      params.set('page', String(page))
+      params.set('limit', String(limit))
       const res = await apiFetch(`/school/students?${params}`)
       if (!res.ok) throw new Error('Failed to fetch students')
       return res.json()
     }
   })
 
-  const { data: grades } = useQuery<Grade[]>({
-    queryKey: ['school-grades'],
+  const students = response?.data || []
+  const pagination = response?.pagination
+
+  const { data: levels } = useQuery<Level[]>({
+    queryKey: ['school-levels'],
     queryFn: async () => {
-      const res = await apiFetch('/school/grades')
+      const res = await apiFetch('/school/levels')
       if (!res.ok) return []
       return res.json()
     }
@@ -111,11 +129,27 @@ function StudentsPage() {
         body: JSON.stringify(data)
       })
       if (!res.ok) throw new Error('Failed to create student')
-      return res.json()
+      const newStudent = await res.json()
+      
+      if (selectedPhoto) {
+        const formData = new FormData()
+        formData.append('photo', selectedPhoto)
+        const photoRes = await apiFetch(`/school/students/${newStudent.id}/photo`, {
+          method: 'POST',
+          body: formData
+        })
+        if (!photoRes.ok) {
+          const err = await photoRes.json()
+          console.error('Photo upload failed:', err)
+        }
+      }
+      
+      return newStudent
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-students'] })
       setIsAddDialogOpen(false)
+      setSelectedPhoto(null)
     }
   })
 
@@ -127,7 +161,6 @@ function StudentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-students'] })
-      setSelectedStudent(null)
     }
   })
 
@@ -141,6 +174,11 @@ function StudentsPage() {
       s.parentName.toLowerCase().includes(query)
     )
   }) ?? []
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1)
+  }, [levelFilter, statusFilter])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -160,17 +198,33 @@ function StudentsPage() {
   const handleAddStudent = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    const admNo = formData.get('admissionNo') as string
     createMutation.mutate({
-      admissionNo: formData.get('admissionNo'),
+      admissionNo: admNo || generatedAdmNo || undefined,
       firstName: formData.get('firstName'),
       lastName: formData.get('lastName'),
       gender: formData.get('gender'),
-      gradeId: formData.get('gradeId'),
+      levelId: formData.get('levelId'),
       parentName: formData.get('parentName'),
       parentPhone: formData.get('parentPhone'),
       parentEmail: formData.get('parentEmail') || undefined,
       address: formData.get('address') || undefined,
     })
+  }
+
+  const generateAdmNo = async () => {
+    setIsGenerating(true)
+    try {
+      const res = await apiFetch('/school/generate-number?type=student')
+      if (res.ok) {
+        const data = await res.json()
+        setGeneratedAdmNo(data.number)
+      }
+    } catch (err) {
+      console.error('Failed to generate admission number', err)
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   if (isLoading) {
@@ -208,14 +262,14 @@ function StudentsPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Select value={gradeFilter} onValueChange={setGradeFilter}>
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
                 <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="All Grades" />
+                  <SelectValue placeholder="All Classes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Grades</SelectItem>
-                  {grades?.map(grade => (
-                    <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
+                  <SelectItem value="all">All Classes</SelectItem>
+                  {levels?.map(level => (
+                    <SelectItem key={level.id} value={level.id}>{level.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -238,9 +292,10 @@ function StudentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Photo</TableHead>
                 <TableHead>Admission No.</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>Grade</TableHead>
+                <TableHead>Class</TableHead>
                 <TableHead>Parent Contact</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -255,7 +310,14 @@ function StudentsPage() {
                 </TableRow>
               ) : (
                 filteredStudents.map((student) => (
-                  <TableRow key={student.id} className="cursor-pointer" onClick={() => setSelectedStudent(student)}>
+                  <TableRow key={student.id}>
+                    <TableCell>
+                      <Avatar 
+                        photo={student.photo} 
+                        name={`${student.firstName} ${student.lastName}`}
+                        size="sm"
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{student.admissionNo}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
@@ -263,7 +325,7 @@ function StudentsPage() {
                         <span className="text-xs text-muted-foreground capitalize">{student.gender}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{student.gradeName}</TableCell>
+                    <TableCell>{student.levelName}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="text-sm">{student.parentName}</span>
@@ -273,22 +335,22 @@ function StudentsPage() {
                     <TableCell>{getStatusBadge(student.status)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-primary"
-                          onClick={() => {
-                            setSelectedStudent(student)
-                          }}
+                          asChild
                         >
-                          <Settings2 className="h-4 w-4" />
+                          <Link to="/school/students/$id" params={{ id: student.id }} >
+                            <Settings2 className="h-4 w-4" />
+                          </Link>
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => {
-                            if (confirm('Are you sure you want to withdraw this student?')) {
+                            if (confirm('Are you sure you want to PERMANENTLY delete this student? This will also delete their fee history and exam results.')) {
                               deleteMutation.mutate(student.id)
                             }
                           }}
@@ -305,6 +367,34 @@ function StudentsPage() {
         </CardContent>
       </Card>
 
+      {/* Pagination */}
+      {pagination && (
+        <div className="flex items-center justify-between px-2">
+          <div className="text-sm text-muted-foreground">
+            Showing {filteredStudents.length} of {pagination.total} students
+          </div>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              disabled={page === 1}
+            >
+              Previous
+            </Button>
+            <span className="text-sm">Page {page} of {pagination.totalPages || 1}</span>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setPage(p => p + 1)}
+              disabled={page >= pagination.totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Add Student Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-w-md">
@@ -313,20 +403,84 @@ function StudentsPage() {
             <DialogDescription>Enter student enrollment details.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddStudent} className="space-y-4">
+            <div className="flex justify-center">
+              <div className="relative">
+                <input
+                  type="file"
+                  id="photo-upload"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setSelectedPhoto(file)
+                      const reader = new FileReader()
+                      reader.onload = (ev) => setPhotoPreview(ev.target?.result as string)
+                      reader.readAsDataURL(file)
+                    }
+                  }}
+                />
+                {photoPreview || selectedPhoto ? (
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-dashed border-primary">
+                    <img 
+                      src={photoPreview || undefined} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <label 
+                    htmlFor="photo-upload"
+                    className="w-32 h-32 rounded-full bg-muted flex flex-col items-center justify-center gap-1 border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors cursor-pointer"
+                  >
+                    <Camera className="h-8 w-8 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Photo</span>
+                  </label>
+                )}
+                {selectedPhoto && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPhoto(null)
+                      setPhotoPreview(null)
+                    }}
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Admission No.</label>
-                <Input name="admissionNo" required placeholder="e.g., ADM001" />
+                <div className="flex gap-2">
+                  <Input 
+                    name="admissionNo" 
+                    placeholder={generatedAdmNo || "Auto-generated"}
+                    className="flex-1"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="icon"
+                    onClick={generateAdmNo}
+                    disabled={isGenerating}
+                    title="Generate number"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
               </div>
               <div>
-                <label className="text-sm font-medium">Grade</label>
-                <Select name="gradeId" required>
+                <label className="text-sm font-medium">Class</label>
+                <Select name="levelId" required>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select grade" />
+                    <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
-                    {grades?.map(grade => (
-                      <SelectItem key={grade.id} value={grade.id}>{grade.name}</SelectItem>
+                    {levels?.map(level => (
+                      <SelectItem key={level.id} value={level.id}>{level.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -383,74 +537,6 @@ function StudentsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Student Details Dialog */}
-      <Dialog open={!!selectedStudent} onOpenChange={(open) => !open && setSelectedStudent(null)}>
-        <DialogContent className="max-w-md">
-          {selectedStudent && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{selectedStudent.firstName} {selectedStudent.lastName}</DialogTitle>
-                <DialogDescription>Admission No: {selectedStudent.admissionNo}</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(selectedStudent.status)}
-                  <span className="text-sm text-muted-foreground">Grade: {selectedStudent.gradeName}</span>
-                </div>
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Parent</p>
-                      <p className="text-sm font-medium">{selectedStudent.parentName}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Phone</p>
-                      <p className="text-sm font-medium">{selectedStudent.parentPhone}</p>
-                    </div>
-                  </div>
-                  {selectedStudent.parentEmail && (
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Email</p>
-                        <p className="text-sm font-medium">{selectedStudent.parentEmail}</p>
-                      </div>
-                    </div>
-                  )}
-                  {selectedStudent.address && (
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Address</p>
-                        <p className="text-sm font-medium">{selectedStudent.address}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="flex justify-between pt-4 border-t">
-                  <Button 
-                    variant="destructive" 
-                    size="sm"
-                    onClick={() => {
-                      if (confirm('Are you sure you want to withdraw this student?')) {
-                        deleteMutation.mutate(selectedStudent.id)
-                      }
-                    }}
-                    disabled={deleteMutation.isPending}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" /> Withdraw
-                  </Button>
-                  <Button variant="outline" onClick={() => setSelectedStudent(null)}>Close</Button>
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

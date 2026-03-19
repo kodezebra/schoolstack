@@ -22,9 +22,9 @@ app.post('/bootstrap', async (c) => {
   const db = drizzle(c.env.DB)
 
   // Check if any user exists
-  const userCount = await db.select({ count: sql<number>`count(*)` }).from(users).get()
+  const existingUser = await db.select().from(users).limit(1).get()
 
-  if (userCount && userCount.count > 0) {
+  if (existingUser) {
     return c.json({ error: 'Forbidden: Admin already exists' }, 403)
   }
 

@@ -45,6 +45,8 @@ app.put('/', async (c) => {
     'logoText', 'logoType', 'logoIcon', 'logoImage', 'favicon',
     'footerDescription', 'primaryColor', 'accentColor',
     'navbarConfig', 'navbarCta', 'footerConfig', 'footerSocials',
+    // School information for reports
+    'schoolName', 'schoolAddress', 'schoolPhone', 'schoolEmail',
     // Theme fields
     'theme', 'fontDisplay', 'fontBody', 'borderRadius', 'darkMode',
     'backgroundLight', 'backgroundDark'

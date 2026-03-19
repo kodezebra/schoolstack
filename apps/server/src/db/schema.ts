@@ -64,6 +64,11 @@ export const siteSettings = sqliteTable('site_settings', {
   navbarCta: text('navbar_cta'), // { label: string, url: string, show: boolean }
   footerConfig: text('footer_config'),
   footerSocials: text('footer_socials'), // Array<{ platform: string, url: string }>
+  // School information for reports
+  schoolName: text('school_name').notNull().default('KidzKave School'),
+  schoolAddress: text('school_address').default('Kampala, Uganda'),
+  schoolPhone: text('school_phone').default('+256 700 000 000'),
+  schoolEmail: text('school_email').default('info@school.com'),
   // Theme configuration
   theme: text('theme').notNull().default('modern'), // 'modern' | 'minimal' | 'bold' | 'playful'
   backgroundLight: text('background_light').notNull().default('#f6f7f8'),
@@ -101,11 +106,12 @@ export const academicYears = sqliteTable('academic_years', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
-export const grades = sqliteTable('grades', {
+export const levels = sqliteTable('levels', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  name: text('name').notNull(), // Nursery, LKG, UKG, 1-12
+  name: text('name').notNull(), // Nursery, LKG, UKG, P1-P7, S1-S6
   order: integer('order').notNull().default(0),
   academicYearId: text('academic_year_id').notNull().references(() => academicYears.id, { onDelete: 'cascade' }),
+  classTeacherId: text('class_teacher_id').references(() => staff.id, { onDelete: 'set null' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
@@ -116,12 +122,13 @@ export const students = sqliteTable('students', {
   lastName: text('last_name').notNull(),
   gender: text('gender', { enum: ['male', 'female', 'other'] }).notNull(),
   dob: integer('dob', { mode: 'timestamp' }),
-  gradeId: text('grade_id').notNull().references(() => grades.id, { onDelete: 'cascade' }),
+  levelId: text('level_id').notNull().references(() => levels.id, { onDelete: 'cascade' }),
   rollNo: text('roll_no'),
   parentName: text('parent_name').notNull(),
   parentPhone: text('parent_phone').notNull(),
   parentEmail: text('parent_email'),
   address: text('address'),
+  photo: text('photo'),
   status: text('status', { enum: ['active', 'transferred', 'graduated', 'withdrawn'] }).notNull().default('active'),
   enrollmentDate: integer('enrollment_date', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
@@ -139,6 +146,7 @@ export const staff = sqliteTable('staff', {
   department: text('department'),
   qualifications: text('qualifications'),
   experience: text('experience'), // years of experience
+  photo: text('photo'),
   status: text('status', { enum: ['active', 'inactive'] }).notNull().default('active'),
   joinDate: integer('join_date', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
@@ -147,12 +155,13 @@ export const staff = sqliteTable('staff', {
 
 export const feeStructures = sqliteTable('fee_structures', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  gradeId: text('grade_id').notNull().references(() => grades.id, { onDelete: 'cascade' }),
+  levelId: text('level_id').references(() => levels.id, { onDelete: 'cascade' }),
   academicYearId: text('academic_year_id').notNull().references(() => academicYears.id, { onDelete: 'cascade' }),
-  title: text('title').notNull(), // e.g., "Term 1 Fees", "Annual Fees"
+  title: text('title').notNull(),
   description: text('description'),
-  amount: integer('amount').notNull(), // in UGX (integer)
+  amount: integer('amount').notNull(),
   dueDate: integer('due_date', { mode: 'timestamp' }),
+  scope: text('scope', { enum: ['all', 'preschool', 'lower_primary', 'upper_primary'] }).notNull().default('all'),
   status: text('status', { enum: ['active', 'closed'] }).notNull().default('active'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
@@ -168,4 +177,88 @@ export const feePayments = sqliteTable('fee_payments', {
   receiptNo: text('receipt_no'),
   notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const feeOverrides = sqliteTable('fee_overrides', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  studentId: text('student_id').notNull().references(() => students.id, { onDelete: 'cascade' }),
+  feeStructureId: text('fee_structure_id').notNull().references(() => feeStructures.id, { onDelete: 'cascade' }),
+  overrideAmount: integer('override_amount').notNull(), // in UGX (integer)
+  reason: text('reason'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+// =======================
+// Exam & Marks
+// =======================
+
+export const subjects = sqliteTable('subjects', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull(), // e.g., Mathematics, English, Science
+  code: text('code'), // e.g., MATH, ENG
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const terms = sqliteTable('terms', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull(), // "Term 1", "Term 2", "Term 3"
+  academicYearId: text('academic_year_id').notNull().references(() => academicYears.id, { onDelete: 'cascade' }),
+  startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+  endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
+  status: text('status', { enum: ['upcoming', 'active', 'closed'] }).notNull().default('upcoming'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const exams = sqliteTable('exams', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  title: text('title').notNull(), // e.g., "Term 1 Mathematics Exam"
+  type: text('type', { enum: ['test', 'midterm', 'final', 'assignment', 'quiz'] }).notNull(),
+  academicYearId: text('academic_year_id').notNull().references(() => academicYears.id, { onDelete: 'cascade' }),
+  levelId: text('level_id').notNull().references(() => levels.id, { onDelete: 'cascade' }),
+  subjectId: text('subject_id').notNull().references(() => subjects.id, { onDelete: 'cascade' }),
+  termId: text('term_id').references(() => terms.id, { onDelete: 'set null' }),
+  examSetId: text('exam_set_id').references(() => examSets.id, { onDelete: 'set null' }),
+  examDate: integer('exam_date', { mode: 'timestamp' }).notNull(),
+  totalMarks: integer('total_marks').notNull().default(100),
+  status: text('status', { enum: ['draft', 'published'] }).notNull().default('draft'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const examResults = sqliteTable('exam_results', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  examId: text('exam_id').notNull().references(() => exams.id, { onDelete: 'cascade' }),
+  studentId: text('student_id').notNull().references(() => students.id, { onDelete: 'cascade' }),
+  marks: integer('marks').notNull(),
+  notes: text('notes'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const levelSubjects = sqliteTable('level_subjects', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  levelId: text('level_id').notNull().references(() => levels.id, { onDelete: 'cascade' }),
+  subjectId: text('subject_id').notNull().references(() => subjects.id, { onDelete: 'cascade' }),
+  teacherId: text('teacher_id').references(() => staff.id, { onDelete: 'set null' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const examSets = sqliteTable('exam_sets', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull(), // e.g., "Beginning of Term", "Mid Term", "End of Term"
+  description: text('description'),
+  academicYearId: text('academic_year_id').notNull().references(() => academicYears.id, { onDelete: 'cascade' }),
+  termId: text('term_id').references(() => terms.id, { onDelete: 'set null' }),
+  levelId: text('level_id').notNull().references(() => levels.id, { onDelete: 'cascade' }),
+  startDate: integer('start_date', { mode: 'timestamp' }),
+  endDate: integer('end_date', { mode: 'timestamp' }),
+  status: text('status', { enum: ['draft', 'published', 'completed'] }).notNull().default('draft'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const gradeScales = sqliteTable('grade_scales', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  name: text('name').notNull(), // "Default Scale", "Primary"
+  academicYearId: text('academic_year_id').references(() => academicYears.id, { onDelete: 'cascade' }),
+  grades: text('grades').notNull(), // JSON: [{ grade: "A", minMarks: 90, maxMarks: 100, points: 4.0, color: "green" }]
+  isDefault: integer('is_default', { mode: 'boolean' }).default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });

@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { 
@@ -9,17 +9,18 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Avatar } from '@/components/ui/photo-upload'
 import { 
   Plus,
   Search,
-  Mail,
-  Phone,
   Trash2,
-  Settings2
+  Settings2,
+  RefreshCw,
+  Camera
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -37,7 +38,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-export const Route = createFileRoute('/_dashboard/school/staff')({
+export const Route = createFileRoute('/_dashboard/school/staff/')({
   component: StaffPage,
 })
 
@@ -52,6 +53,7 @@ interface Staff {
   department?: string
   qualifications?: string
   experience?: string
+  photo?: string
   status: 'active' | 'inactive'
   joinDate: string
 }
@@ -62,6 +64,11 @@ function StaffPage() {
   const [roleFilter, setRoleFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<string>('teacher')
+  const [generatedEmpNo, setGeneratedEmpNo] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
 
   const { data: staff, isLoading } = useQuery<Staff[]>({
     queryKey: ['school-staff', roleFilter, statusFilter],
@@ -82,11 +89,28 @@ function StaffPage() {
         body: JSON.stringify(data)
       })
       if (!res.ok) throw new Error('Failed to create staff')
-      return res.json()
+      const newStaff = await res.json()
+      
+      if (selectedPhoto) {
+        const formData = new FormData()
+        formData.append('photo', selectedPhoto)
+        const photoRes = await apiFetch(`/school/staff/${newStaff.id}/photo`, {
+          method: 'POST',
+          body: formData
+        })
+        if (!photoRes.ok) {
+          const err = await photoRes.json()
+          console.error('Photo upload failed:', err)
+        }
+      }
+      
+      return newStaff
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-staff'] })
       setIsAddDialogOpen(false)
+      setSelectedPhoto(null)
+      setPhotoPreview(null)
     }
   })
 
@@ -125,8 +149,9 @@ function StaffPage() {
   const handleAddStaff = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    const empNo = formData.get('employeeNo') as string
     createMutation.mutate({
-      employeeNo: formData.get('employeeNo'),
+      employeeNo: empNo || generatedEmpNo || undefined,
       firstName: formData.get('firstName'),
       lastName: formData.get('lastName'),
       email: formData.get('email'),
@@ -136,6 +161,25 @@ function StaffPage() {
       qualifications: formData.get('qualifications') || undefined,
       experience: formData.get('experience') || undefined,
     })
+  }
+
+  const generateEmpNo = async () => {
+    setIsGenerating(true)
+    try {
+      const res = await apiFetch(`/school/generate-number?type=staff&role=${selectedRole}`)
+      if (res.ok) {
+        const data = await res.json()
+        setGeneratedEmpNo(data.number)
+      }
+    } catch (err) {
+      console.error('Failed to generate employee number', err)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
+  const handleRoleChange = (value: string) => {
+    setSelectedRole(value)
   }
 
   if (isLoading) {
@@ -200,6 +244,7 @@ function StaffPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Photo</TableHead>
                 <TableHead>Employee No.</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Role</TableHead>
@@ -219,6 +264,13 @@ function StaffPage() {
               ) : (
                 filteredStaff.map((member) => (
                   <TableRow key={member.id}>
+                    <TableCell>
+                      <Avatar 
+                        photo={member.photo} 
+                        name={`${member.firstName} ${member.lastName}`}
+                        size="sm"
+                      />
+                    </TableCell>
                     <TableCell className="font-medium">{member.employeeNo}</TableCell>
                     <TableCell>{member.firstName} {member.lastName}</TableCell>
                     <TableCell>{getRoleBadge(member.role)}</TableCell>
@@ -240,15 +292,18 @@ function StaffPage() {
                           variant="ghost" 
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          asChild
                         >
-                          <Settings2 className="h-4 w-4" />
+                          <Link to="/school/staff/$id" params={{ id: member.id }}>
+                            <Settings2 className="h-4 w-4" />
+                          </Link>
                         </Button>
                         <Button 
                           variant="ghost" 
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => {
-                            if (confirm('Are you sure you want to remove this staff member?')) {
+                            if (confirm('Are you sure you want to PERMANENTLY delete this staff member? This cannot be undone.')) {
                               deleteMutation.mutate(member.id)
                             }
                           }}
@@ -273,14 +328,78 @@ function StaffPage() {
             <DialogDescription>Enter staff member details.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddStaff} className="space-y-4">
+            <div className="flex justify-center">
+              <div className="relative">
+                <input
+                  type="file"
+                  id="staff-photo-upload"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (file) {
+                      setSelectedPhoto(file)
+                      const reader = new FileReader()
+                      reader.onload = (ev) => setPhotoPreview(ev.target?.result as string)
+                      reader.readAsDataURL(file)
+                    }
+                  }}
+                />
+                {photoPreview || selectedPhoto ? (
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-dashed border-primary">
+                    <img 
+                      src={photoPreview || undefined} 
+                      alt="Preview" 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <label 
+                    htmlFor="staff-photo-upload"
+                    className="w-32 h-32 rounded-full bg-muted flex flex-col items-center justify-center gap-1 border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors cursor-pointer"
+                  >
+                    <Camera className="h-8 w-8 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">Photo</span>
+                  </label>
+                )}
+                {selectedPhoto && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedPhoto(null)
+                      setPhotoPreview(null)
+                    }}
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white flex items-center justify-center text-xs"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Employee No.</label>
-                <Input name="employeeNo" required placeholder="e.g., EMP001" />
+                <div className="flex gap-2">
+                  <Input 
+                    name="employeeNo" 
+                    placeholder={generatedEmpNo || "Auto-generated"}
+                    className="flex-1"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="icon"
+                    onClick={generateEmpNo}
+                    disabled={isGenerating}
+                    title="Generate number"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
               </div>
               <div>
                 <label className="text-sm font-medium">Role</label>
-                <Select name="role" required>
+                <Select name="role" required defaultValue="teacher" onValueChange={handleRoleChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>

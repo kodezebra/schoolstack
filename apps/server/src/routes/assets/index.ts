@@ -49,8 +49,8 @@ app.get('/', authMiddleware, requireRole('owner', 'admin', 'editor'), async (c) 
 })
 
 // SERVE - Public (needed for public pages)
-app.get('/:key', async (c) => {
-  const key = c.req.param('key')
+app.get('/*', async (c) => {
+  const key = c.req.path.split('/assets/')[1]
   const object = await c.env.ASSETS.get(key)
 
   if (!object) return c.notFound()

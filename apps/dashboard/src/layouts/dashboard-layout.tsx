@@ -15,6 +15,12 @@ import {
   ScrollText,
   ChevronDown,
   ChevronRight,
+  BookOpen,
+  FileText,
+  Calendar,
+  BarChart3,
+  Scale,
+  DollarSign,
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Route } from '@/routes/_dashboard/route'
@@ -23,13 +29,19 @@ import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 
-const navigation = [
+  const navigation = [
   { name: 'Dashboard', to: '/', icon: LayoutDashboard },
   { name: 'CMS Pages', to: '/cms', icon: FileCode2 },
   { name: 'Inbox', to: '/submissions', icon: Inbox },
   { name: 'School', icon: GraduationCap, children: [
-    { name: 'Students', to: '/school/students', icon: UsersRound },
-    { name: 'Staff', to: '/school/staff', icon: Users },
+    { name: 'Students', to: '/school/students/', icon: UsersRound },
+    { name: 'Staff', to: '/school/staff/', icon: Users },
+    { name: 'Subjects', to: '/school/subjects/', icon: BookOpen },
+    { name: 'Exams', to: '/school/exams/', icon: FileText },
+    { name: 'Terms', to: '/school/terms/', icon: Calendar },
+    { name: 'Reports', to: '/school/reports/', icon: BarChart3 },
+    { name: 'Fee Balances', to: '/school/reports/fees', icon: DollarSign },
+    { name: 'Grade Scale', to: '/school/grades/', icon: Scale },
     { name: 'Fees', to: '/school/fees', icon: Banknote },
     { name: 'Settings', to: '/school/settings', icon: ScrollText },
   ]},
@@ -207,10 +219,48 @@ export function DashboardLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-6 lg:p-10">
+        <main className="flex-1 overflow-auto p-6 lg:p-10 print:p-2 print:overflow-visible">
           <Outlet />
         </main>
       </div>
+
+      {/* Print Styles */}
+      <style>{`
+        @media print {
+          @page {
+            size: A4 portrait;
+            margin: 0.5cm;
+          }
+          body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          /* Hide sidebar */
+          aside {
+            display: none !important;
+          }
+          /* Hide header */
+          header {
+            display: none !important;
+          }
+          /* Remove sidebar margin and adjust padding */
+          .md\\:ml-64 {
+            margin-left: 0 !important;
+          }
+          /* Hide no-print elements */
+          .no-print,
+          [class*="no-print"] {
+            display: none !important;
+          }
+          /* Ensure white background */
+          body {
+            background: white !important;
+          }
+          .bg-background {
+            background: white !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }
