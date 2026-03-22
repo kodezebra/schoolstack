@@ -13,6 +13,7 @@ import terms from './terms'
 import gradeScales from './grade-scales'
 import reports from './reports'
 import generateNumber from './generate-number'
+import remarks from './remarks'
 
 const app = new Hono()
 
@@ -30,5 +31,6 @@ app.route('/terms', terms)
 app.route('/grade-scales', gradeScales)
 app.route('/reports', reports)
 app.route('/generate-number', generateNumber)
+app.route('/remarks', remarks)
 
 export default app

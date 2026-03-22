@@ -80,6 +80,10 @@ interface StudentReport {
     subjectCount: number
     rank: number
     rankSuffix: string
+    aggregate: number
+    division: string
+    divisionStanding: string
+    divisionColor: string
   }
 }
 
@@ -359,7 +363,7 @@ function ReportsPage() {
                     <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider border-b">Total</th>
                     <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider border-b">Avg %</th>
                     <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider border-b">Grade</th>
-                    <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider border-b">Rank</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider border-b">Div/Agg</th>
                     <th className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider border-b print:hidden">Action</th>
                   </tr>
                 </thead>
@@ -426,8 +430,18 @@ function ReportsPage() {
                           <span className="text-slate-300">-</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-center font-semibold text-sm">
-                        {student.summary.rank}{student.summary.rankSuffix}
+                      <td className="px-3 py-2 text-center">
+                        <div className="flex flex-col items-center gap-0.5">
+                          <span 
+                            className="inline-block px-2 py-0.5 rounded text-xs font-bold text-white"
+                            style={{ backgroundColor: student.summary.divisionColor }}
+                          >
+                            {student.summary.division}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            Agg: {student.summary.aggregate}
+                          </span>
+                        </div>
                       </td>
                       <td className="px-3 py-2 text-center print:hidden">
                         <Link to="/school/reports/students/$studentId" params={{ studentId: student.studentId }}>
@@ -447,18 +461,47 @@ function ReportsPage() {
           <Card>
             <CardContent className="py-3 px-4">
               <div className="flex flex-wrap items-center justify-between gap-4">
-                <span className="text-sm font-medium">Grade Scale:</span>
-                <div className="flex flex-wrap items-center gap-3">
-                  {reportData?.gradeScale.map((g) => (
-                    <div key={g.grade} className="flex items-center gap-1.5">
-                      <span 
-                        className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white"
-                        style={{ backgroundColor: g.color }}
-                      >
-                        {g.grade}
-                      </span>
+                <div className="flex flex-wrap items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Grade Scale:</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {reportData?.gradeScale.map((g) => (
+                        <div key={g.grade} className="flex items-center gap-1">
+                          <span 
+                            className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold text-white"
+                            style={{ backgroundColor: g.color }}
+                          >
+                            {g.grade}
+                          </span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium">Divisions:</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        <span className="w-6 h-6 rounded bg-[#eab308] flex items-center justify-center text-[10px] font-bold text-white">I</span>
+                        <span className="text-xs text-muted-foreground">4-12</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="w-6 h-6 rounded bg-[#22c55e] flex items-center justify-center text-[10px] font-bold text-white">II</span>
+                        <span className="text-xs text-muted-foreground">13-23</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="w-6 h-6 rounded bg-[#3b82f6] flex items-center justify-center text-[10px] font-bold text-white">III</span>
+                        <span className="text-xs text-muted-foreground">24-29</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="w-6 h-6 rounded bg-[#f97316] flex items-center justify-center text-[10px] font-bold text-white">IV</span>
+                        <span className="text-xs text-muted-foreground">30-34</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="w-6 h-6 rounded bg-[#ef4444] flex items-center justify-center text-[10px] font-bold text-white">U</span>
+                        <span className="text-xs text-muted-foreground">35-36</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>

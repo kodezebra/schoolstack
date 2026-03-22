@@ -116,7 +116,8 @@ function UsersPage() {
   const canManageUsers = isOwner || isAdmin
   const ownerCount = users?.filter(u => u.role === 'owner').length || 0
 
-  const canDeleteUser = (user: User): boolean => {
+  const canDeleteUser = (user: User | null): boolean => {
+    if (!user) return false
     if (user.id === currentUser?.id) return false
     if (user.role === 'owner') {
       if (!isOwner) return false
@@ -125,7 +126,8 @@ function UsersPage() {
     return true
   }
 
-  const canEditUser = (user: User): boolean => {
+  const canEditUser = (user: User | null): boolean => {
+    if (!user) return false
     if (user.role === 'owner' && !isOwner) return false
     return true
   }
@@ -501,7 +503,7 @@ function UsersPage() {
                 value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                 placeholder="John Doe"
-                disabled={!canEditUser(selectedUser!)}
+                disabled={!canEditUser(selectedUser)}
               />
             </div>
             <div className="grid gap-2">
@@ -512,7 +514,7 @@ function UsersPage() {
                 value={editForm.email}
                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                 placeholder="john@example.com"
-                disabled={!canEditUser(selectedUser!)}
+                disabled={!canEditUser(selectedUser)}
               />
             </div>
             <div className="grid gap-2">
@@ -520,7 +522,7 @@ function UsersPage() {
               <Select
                 value={editForm.role}
                 onValueChange={(value: User['role']) => setEditForm({ ...editForm, role: value })}
-                disabled={!canEditUser(selectedUser!)}
+                disabled={!canEditUser(selectedUser)}
               >
                 <SelectTrigger>
                   <SelectValue />

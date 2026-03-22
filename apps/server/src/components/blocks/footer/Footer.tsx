@@ -5,6 +5,13 @@ export const Footer = ({ dashboardUrl, content, settings }: { dashboardUrl: stri
   const logoIcon = content?.logoIcon || settings?.logoIcon || "layout"
   const description = content?.description || settings?.footerDescription || "Empowering businesses with cutting-edge digital solutions and forward-thinking design."
   
+  const schoolName = settings?.schoolName
+  const schoolAddress = settings?.schoolAddress
+  const schoolPhone = settings?.schoolPhone
+  const schoolEmail = settings?.schoolEmail
+  
+  const showContactInfo = schoolName || schoolAddress || schoolPhone || schoolEmail
+  
   // Use custom columns if provided, otherwise fallback to default
   const columns = content?.columns || [
     { title: 'Product', links: [{ label: 'Features', href: '#' }, { label: 'Integrations', href: '#' }, { label: 'Pricing', href: '#' }] },
@@ -59,6 +66,27 @@ export const Footer = ({ dashboardUrl, content, settings }: { dashboardUrl: stri
               </ul>
             </div>
           ))}
+
+          {showContactInfo && (
+            <div>
+              <h5 className="font-display font-bold text-lg mb-8">Contact</h5>
+              <ul className="space-y-4 text-slate-500 dark:text-slate-400 font-medium">
+                {schoolName && <li>{schoolName}</li>}
+                {schoolAddress && <li className="flex items-start gap-2">
+                  <i data-lucide="map-pin" className="w-4 h-4 mt-0.5 shrink-0"></i>
+                  <span>{schoolAddress}</span>
+                </li>}
+                {schoolPhone && <li className="flex items-center gap-2">
+                  <i data-lucide="phone" className="w-4 h-4 shrink-0"></i>
+                  <a href={`tel:${schoolPhone}`} className="hover:text-primary">{schoolPhone}</a>
+                </li>}
+                {schoolEmail && <li className="flex items-center gap-2">
+                  <i data-lucide="mail" className="w-4 h-4 shrink-0"></i>
+                  <a href={`mailto:${schoolEmail}`} className="hover:text-primary">{schoolEmail}</a>
+                </li>}
+              </ul>
+            </div>
+          )}
 
           <div>
             <h5 className="font-display font-bold text-lg mb-8">Admin</h5>

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { getDb } from '@/lib/db'
-import { eq, and, sql } from 'drizzle-orm'
+import { eq, and, sql, inArray } from 'drizzle-orm'
 import { 
   students, 
   exams, 
@@ -11,10 +11,15 @@ import {
   gradeScales,
   academicYears,
   examSets,
-  siteSettings
+  siteSettings,
+  feeStructures,
+  feePayments,
+  feeOverrides,
+  studentFees,
+  studentTermRemarks
 } from '@/db/schema'
 import { authMiddleware, requireRole } from '@/middleware/auth'
-import { getGrade, calculateTotalAndAverage, getRankSuffix, DEFAULT_GRADE_SCALE } from '@/lib/grades'
+import { getGrade, calculateTotalAndAverage, getRankSuffix, DEFAULT_GRADE_SCALE, calculateAggregate, calculateDivision, REPORT_CARD_THEMES } from '@/lib/grades'
 
 type Bindings = {
   DB: D1Database
@@ -23,6 +28,71 @@ type Bindings = {
 const app = new Hono<{ Bindings: Bindings }>()
 
 app.use('/*', authMiddleware)
+
+app.get('/fees', requireRole('owner', 'admin', 'teacher'), async (c) => {
+  const db = getDb(c)
+  const academicYearId = c.req.query('academicYearId')
+
+  const feeConditions = [eq(feeStructures.status, 'active')]
+  if (academicYearId) {
+    feeConditions.push(eq(feeStructures.academicYearId, academicYearId))
+  }
+  const allFeeStructures = await db.select().from(feeStructures).where(and(...feeConditions))
+
+  const studentsList = await db.select().from(students).where(eq(students.status, 'active'))
+  const studentIds = studentsList.map(s => s.id)
+
+  const allPayments = studentIds.length
+    ? await db.select().from(feePayments).where(inArray(feePayments.studentId, studentIds))
+    : []
+
+  const allOverrides = studentIds.length
+    ? await db.select().from(feeOverrides).where(inArray(feeOverrides.studentId, studentIds))
+    : []
+
+  const extraFees = studentIds.length
+    ? await db.select().from(studentFees).where(and(
+        inArray(studentFees.studentId, studentIds),
+        eq(studentFees.status, 'active')
+      ))
+    : []
+
+  const paymentsByStudent = Object.groupBy(allPayments, p => p.studentId)
+  const overridesByStudent = Object.groupBy(allOverrides, o => o.studentId)
+  const extraFeesByStudent = Object.groupBy(extraFees, f => f.studentId)
+
+  let outstandingCount = 0
+
+  for (const student of studentsList) {
+    const studentOverrides = overridesByStudent[student.id] || []
+    const studentExtraFees = extraFeesByStudent[student.id] || []
+    const studentPayments = paymentsByStudent[student.id] || []
+    const overrideMap = new Map(studentOverrides.map(o => [o.feeStructureId, o]))
+
+    let totalFees = 0
+    let totalPaid = 0
+
+    for (const fee of allFeeStructures) {
+      const override = overrideMap.get(fee.id)
+      const amountDue = override?.overrideAmount ?? fee.amount
+      totalFees += amountDue
+      const feePayments = studentPayments.filter(p => p.feeStructureId === fee.id)
+      totalPaid += feePayments.reduce((sum, p) => sum + p.amount, 0)
+    }
+
+    for (const extraFee of studentExtraFees) {
+      totalFees += extraFee.amount
+      const extraFeePayments = studentPayments.filter(p => p.extraFeeId === extraFee.id)
+      totalPaid += extraFeePayments.reduce((sum, p) => sum + p.amount, 0)
+    }
+
+    if (totalFees - totalPaid > 0) {
+      outstandingCount++
+    }
+  }
+
+  return c.json({ outstandingCount })
+})
 
 app.get('/class/:levelId', requireRole('owner', 'admin', 'editor'), async (c) => {
   const db = getDb(c)
@@ -123,6 +193,12 @@ app.get('/class/:levelId', requireRole('owner', 'admin', 'editor'), async (c) =>
     const average = totalMaxMarks > 0 ? (totalObtainedMarks / totalMaxMarks) * 100 : 0
     const overallGrade = getGrade(average, defaultGradeScale)
     
+    const subjectPoints = subjectResults
+      .filter(r => r.grade !== null)
+      .map(r => getGrade(r.percentage || 0, defaultGradeScale)?.points || 9)
+    const aggregate = calculateAggregate(subjectPoints)
+    const division = calculateDivision(aggregate)
+    
     return {
       studentId: student.id,
       studentName: `${student.firstName} ${student.lastName}`,
@@ -138,6 +214,10 @@ app.get('/class/:levelId', requireRole('owner', 'admin', 'editor'), async (c) =>
         overallGrade: overallGrade?.grade || '-',
         overallGradeColor: overallGrade?.color || '#666',
         subjectCount: subjectCount,
+        aggregate,
+        division: division.division,
+        divisionStanding: division.standing,
+        divisionColor: division.color,
       }
     }
   })
@@ -274,6 +354,12 @@ app.get('/student/:studentId', requireRole('owner', 'admin', 'editor'), async (c
   const { totalObtained, totalMax, average } = calculateTotalAndAverage(filledResults)
   const overallGrade = getGrade(average, defaultGradeScale)
   
+  const subjectPoints = subjectResults
+    .filter(r => r.grade !== null)
+    .map(r => getGrade(r.percentage || 0, defaultGradeScale)?.points || 9)
+  const aggregate = calculateAggregate(subjectPoints)
+  const division = calculateDivision(aggregate)
+  
   let termInfo = null
   if (termId) {
     termInfo = await db.select().from(terms).where(eq(terms.id, termId)).get()
@@ -281,6 +367,22 @@ app.get('/student/:studentId', requireRole('owner', 'admin', 'editor'), async (c
   
   // Get school settings
   const settings = await db.select().from(siteSettings).where(eq(siteSettings.id, 'default')).get()
+
+  // Get teacher remarks
+  let teacherRemarks = ''
+  const remarksQuery: any[] = [eq(studentTermRemarks.studentId, studentId)]
+  if (academicYearId) remarksQuery.push(eq(studentTermRemarks.academicYearId, academicYearId))
+  if (termId) remarksQuery.push(eq(studentTermRemarks.termId, termId))
+  
+  const studentRemarks = await db.select().from(studentTermRemarks)
+    .where(and(...remarksQuery))
+    .limit(1)
+  if (studentRemarks.length > 0) {
+    teacherRemarks = studentRemarks[0].remarks
+  }
+  
+  const reportCardThemeId = settings?.reportCardTheme || 'playful'
+  const themeColors = REPORT_CARD_THEMES[reportCardThemeId] || REPORT_CARD_THEMES.playful
   
   return c.json({
     school: {
@@ -291,6 +393,8 @@ app.get('/student/:studentId', requireRole('owner', 'admin', 'editor'), async (c
       logoType: settings?.logoType || 'icon',
       logoIcon: settings?.logoIcon || 'graduation-cap',
       logoImage: settings?.logoImage || null,
+      reportCardTheme: reportCardThemeId,
+      themeColors,
     },
     student: {
       id: student.id,
@@ -316,8 +420,13 @@ app.get('/student/:studentId', requireRole('owner', 'admin', 'editor'), async (c
       subjectCount: filledResults.length,
       totalExams: examList.length,
       completedExams: filledResults.length,
+      aggregate,
+      division: division.division,
+      divisionStanding: division.standing,
+      divisionColor: division.color,
     },
     gradeScale: defaultGradeScale,
+    teacherRemarks,
   })
 })
 

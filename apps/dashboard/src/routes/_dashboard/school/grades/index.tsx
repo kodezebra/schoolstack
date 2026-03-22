@@ -39,6 +39,7 @@ interface Grade {
   maxMarks: number
   points: number
   color: string
+  interpretation?: string
 }
 
 interface GradeScale {
@@ -56,27 +57,32 @@ interface AcademicYear {
   name: string
 }
 
-const DEFAULT_GRADES: Grade[] = [
-  { grade: 'A', minMarks: 90, maxMarks: 100, points: 4.0, color: '#22c55e' },
-  { grade: 'B', minMarks: 80, maxMarks: 89, points: 3.0, color: '#3b82f6' },
-  { grade: 'C', minMarks: 70, maxMarks: 79, points: 2.0, color: '#f59e0b' },
-  { grade: 'D', minMarks: 60, maxMarks: 69, points: 1.0, color: '#f97316' },
-  { grade: 'F', minMarks: 0, maxMarks: 59, points: 0, color: '#ef4444' },
+const UNEB_PLE_GRADES: Grade[] = [
+  { grade: 'D1', minMarks: 90, maxMarks: 100, points: 1, color: '#22c55e', interpretation: 'Distinction 1' },
+  { grade: 'D2', minMarks: 80, maxMarks: 89, points: 2, color: '#16a34a', interpretation: 'Distinction 2' },
+  { grade: 'C3', minMarks: 70, maxMarks: 79, points: 3, color: '#3b82f6', interpretation: 'Credit 3' },
+  { grade: 'C4', minMarks: 65, maxMarks: 69, points: 4, color: '#2563eb', interpretation: 'Credit 4' },
+  { grade: 'C5', minMarks: 60, maxMarks: 64, points: 5, color: '#0ea5e9', interpretation: 'Credit 5' },
+  { grade: 'C6', minMarks: 55, maxMarks: 59, points: 6, color: '#06b6d4', interpretation: 'Credit 6' },
+  { grade: 'P7', minMarks: 50, maxMarks: 54, points: 7, color: '#f59e0b', interpretation: 'Pass 7' },
+  { grade: 'P8', minMarks: 45, maxMarks: 49, points: 8, color: '#d97706', interpretation: 'Pass 8' },
+  { grade: 'F9', minMarks: 0, maxMarks: 44, points: 9, color: '#ef4444', interpretation: 'Fail 9' },
 ]
 
+const DEFAULT_GRADES = UNEB_PLE_GRADES
+
 const PRESETS = [
-  { name: 'Standard (A-F)', grades: DEFAULT_GRADES },
-  { name: 'UG Primary', grades: [
-    { grade: '1', minMarks: 90, maxMarks: 100, points: 1, color: '#22c55e' },
-    { grade: '2', minMarks: 80, maxMarks: 89, points: 2, color: '#3b82f6' },
-    { grade: '3', minMarks: 70, maxMarks: 79, points: 3, color: '#f59e0b' },
-    { grade: '4', minMarks: 60, maxMarks: 69, points: 4, color: '#f97316' },
-    { grade: '5', minMarks: 50, maxMarks: 59, points: 5, color: '#ef4444' },
-    { grade: '6', minMarks: 0, maxMarks: 49, points: 6, color: '#991b1b' },
+  { name: 'UNEB PLE (Primary)', grades: UNEB_PLE_GRADES },
+  { name: 'Standard (A-F)', grades: [
+    { grade: 'A', minMarks: 90, maxMarks: 100, points: 4.0, color: '#22c55e', interpretation: 'Excellent' },
+    { grade: 'B', minMarks: 80, maxMarks: 89, points: 3.0, color: '#3b82f6', interpretation: 'Good' },
+    { grade: 'C', minMarks: 70, maxMarks: 79, points: 2.0, color: '#f59e0b', interpretation: 'Satisfactory' },
+    { grade: 'D', minMarks: 60, maxMarks: 69, points: 1.0, color: '#f97316', interpretation: 'Needs Improvement' },
+    { grade: 'F', minMarks: 0, maxMarks: 59, points: 0, color: '#ef4444', interpretation: 'Fail' },
   ]},
-  { name: 'Percentage Only', grades: [
-    { grade: 'Pass', minMarks: 50, maxMarks: 100, points: 1, color: '#22c55e' },
-    { grade: 'Fail', minMarks: 0, maxMarks: 49, points: 0, color: '#ef4444' },
+  { name: 'Pass/Fail', grades: [
+    { grade: 'Pass', minMarks: 50, maxMarks: 100, points: 1, color: '#22c55e', interpretation: 'Pass' },
+    { grade: 'Fail', minMarks: 0, maxMarks: 49, points: 0, color: '#ef4444', interpretation: 'Fail' },
   ]},
 ]
 
@@ -318,7 +324,7 @@ function GradeScalesPage() {
                       className="px-3 py-1 rounded-full text-xs font-medium text-white"
                       style={{ backgroundColor: g.color }}
                     >
-                      {g.grade}: {g.minMarks}-{g.maxMarks}
+                      {g.grade}: {g.minMarks}-{g.maxMarks} {g.interpretation ? `(${g.interpretation})` : ''}
                     </div>
                   ))}
                 </div>
@@ -421,44 +427,49 @@ function GradeScalesPage() {
                 
                 <div className="space-y-2">
                   {formData.grades.map((grade, index) => (
-                    <div key={index} className="grid grid-cols-[auto_auto_auto_auto_auto] gap-2 items-center p-2 border rounded-lg">
+                    <div key={index} className="flex gap-2 items-center p-2 border rounded-lg">
                       <input
                         type="color"
                         value={grade.color}
                         onChange={(e) => updateGrade(index, 'color', e.target.value)}
-                        className="w-8 h-8 rounded cursor-pointer border-0"
+                        className="w-8 h-8 rounded cursor-pointer border-0 shrink-0"
                       />
                       <Input
                         placeholder="Grade"
-                        className="w-16"
+                        className="w-14"
                         value={grade.grade}
                         onChange={(e) => updateGrade(index, 'grade', e.target.value)}
                       />
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground shrink-0">
                         <Input
                           type="number"
-                          className="w-14"
+                          className="w-12"
                           value={grade.minMarks}
                           onChange={(e) => updateGrade(index, 'minMarks', parseInt(e.target.value) || 0)}
                         />
-                        <span>to</span>
+                        <span>-</span>
                         <Input
                           type="number"
-                          className="w-14"
+                          className="w-12"
                           value={grade.maxMarks}
                           onChange={(e) => updateGrade(index, 'maxMarks', parseInt(e.target.value) || 0)}
                         />
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 shrink-0">
                         <span className="text-xs text-muted-foreground whitespace-nowrap">Pts:</span>
                         <Input
                           type="number"
-                          step="0.1"
-                          className="w-14"
+                          className="w-12"
                           value={grade.points}
                           onChange={(e) => updateGrade(index, 'points', parseFloat(e.target.value) || 0)}
                         />
                       </div>
+                      <Input
+                        placeholder="Interpretation"
+                        className="flex-1 min-w-[100px]"
+                        value={grade.interpretation || ''}
+                        onChange={(e) => updateGrade(index, 'interpretation', e.target.value)}
+                      />
                       <Button
                         variant="ghost"
                         size="icon"
@@ -495,7 +506,7 @@ function GradeScalesPage() {
                       className="px-3 py-1.5 rounded-full text-sm font-medium text-white shadow-sm"
                       style={{ backgroundColor: g.color }}
                     >
-                      {g.grade || '?'} ({g.minMarks}-{g.maxMarks})
+                      {g.grade || '?'} ({g.minMarks}-{g.maxMarks}){g.interpretation ? ` - ${g.interpretation}` : ''}
                     </div>
                   ))}
                 </div>

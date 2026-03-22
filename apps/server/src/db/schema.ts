@@ -80,6 +80,7 @@ export const siteSettings = sqliteTable('site_settings', {
   darkMode: text('dark_mode').notNull().default('system'), // 'light' | 'dark' | 'system'
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   extraFeesLibrary: text('extra_fees_library'), // JSON array of common extra fees
+  reportCardTheme: text('report_card_theme').notNull().default('playful'), // 'playful' | 'professional' | 'minimal' | 'elegant'
 });
 
 export const contactSubmissions = sqliteTable('contact_submissions', {
@@ -274,4 +275,14 @@ export const gradeScales = sqliteTable('grade_scales', {
   grades: text('grades').notNull(), // JSON: [{ grade: "A", minMarks: 90, maxMarks: 100, points: 4.0, color: "green" }]
   isDefault: integer('is_default', { mode: 'boolean' }).default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
+});
+
+export const studentTermRemarks = sqliteTable('student_term_remarks', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  studentId: text('student_id').notNull().references(() => students.id, { onDelete: 'cascade' }),
+  academicYearId: text('academic_year_id').notNull().references(() => academicYears.id, { onDelete: 'cascade' }),
+  termId: text('term_id').references(() => terms.id, { onDelete: 'cascade' }),
+  remarks: text('remarks').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });

@@ -32,7 +32,12 @@ import {
   Hash,
   LayoutTemplate,
   Monitor,
-  Check
+  Check,
+  Building2,
+  Mail,
+  Phone,
+  MapPin,
+  FileText
 } from 'lucide-react'
 
 export const Route = createFileRoute('/_dashboard/settings')({
@@ -84,6 +89,30 @@ interface SiteSettings {
   fontBody: string
   borderRadius: string
   darkMode: string
+  // School info
+  schoolName: string
+  schoolAddress: string
+  schoolPhone: string
+  schoolEmail: string
+  // Report card theme
+  reportCardTheme: string
+}
+
+interface ReportCardTheme {
+  id: string
+  name: string
+  description: string
+  colors: {
+    primary: string
+    secondary: string
+    accent: string
+    header: string
+    text: string
+    background: string
+    tableHeader: string
+    tableRow: string
+    footer: string
+  }
 }
 
 interface ParsedSettings {
@@ -107,6 +136,13 @@ interface ParsedSettings {
   fontBody: string
   borderRadius: string
   darkMode: 'light' | 'dark' | 'system'
+  // School info
+  schoolName: string
+  schoolAddress: string
+  schoolPhone: string
+  schoolEmail: string
+  // Report card theme
+  reportCardTheme: string
 }
 
 const DEFAULT_SETTINGS: ParsedSettings = {
@@ -139,7 +175,14 @@ const DEFAULT_SETTINGS: ParsedSettings = {
   fontDisplay: 'Quicksand',
   fontBody: 'Plus Jakarta Sans',
   borderRadius: 'lg',
-  darkMode: 'system'
+  darkMode: 'system',
+  // School info defaults
+  schoolName: 'Your School Name',
+  schoolAddress: '',
+  schoolPhone: '',
+  schoolEmail: '',
+  // Report card theme
+  reportCardTheme: 'playful'
 }
 
 const THEMES = [
@@ -275,6 +318,73 @@ const THEMES = [
   }
 ]
 
+const REPORT_CARD_THEMES: ReportCardTheme[] = [
+  {
+    id: 'playful',
+    name: 'Playful',
+    description: 'Colorful and fun for young learners',
+    colors: {
+      primary: '#4ECDC4',
+      secondary: '#FF6B6B',
+      accent: '#FFE66D',
+      header: '#FF6B6B',
+      text: '#2D3436',
+      background: '#FFFFFF',
+      tableHeader: '#4ECDC4',
+      tableRow: '#F8F9FA',
+      footer: '#F0F4F8'
+    }
+  },
+  {
+    id: 'professional',
+    name: 'Professional',
+    description: 'Clean corporate style for serious schools',
+    colors: {
+      primary: '#3B82F6',
+      secondary: '#1E40AF',
+      accent: '#FBBF24',
+      header: '#1E3A8A',
+      text: '#1F2937',
+      background: '#FFFFFF',
+      tableHeader: '#3B82F6',
+      tableRow: '#F3F4F6',
+      footer: '#E5E7EB'
+    }
+  },
+  {
+    id: 'minimal',
+    name: 'Minimal',
+    description: 'Simple black and white design',
+    colors: {
+      primary: '#374151',
+      secondary: '#111827',
+      accent: '#6B7280',
+      header: '#111827',
+      text: '#1F2937',
+      background: '#FFFFFF',
+      tableHeader: '#374151',
+      tableRow: '#F9FAFB',
+      footer: '#F3F4F6'
+    }
+  },
+  {
+    id: 'elegant',
+    name: 'Elegant',
+    description: 'Sophisticated with navy and gold',
+    colors: {
+      primary: '#1E3A8A',
+      secondary: '#D97706',
+      accent: '#FBBF24',
+      header: '#1E3A8A',
+      text: '#1F2937',
+      background: '#FFFFFF',
+      tableHeader: '#1E3A8A',
+      tableRow: '#EFF6FF',
+      footer: '#DBEAFE'
+    }
+  }
+]
+
 const FONT_OPTIONS = [
   'Quicksand',
   'Playfair Display',
@@ -355,7 +465,14 @@ function SettingsPage() {
           fontDisplay: settingsData.fontDisplay || DEFAULT_SETTINGS.fontDisplay,
           fontBody: settingsData.fontBody || DEFAULT_SETTINGS.fontBody,
           borderRadius: settingsData.borderRadius || DEFAULT_SETTINGS.borderRadius,
-          darkMode: (settingsData.darkMode as 'light' | 'dark' | 'system') || DEFAULT_SETTINGS.darkMode
+          darkMode: (settingsData.darkMode as 'light' | 'dark' | 'system') || DEFAULT_SETTINGS.darkMode,
+          // School info
+          schoolName: settingsData.schoolName || DEFAULT_SETTINGS.schoolName,
+          schoolAddress: settingsData.schoolAddress || DEFAULT_SETTINGS.schoolAddress,
+          schoolPhone: settingsData.schoolPhone || DEFAULT_SETTINGS.schoolPhone,
+          schoolEmail: settingsData.schoolEmail || DEFAULT_SETTINGS.schoolEmail,
+          // Report card theme
+          reportCardTheme: settingsData.reportCardTheme || DEFAULT_SETTINGS.reportCardTheme
         })
       } catch (parseError) {
         console.error('Failed to parse settings:', parseError)
@@ -396,7 +513,14 @@ function SettingsPage() {
         fontDisplay: settings.fontDisplay,
         fontBody: settings.fontBody,
         borderRadius: settings.borderRadius,
-        darkMode: settings.darkMode
+        darkMode: settings.darkMode,
+        // School info
+        schoolName: settings.schoolName,
+        schoolAddress: settings.schoolAddress,
+        schoolPhone: settings.schoolPhone,
+        schoolEmail: settings.schoolEmail,
+        // Report card theme
+        reportCardTheme: settings.reportCardTheme
       }
 
       const res = await apiFetch('/settings', {
@@ -613,6 +737,14 @@ function SettingsPage() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
           <TabsList className="shrink-0">
+            <TabsTrigger value="school" className="gap-2">
+              <Building2 className="h-4 w-4" />
+              School Info
+            </TabsTrigger>
+            <TabsTrigger value="reports" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Report Cards
+            </TabsTrigger>
             <TabsTrigger value="branding" className="gap-2">
               <Palette className="h-4 w-4" />
               Branding
@@ -632,6 +764,127 @@ function SettingsPage() {
           </TabsList>
 
           <div className="flex-1 overflow-y-auto mt-4">
+            <TabsContent value="school" className="mt-0 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="h-5 w-5" />
+                    School Information
+                  </CardTitle>
+                  <CardDescription>Basic details about your school for reports and public site</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="schoolName">School Name</Label>
+                      <div className="relative">
+                        <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="schoolName"
+                          value={parsedSettings.schoolName}
+                          onChange={(e) => updateSetting('schoolName', e.target.value)}
+                          placeholder="Your School Name"
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="schoolAddress">Address</Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="schoolAddress"
+                          value={parsedSettings.schoolAddress}
+                          onChange={(e) => updateSetting('schoolAddress', e.target.value)}
+                          placeholder="123 School Street, City"
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="schoolPhone">Phone Number</Label>
+                      <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="schoolPhone"
+                          type="tel"
+                          value={parsedSettings.schoolPhone}
+                          onChange={(e) => updateSetting('schoolPhone', e.target.value)}
+                          placeholder="+256 700 000 000"
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="schoolEmail">Email Address</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="schoolEmail"
+                          type="email"
+                          value={parsedSettings.schoolEmail}
+                          onChange={(e) => updateSetting('schoolEmail', e.target.value)}
+                          placeholder="info@school.edu"
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="reports" className="mt-0 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Report Card Theme
+                  </CardTitle>
+                  <CardDescription>Choose a visual style for student report cards</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {REPORT_CARD_THEMES.map((theme) => (
+                      <button
+                        key={theme.id}
+                        onClick={() => updateSetting('reportCardTheme', theme.id)}
+                        className={`relative p-4 rounded-xl border-2 text-left transition-all ${
+                          parsedSettings.reportCardTheme === theme.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-slate-200 hover:border-primary/50'
+                        }`}
+                      >
+                        {parsedSettings.reportCardTheme === theme.id && (
+                          <div className="absolute top-2 right-2 text-primary">
+                            <Check className="h-5 w-5" />
+                          </div>
+                        )}
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: theme.colors.primary }}>
+                            <div className="w-6 h-6 rounded-full" style={{ backgroundColor: theme.colors.accent }} />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-sm">{theme.name}</h4>
+                            <p className="text-xs text-muted-foreground">{theme.description}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-1.5">
+                          <div className="w-6 h-6 rounded" style={{ backgroundColor: theme.colors.primary }} title="Primary" />
+                          <div className="w-6 h-6 rounded" style={{ backgroundColor: theme.colors.secondary }} title="Secondary" />
+                          <div className="w-6 h-6 rounded" style={{ backgroundColor: theme.colors.accent }} title="Accent" />
+                          <div className="w-6 h-6 rounded" style={{ backgroundColor: theme.colors.tableHeader }} title="Table Header" />
+                          <div className="w-6 h-6 rounded border border-slate-200" style={{ backgroundColor: theme.colors.tableRow }} title="Table Row" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
             <TabsContent value="branding" className="mt-0 space-y-6">
               <Card>
                 <CardHeader>

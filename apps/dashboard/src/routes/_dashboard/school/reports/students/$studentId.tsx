@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/photo-upload'
+import { Textarea } from '@/components/ui/textarea'
 import { 
   ArrowLeft,
   Printer,
@@ -10,6 +11,9 @@ import {
   Star,
   CheckCircle2,
   Smile,
+  Pencil,
+  Save,
+  X,
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -24,6 +28,18 @@ export const Route = createFileRoute('/_dashboard/school/reports/students/$stude
   component: StudentReportPage,
 })
 
+interface ThemeColors {
+  primary: string
+  secondary: string
+  accent: string
+  header: string
+  text: string
+  background: string
+  tableHeader: string
+  tableRow: string
+  footer: string
+}
+
 interface SchoolInfo {
   name: string
   address: string
@@ -32,6 +48,8 @@ interface SchoolInfo {
   logoType: string
   logoIcon: string
   logoImage: string | null
+  reportCardTheme: string
+  themeColors: ThemeColors
 }
 
 interface Student {
@@ -80,6 +98,10 @@ interface Summary {
   subjectCount: number
   totalExams: number
   completedExams: number
+  aggregate: number
+  division: string
+  divisionStanding: string
+  divisionColor: string
 }
 
 interface ReportData {
@@ -91,12 +113,16 @@ interface ReportData {
   subjects: SubjectResult[]
   summary: Summary
   gradeScale: { grade: string; color: string; minMarks: number }[]
+  teacherRemarks: string
 }
 
 function StudentReportPage() {
   const { studentId } = Route.useParams()
   const [selectedTerm, setSelectedTerm] = useState<string>('')
   const [selectedYear] = useState<string>('')
+  const [isEditingRemarks, setIsEditingRemarks] = useState(false)
+  const [editedRemarks, setEditedRemarks] = useState('')
+  const queryClient = useQueryClient()
 
   const { data: reportData, isLoading } = useQuery<ReportData>({
     queryKey: ['school-reports-student', studentId, selectedTerm, selectedYear],
@@ -110,6 +136,30 @@ function StudentReportPage() {
       return res.json()
     },
     enabled: !!studentId
+  })
+
+  const saveRemarksMutation = useMutation({
+    mutationFn: async (remarks: string) => {
+      const params = new URLSearchParams()
+      if (selectedYear) params.append('academicYearId', selectedYear)
+      if (selectedTerm && selectedTerm !== 'all') params.append('termId', selectedTerm)
+      
+      const res = await apiFetch('/school/remarks', {
+        method: 'POST',
+        body: JSON.stringify({
+          studentId,
+          academicYearId: selectedYear || reportData?.academicYear?.id,
+          termId: selectedTerm || reportData?.term?.id,
+          remarks
+        })
+      })
+      if (!res.ok) throw new Error('Failed to save remarks')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['school-reports-student', studentId, selectedTerm, selectedYear] })
+      setIsEditingRemarks(false)
+    }
   })
 
   const handlePrint = () => {
@@ -143,6 +193,7 @@ function StudentReportPage() {
     )
   }
 
+  const theme = reportData.school.themeColors
   const evaluatedSubjects = [...reportData.subjects]
     .sort((a, b) => (b.percentage || 0) - (a.percentage || 0))
 
@@ -175,78 +226,81 @@ function StudentReportPage() {
       </div>
 
       {/* Report Card - COMPACT Single Page Layout */}
-      <main className="report-card-container bg-white shadow-2xl rounded-xl overflow-hidden print:shadow-none print:rounded-none w-full max-w-[210mm] min-h-[297mm] mx-auto flex flex-col relative print:m-0">
+      <main 
+        className="report-card-container shadow-2xl rounded-xl overflow-hidden print:shadow-none print:rounded-none w-full max-w-[210mm] min-h-[297mm] mx-auto flex flex-col relative print:m-0"
+        style={{ backgroundColor: theme.background }}
+      >
         
-        {/* Playful Top Banner */}
-        <div className="h-3 w-full bg-[#4ECDC4] repeating-stripe"></div>
+        {/* Top Banner */}
+        <div className="h-3 w-full" style={{ backgroundColor: theme.primary }}></div>
 
-        {/* Header Section - Shrinked */}
+        {/* Header Section */}
         <header className="px-10 py-5 flex justify-between items-center border-b-2 border-dashed border-slate-100">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-sm overflow-hidden border border-slate-100">
               {reportData.school.logoImage ? (
                 <img src={reportData.school.logoImage} alt="School Logo" className="w-full h-full object-contain p-1.5" />
               ) : (
-                <div className="bg-[#4ECDC4] w-full h-full flex items-center justify-center">
+                <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: theme.primary }}>
                   <GraduationCap className="w-10 h-10 text-white" />
                 </div>
               )}
             </div>
             <div>
-              <h1 className="text-2xl font-black text-[#FF6B6B] tracking-tight leading-none mb-1 school-title">{reportData.school.name}</h1>
-              <p className="text-[#4ECDC4] font-bold text-xs italic">{reportData.school.address || "Where little minds grow big!"}</p>
+              <h1 className="text-2xl font-black tracking-tight leading-none mb-1 school-title" style={{ color: theme.header }}>{reportData.school.name}</h1>
+              <p className="font-bold text-xs italic" style={{ color: theme.primary }}>{reportData.school.address || "Where little minds grow big!"}</p>
             </div>
           </div>
-          <div className="bg-[#FFE66D] text-[#2D3436] px-5 py-2 rounded-full font-black text-base transform rotate-1 shadow-sm border-b-2 border-yellow-400/30">
+          <div className="px-5 py-2 rounded-full font-black text-base transform rotate-1 shadow-sm" style={{ backgroundColor: theme.accent, color: theme.text }}>
             {reportData.term?.name || "Term Progress"} {reportData.academicYear?.name}
           </div>
         </header>
 
-        {/* Student Profile Section - Shrinked */}
-        <section className="px-10 py-5 bg-gradient-to-r from-[#FFF5F5] to-white flex items-center gap-8">
+        {/* Student Profile Section */}
+        <section className="px-10 py-5 flex items-center gap-8" style={{ backgroundColor: `${theme.primary}10` }}>
           <div className="relative shrink-0">
-            <div className="w-24 h-24 rounded-full border-[5px] border-[#4ECDC4] overflow-hidden bg-slate-100 shadow relative z-10">
+            <div className="w-24 h-24 rounded-full border-[5px] overflow-hidden bg-slate-100 shadow relative z-10" style={{ borderColor: theme.primary }}>
               <Avatar 
                 photo={reportData.student.photo}
                 name={`${reportData.student.firstName} ${reportData.student.lastName}`}
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="absolute -top-1 -right-1 w-8 h-8 bg-[#FFE66D] rounded-full flex items-center justify-center z-20 shadow transform rotate-12">
-              <Star className="w-4 h-4 text-[#FF6B6B] fill-[#FF6B6B]" />
+            <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full flex items-center justify-center z-20 shadow transform rotate-12" style={{ backgroundColor: theme.accent }}>
+              <Star className="w-4 h-4" style={{ color: theme.secondary, fill: theme.secondary }} />
             </div>
           </div>
 
           <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-10">
             <div className="space-y-0">
-              <label className="text-[8px] font-black text-[#636E72] uppercase tracking-widest">Student Name</label>
-              <p className="text-lg font-black text-[#2D3436] tracking-tight">{reportData.student.firstName} {reportData.student.lastName}</p>
+              <label className="text-[8px] font-black uppercase tracking-widest" style={{ color: theme.text }}>Student Name</label>
+              <p className="text-lg font-black tracking-tight" style={{ color: theme.text }}>{reportData.student.firstName} {reportData.student.lastName}</p>
             </div>
             <div className="space-y-0">
-              <label className="text-[8px] font-black text-[#636E72] uppercase tracking-widest">Class Level</label>
-              <p className="text-lg font-black text-[#2D3436] tracking-tight">{reportData.level.name}</p>
+              <label className="text-[8px] font-black uppercase tracking-widest" style={{ color: theme.text }}>Class Level</label>
+              <p className="text-lg font-black tracking-tight" style={{ color: theme.text }}>{reportData.level.name}</p>
             </div>
             <div className="space-y-0">
-              <label className="text-[8px] font-black text-[#636E72] uppercase tracking-widest">Admission No</label>
-              <p className="text-sm font-bold text-[#2D3436]">{reportData.student.admissionNo}</p>
+              <label className="text-[8px] font-black uppercase tracking-widest" style={{ color: theme.text }}>Admission No</label>
+              <p className="text-sm font-bold" style={{ color: theme.text }}>{reportData.student.admissionNo}</p>
             </div>
             <div className="space-y-0">
-              <label className="text-[8px] font-black text-[#636E72] uppercase tracking-widest">Gender</label>
-              <p className="text-sm font-bold text-[#2D3436] capitalize">{reportData.student.gender}</p>
+              <label className="text-[8px] font-black uppercase tracking-widest" style={{ color: theme.text }}>Gender</label>
+              <p className="text-sm font-bold capitalize" style={{ color: theme.text }}>{reportData.student.gender}</p>
             </div>
           </div>
         </section>
 
-        {/* Academic Content - Tighter Table */}
+        {/* Academic Content */}
         <div className="px-10 py-3 flex-1">
           <div className="flex items-center gap-2 mb-3">
-            <Star className="w-4 h-4 text-[#FFE66D] fill-[#FFE66D]" />
-            <h2 className="text-lg font-black text-[#4ECDC4] tracking-tight">Academic Progress</h2>
+            <Star className="w-4 h-4" style={{ color: theme.accent, fill: theme.accent }} />
+            <h2 className="text-lg font-black tracking-tight" style={{ color: theme.primary }}>Academic Progress</h2>
           </div>
 
           <table className="w-full border-separate border-spacing-y-1">
             <thead>
-              <tr className="text-left text-white bg-[#4ECDC4]">
+              <tr className="text-left text-white" style={{ backgroundColor: theme.tableHeader }}>
                 <th className="py-2.5 px-5 rounded-l-xl font-black text-[9px] uppercase tracking-widest">Learning Subject</th>
                 <th className="py-2.5 px-3 text-center font-black text-[9px] uppercase tracking-widest">Score</th>
                 <th className="py-2.5 px-3 text-center font-black text-[9px] uppercase tracking-widest">Effort</th>
@@ -256,17 +310,17 @@ function StudentReportPage() {
             </thead>
             <tbody>
               {evaluatedSubjects.map((subject) => (
-                <tr key={subject.subjectId} className="bg-slate-50/50 transition-colors group">
+                <tr key={subject.subjectId} className="transition-colors group" style={{ backgroundColor: theme.tableRow }}>
                   <td className="py-2.5 px-5">
-                    <span className="font-black text-[#2D3436] text-sm">{subject.subjectName}</span>
+                    <span className="font-black text-sm" style={{ color: theme.text }}>{subject.subjectName}</span>
                   </td>
                   <td className="py-2.5 px-3 text-center">
-                    <span className="font-black text-[#2D3436] text-xs">{subject.percentage !== null ? `${subject.percentage}%` : '-'}</span>
+                    <span className="font-black text-xs" style={{ color: theme.text }}>{subject.percentage !== null ? `${subject.percentage}%` : '-'}</span>
                   </td>
                   <td className="py-2.5 px-3 text-center">
                     <div className="flex justify-center gap-0.5">
                       {[1, 2, 3].map(i => (
-                        <Smile key={i} className={`w-3 h-3 ${subject.percentage && subject.percentage > (40 + i*20) ? 'text-[#FF6B6B] fill-[#FF6B6B]' : 'text-slate-200'}`} />
+                        <Smile key={i} className={`w-3 h-3 ${subject.percentage && subject.percentage > (40 + i*20) ? '' : ''}`} style={{ color: subject.percentage && subject.percentage > (40 + i*20) ? theme.secondary : '#e5e7eb', fill: subject.percentage && subject.percentage > (40 + i*20) ? theme.secondary : '#e5e7eb' }} />
                       ))}
                     </div>
                   </td>
@@ -288,56 +342,159 @@ function StudentReportPage() {
             </tbody>
           </table>
 
-          {/* Highlights Section - Tighter */}
-          <div className="mt-4 grid grid-cols-2 gap-5">
-            <div className="bg-[#F8F9FA] rounded-xl p-4 border-2 border-slate-100 relative overflow-hidden">
-              <h3 className="text-sm font-black text-[#FF6B6B] mb-2 flex items-center gap-2">
-                <Star className="w-3.5 h-3.5 fill-[#FF6B6B]" /> Top Strengths
-              </h3>
-              <ul className="space-y-1.5">
-                {evaluatedSubjects.slice(0, 3).map((s, idx) => (
-                  <li key={idx} className="flex items-center gap-2 text-[11px] font-bold text-[#2D3436]">
-                    <CheckCircle2 className="w-3 h-3 text-[#4ECDC4]" /> {s.subjectName}
-                  </li>
-                ))}
-              </ul>
+          {/* Highlights Section */}
+          <div className="mt-4 space-y-4">
+            {/* Top Strengths + Performance Recap */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl p-4 border-2 relative overflow-hidden" style={{ backgroundColor: theme.tableRow, borderColor: `${theme.primary}20` }}>
+                <h3 className="text-sm font-black mb-3 flex items-center gap-2" style={{ color: theme.secondary }}>
+                  <Star className="w-3.5 h-3.5" style={{ color: theme.secondary, fill: theme.secondary }} /> Top Strengths
+                </h3>
+                <ul className="space-y-2">
+                  {evaluatedSubjects.slice(0, 4).map((s, idx) => (
+                    <li key={idx} className="flex items-center gap-2 text-[11px] font-bold" style={{ color: theme.text }}>
+                      <CheckCircle2 className="w-3 h-3" style={{ color: theme.primary }} /> {s.subjectName}
+                      <span className="text-[9px] text-slate-400 font-medium ml-auto">{s.percentage}%</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-xl p-4 border-2" style={{ backgroundColor: theme.tableRow, borderColor: `${theme.primary}20` }}>
+                <h3 className="text-sm font-black mb-3 flex items-center gap-2" style={{ color: theme.primary }}>
+                  <Smile className="w-3.5 h-3.5" style={{ color: theme.primary, fill: theme.primary }} /> Performance Recap
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-bold text-[9px] uppercase tracking-widest">Average</span>
+                    <span className="text-lg font-black" style={{ color: theme.text }}>{reportData.summary.average}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-bold text-[9px] uppercase tracking-widest">Total Points</span>
+                    <span className="text-lg font-black" style={{ color: theme.text }}>{reportData.summary.totalPoints}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500 font-bold text-[9px] uppercase tracking-widest">Exams</span>
+                    <span className="text-lg font-black" style={{ color: theme.text }}>{reportData.summary.completedExams}/{reportData.summary.totalExams}</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="bg-[#F8F9FA] rounded-xl p-4 border-2 border-slate-100">
-              <h3 className="text-sm font-black text-[#4ECDC4] mb-2 flex items-center gap-2">
-                <Smile className="w-3.5 h-3.5 fill-[#4ECDC4] text-[#4ECDC4]" /> Performance Recap
+            {/* Summary Row */}
+            <div className="rounded-xl p-4 border-2" style={{ backgroundColor: `${theme.accent}20`, borderColor: `${theme.accent}50` }}>
+              <h3 className="text-sm font-black mb-3 flex items-center gap-2" style={{ color: theme.text }}>
+                <GraduationCap className="w-3.5 h-3.5" style={{ color: theme.primary }} /> Summary
               </h3>
-              <div className="flex items-center justify-between mb-2">
-                 <span className="text-slate-500 font-bold text-[9px] uppercase tracking-widest">Average</span>
-                 <span className="text-xl font-black text-[#2D3436]">{reportData.summary.average}%</span>
-              </div>
-              <div className="p-2 bg-white rounded-lg border border-slate-200 text-[9px] font-medium italic text-slate-600 leading-tight">
-                "{getGradeRemarks(reportData.summary.overallGrade)}"
+              <div className="grid grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1">Division</div>
+                  <div className="flex flex-col items-center gap-1">
+                    <span 
+                      className="inline-block px-3 py-1.5 rounded-lg text-lg font-black text-white shadow"
+                      style={{ backgroundColor: reportData.summary.divisionColor }}
+                    >
+                      {reportData.summary.division}
+                    </span>
+                    <span className="text-[8px] text-slate-500 font-medium">{reportData.summary.divisionStanding}</span>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1">Aggregate</div>
+                  <div className="text-2xl font-black" style={{ color: theme.text }}>{reportData.summary.aggregate}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1">Total Score</div>
+                  <div className="text-2xl font-black" style={{ color: theme.text }}>{reportData.summary.totalObtained}/{reportData.summary.totalMax}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1">Overall Grade</div>
+                  <span 
+                    className="inline-block px-4 py-1.5 rounded-lg text-lg font-black text-white"
+                    style={{ backgroundColor: reportData.summary.overallGradeColor }}
+                  >
+                    {reportData.summary.overallGrade}
+                  </span>
+                </div>
               </div>
             </div>
+          </div>
+
+          {/* Teacher Remarks */}
+          <div className="mt-4 p-4 rounded-xl border-2" style={{ backgroundColor: theme.background, borderColor: `${theme.primary}20` }}>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-black flex items-center gap-2" style={{ color: theme.primary }}>
+                <Smile className="w-3.5 h-3.5" style={{ color: theme.primary }} /> Teacher's Remarks
+              </h3>
+              {!isEditingRemarks ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-[10px] gap-1 text-muted-foreground hover:opacity-80 no-print"
+                  onClick={() => {
+                    setEditedRemarks(reportData.teacherRemarks || '')
+                    setIsEditingRemarks(true)
+                  }}
+                >
+                  <Pencil className="w-3 h-3" /> Edit
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2 no-print">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-[10px] gap-1 text-muted-foreground"
+                    onClick={() => setIsEditingRemarks(false)}
+                  >
+                    <X className="w-3 h-3" /> Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 text-[10px] gap-1 text-white"
+                    style={{ backgroundColor: theme.primary }}
+                    onClick={() => saveRemarksMutation.mutate(editedRemarks)}
+                    disabled={saveRemarksMutation.isPending}
+                  >
+                    <Save className="w-3 h-3" /> Save
+                  </Button>
+                </div>
+              )}
+            </div>
+            {isEditingRemarks ? (
+              <Textarea
+                value={editedRemarks}
+                onChange={(e) => setEditedRemarks(e.target.value)}
+                placeholder="Enter teacher's remarks..."
+                className="text-[11px] min-h-[60px] resize-none"
+              />
+            ) : (
+              <p className="text-[11px] text-slate-600 font-medium italic leading-relaxed">
+                "{reportData.teacherRemarks || getGradeRemarks(reportData.summary.overallGrade)}"
+              </p>
+            )}
           </div>
         </div>
 
         {/* Footers - Shrinked */}
-        <footer className="px-10 py-5 mt-auto bg-[#F0F4F8] flex justify-between items-end border-t-2 border-slate-100">
+        <footer className="px-10 py-5 mt-auto flex justify-between items-end border-t-2" style={{ backgroundColor: theme.footer, borderColor: `${theme.primary}20` }}>
           <div className="text-center w-36">
-             <div className="h-6 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
-             <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Class Teacher</p>
+             <div className="h-6 border-b-2 border-dashed mb-1.5" style={{ borderColor: `${theme.primary}40` }}></div>
+             <p className="text-[8px] font-black uppercase tracking-widest" style={{ color: `${theme.text}80` }}>Class Teacher</p>
           </div>
           <div className="text-center w-36">
-             <div className="h-6 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
-             <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Head Teacher</p>
+             <div className="h-6 border-b-2 border-dashed mb-1.5" style={{ borderColor: `${theme.primary}40` }}></div>
+             <p className="text-[8px] font-black uppercase tracking-widest" style={{ color: `${theme.text}80` }}>Head Teacher</p>
           </div>
           <div className="text-center w-36">
-             <div className="h-6 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
-             <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Parent/Guardian</p>
+             <div className="h-6 border-b-2 border-dashed mb-1.5" style={{ borderColor: `${theme.primary}40` }}></div>
+             <p className="text-[8px] font-black uppercase tracking-widest" style={{ color: `${theme.text}80` }}>Parent/Guardian</p>
           </div>
         </footer>
 
         {/* Fine Print */}
-        <div className="px-10 py-2.5 bg-[#FF6B6B] text-white flex justify-between items-center text-[7px] font-black uppercase tracking-[0.2em]">
-           <span>SchoolStack Digital School Records &copy; 2026</span>
-           <span className="flex items-center gap-1.5">Sunshine Verified <Star className="w-2.5 h-2.5 fill-white" /></span>
+        <div className="px-10 py-2.5 flex justify-between items-center text-[7px] font-black uppercase tracking-[0.2em]" style={{ backgroundColor: theme.secondary, color: 'white' }}>
+           <span>{reportData.school.name} Report Card</span>
+           <span className="flex items-center gap-1.5">Generated by KidzKave <Star className="w-2.5 h-2.5" style={{ fill: 'white' }} /></span>
         </div>
       </main>
 
@@ -346,16 +503,6 @@ function StudentReportPage() {
         
         .school-title {
           font-family: 'Quicksand', sans-serif;
-        }
-
-        .repeating-stripe {
-          background: repeating-linear-gradient(
-            45deg,
-            #4ECDC4,
-            #4ECDC4 15px,
-            #45B7AF 15px,
-            #45B7AF 30px
-          );
         }
 
         @media print {

@@ -44,7 +44,7 @@ app.put('/', async (c) => {
     'navbarConfig', 'navbarCta', 'footerConfig', 'footerSocials',
     'schoolName', 'schoolAddress', 'schoolPhone', 'schoolEmail',
     'theme', 'fontDisplay', 'fontBody', 'borderRadius', 'darkMode',
-    'backgroundLight', 'backgroundDark'
+    'backgroundLight', 'backgroundDark', 'reportCardTheme'
   ]
 
   for (const field of fields) {

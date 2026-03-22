@@ -1,0 +1,1 @@
+ALTER TABLE `site_settings` ADD `report_card_theme` text DEFAULT 'playful' NOT NULL;
