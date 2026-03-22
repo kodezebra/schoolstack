@@ -21,6 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
+import { Loader2, Pencil } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -174,7 +175,11 @@ function SchoolSettingsPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [isAddYearDialogOpen, setIsAddYearDialogOpen] = useState(false)
+  const [isEditYearDialogOpen, setIsEditYearDialogOpen] = useState(false)
+  const [editingYear, setEditingYear] = useState<AcademicYear | null>(null)
   const [isAddLevelDialogOpen, setIsAddLevelDialogOpen] = useState(false)
+  const [isEditLevelDialogOpen, setIsEditLevelDialogOpen] = useState(false)
+  const [editingLevel, setEditingLevel] = useState<Level | null>(null)
   const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const { data: staff } = useQuery<Staff[]>({
@@ -215,24 +220,6 @@ function SchoolSettingsPage() {
     }
   })
 
-  const updateLevelMutation = useMutation({
-    mutationFn: async ({ id, ...data }: { id: string; [key: string]: any }) => {
-      const res = await apiFetch(`/school/levels/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data)
-      })
-      if (!res.ok) throw new Error('Failed to update class')
-      return res.json()
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['school-levels'] })
-      toast({ title: 'Class updated', description: 'Changes saved successfully.', variant: 'success' })
-    },
-    onError: (error) => {
-      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to update class', variant: 'error' })
-    }
-  })
-
   const addLevelSubjectsMutation = useMutation({
     mutationFn: async (data: { levelId: string; subjectIds: string[] }) => {
       const res = await apiFetch('/school/exams/subjects/levels/bulk', {
@@ -267,6 +254,26 @@ function SchoolSettingsPage() {
     },
     onError: (error) => {
       toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to create year', variant: 'error' })
+    }
+  })
+
+  const updateYearMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; name: string; startDate: string; endDate: string }) => {
+      const res = await apiFetch(`/school/academic-years/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      })
+      if (!res.ok) throw new Error('Failed to update year')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['school-academic-years'] })
+      setIsEditYearDialogOpen(false)
+      setEditingYear(null)
+      toast({ title: 'Academic year updated', description: 'Changes saved successfully.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to update year', variant: 'error' })
     }
   })
 
@@ -323,6 +330,26 @@ function SchoolSettingsPage() {
     }
   })
 
+  const updateLevelMutation = useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; [key: string]: string | number | null }) => {
+      const res = await apiFetch(`/school/levels/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data)
+      })
+      if (!res.ok) throw new Error('Failed to update class')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['school-levels'] })
+      setIsEditLevelDialogOpen(false)
+      setEditingLevel(null)
+      toast({ title: 'Class updated', description: 'Changes saved successfully.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to update class', variant: 'error' })
+    }
+  })
+
   const deleteLevelMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await apiFetch(`/school/levels/${id}`, { method: 'DELETE' })
@@ -341,11 +368,39 @@ function SchoolSettingsPage() {
   const handleAddYear = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    const startDate = formData.get('startDate') as string
+    const endDate = formData.get('endDate') as string
+    
+    if (new Date(endDate) <= new Date(startDate)) {
+      toast({ title: 'Invalid dates', description: 'End date must be after start date.', variant: 'error' })
+      return
+    }
+    
     createYearMutation.mutate({
       name: formData.get('name'),
-      startDate: formData.get('startDate'),
-      endDate: formData.get('endDate'),
+      startDate,
+      endDate,
       status: 'active',
+    })
+  }
+
+  const handleEditYear = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!editingYear) return
+    const formData = new FormData(e.currentTarget)
+    const startDate = formData.get('startDate') as string
+    const endDate = formData.get('endDate') as string
+    
+    if (new Date(endDate) <= new Date(startDate)) {
+      toast({ title: 'Invalid dates', description: 'End date must be after start date.', variant: 'error' })
+      return
+    }
+    
+    updateYearMutation.mutate({
+      id: editingYear.id,
+      name: formData.get('name') as string,
+      startDate,
+      endDate,
     })
   }
 
@@ -356,6 +411,17 @@ function SchoolSettingsPage() {
       name: formData.get('name'),
       order: parseInt(formData.get('order') as string) || 0,
       academicYearId: academicYears?.find(y => y.isCurrent)?.id,
+    })
+  }
+
+  const handleEditLevel = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!editingLevel) return
+    const formData = new FormData(e.currentTarget)
+    updateLevelMutation.mutate({
+      id: editingLevel.id,
+      name: formData.get('name') as string,
+      order: parseInt(formData.get('order') as string) || 0,
     })
   }
 
@@ -412,26 +478,47 @@ function SchoolSettingsPage() {
                         <Button 
                           variant="outline" 
                           size="sm"
+                          disabled={setCurrentYearMutation.isPending}
                           onClick={() => setCurrentYearMutation.mutate(year.id)}
                         >
-                          <Check className="mr-2 h-4 w-4" /> Set as Current
+                          {setCurrentYearMutation.isPending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Check className="mr-2 h-4 w-4" />
+                          )} Set as Current
                         </Button>
                       )}
                       <Button 
                         variant="ghost" 
                         size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-primary"
+                        onClick={() => {
+                          setEditingYear(year)
+                          setIsEditYearDialogOpen(true)
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        disabled={deleteYearMutation.isPending}
                         onClick={() => {
                           confirm({
                             title: "Delete Academic Year",
-                            description: "Are you sure? This will delete data linked to this year!",
+                            description: `Are you sure you want to delete "${year.name}"? This will also delete all terms, exams, and grades associated with this year. This action cannot be undone.`,
                             confirmText: "Delete",
                             variant: "destructive",
                             onConfirm: () => deleteYearMutation.mutate(year.id),
                           })
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {deleteYearMutation.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -490,18 +577,34 @@ function SchoolSettingsPage() {
                         <Button 
                           variant="ghost" 
                           size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-primary"
+                          onClick={() => {
+                            setEditingLevel(level)
+                            setIsEditLevelDialogOpen(true)
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          disabled={deleteLevelMutation.isPending}
                           onClick={() => {
                             confirm({
                               title: "Delete Class",
-                              description: "Delete this class and its data?",
+                              description: `Are you sure you want to delete "${level.name}"? This will remove all student enrollments, exam records, and fee structures for this class. This action cannot be undone.`,
                               confirmText: "Delete",
                               variant: "destructive",
                               onConfirm: () => deleteLevelMutation.mutate(level.id),
                             })
                           }}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {deleteLevelMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </Button>
                       </div>
                       
@@ -586,6 +689,7 @@ function SchoolSettingsPage() {
             <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsAddYearDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={createYearMutation.isPending}>
+                {createYearMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {createYearMutation.isPending ? 'Creating...' : 'Create Year'}
               </Button>
             </div>
@@ -647,11 +751,103 @@ function SchoolSettingsPage() {
               <div className="flex justify-end gap-2 pt-4 pb-4">
                 <Button type="button" variant="outline" onClick={() => setIsAddLevelDialogOpen(false)}>Cancel</Button>
                 <Button type="submit" disabled={createLevelMutation.isPending}>
+                  {createLevelMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {createLevelMutation.isPending ? 'Creating...' : 'Create'}
                 </Button>
               </div>
             </form>
           </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Edit Year Sheet */}
+      <Sheet open={isEditYearDialogOpen} onOpenChange={(open) => {
+        setIsEditYearDialogOpen(open)
+        if (!open) setEditingYear(null)
+      }}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Academic Year</SheetTitle>
+            <SheetDescription>Update the academic year details.</SheetDescription>
+          </SheetHeader>
+          <form onSubmit={handleEditYear} className="space-y-4 mt-6">
+            <div>
+              <label className="text-sm font-medium">Year Name</label>
+              <Input 
+                name="name" 
+                required 
+                defaultValue={editingYear?.name}
+                placeholder="e.g., 2024-2025" 
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Start Date</label>
+                <Input 
+                  name="startDate" 
+                  type="date" 
+                  required 
+                  defaultValue={editingYear?.startDate?.split('T')[0]}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">End Date</label>
+                <Input 
+                  name="endDate" 
+                  type="date" 
+                  required 
+                  defaultValue={editingYear?.endDate?.split('T')[0]}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-4 pb-4">
+              <Button type="button" variant="outline" onClick={() => setIsEditYearDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={updateYearMutation.isPending}>
+                {updateYearMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {updateYearMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
+        </SheetContent>
+      </Sheet>
+
+      {/* Edit Level Sheet */}
+      <Sheet open={isEditLevelDialogOpen} onOpenChange={(open) => {
+        setIsEditLevelDialogOpen(open)
+        if (!open) setEditingLevel(null)
+      }}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit Class</SheetTitle>
+            <SheetDescription>Update the class details.</SheetDescription>
+          </SheetHeader>
+          <form onSubmit={handleEditLevel} className="space-y-4 mt-6">
+            <div>
+              <label className="text-sm font-medium">Class Name</label>
+              <Input 
+                name="name" 
+                required 
+                defaultValue={editingLevel?.name}
+                placeholder="e.g., Senior 1" 
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Order</label>
+              <Input 
+                name="order" 
+                type="number" 
+                defaultValue={editingLevel?.order}
+                placeholder="e.g., 11" 
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4 pb-4">
+              <Button type="button" variant="outline" onClick={() => setIsEditLevelDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={updateLevelMutation.isPending}>
+                {updateLevelMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {updateLevelMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </form>
         </SheetContent>
       </Sheet>
 
