@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { formatDateRelative } from '@/lib/utils'
+import { validateAmount } from '@/lib/validation'
 import { 
   Table, 
   TableBody, 
@@ -116,6 +117,7 @@ function FeesPage() {
   const [isAddPaymentDialogOpen, setIsAddPaymentDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [studentSearch, setStudentSearch] = useState('')
+  const [paymentFormErrors, setPaymentFormErrors] = useState<Record<string, string>>({})
   const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const { data: feeStructures } = useQuery<FeeStructure[]>({
@@ -329,13 +331,34 @@ function FeesPage() {
 
   const handleAddPayment = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setPaymentFormErrors({})
+    
     const formData = new FormData(e.currentTarget)
+    const errors: Record<string, string> = {}
+    
+    const studentId = formData.get('studentId')
+    const feeStructureId = formData.get('feeStructureId')
+    const amountStr = formData.get('amount') as string
+    const paymentMethod = formData.get('paymentMethod')
+    
+    if (!studentId) errors.studentId = 'Please select a student'
+    if (!feeStructureId) errors.feeStructureId = 'Please select a fee structure'
+    if (!paymentMethod) errors.paymentMethod = 'Please select a payment method'
+    
+    const amount = parseFloat(amountStr)
+    const amountError = validateAmount(amount)
+    if (amountError) errors.amount = amountError
+    
+    if (Object.keys(errors).length > 0) {
+      setPaymentFormErrors(errors)
+      return
+    }
     
     createPaymentMutation.mutate({
-      studentId: formData.get('studentId'),
-      feeStructureId: formData.get('feeStructureId'),
-      amount: parseInt(formData.get('amount') as string),
-      paymentMethod: formData.get('paymentMethod'),
+      studentId,
+      feeStructureId,
+      amount,
+      paymentMethod,
       transactionNo: formData.get('transactionNo') || undefined,
       notes: formData.get('notes') || undefined,
     })
@@ -745,7 +768,10 @@ function FeesPage() {
       {/* Add Payment Sheet */}
       <Sheet open={isAddPaymentDialogOpen} onOpenChange={(open) => {
         setIsAddPaymentDialogOpen(open)
-        if (!open) setStudentSearch('')
+        if (!open) {
+          setStudentSearch('')
+          setPaymentFormErrors({})
+        }
       }}>
         <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
           <SheetHeader>
@@ -754,7 +780,7 @@ function FeesPage() {
           </SheetHeader>
           <form onSubmit={handleAddPayment} className="space-y-4 mt-6">
             <div>
-              <label className="text-sm font-medium">Student</label>
+              <label className="text-sm font-medium">Student <span className="text-destructive">*</span></label>
               <div className="relative mt-1.5">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -764,8 +790,8 @@ function FeesPage() {
                   className="pl-9"
                 />
               </div>
-              <Select name="studentId" required>
-                <SelectTrigger className="mt-2">
+              <Select name="studentId" onValueChange={() => setPaymentFormErrors(e => ({ ...e, studentId: '' }))}>
+                <SelectTrigger className={`mt-2 ${paymentFormErrors.studentId ? 'border-destructive' : ''}`}>
                   <SelectValue placeholder="Select student" />
                 </SelectTrigger>
                 <SelectContent>
@@ -787,11 +813,14 @@ function FeesPage() {
                   )}
                 </SelectContent>
               </Select>
+              {paymentFormErrors.studentId && (
+                <p className="text-xs text-destructive mt-1">{paymentFormErrors.studentId}</p>
+              )}
             </div>
             <div>
-              <label className="text-sm font-medium">Fee Structure</label>
-              <Select name="feeStructureId" required>
-                <SelectTrigger>
+              <label className="text-sm font-medium">Fee Structure <span className="text-destructive">*</span></label>
+              <Select name="feeStructureId" onValueChange={() => setPaymentFormErrors(e => ({ ...e, feeStructureId: '' }))}>
+                <SelectTrigger className={paymentFormErrors.feeStructureId ? 'border-destructive' : ''}>
                   <SelectValue placeholder="Select fee" />
                 </SelectTrigger>
                 <SelectContent>
@@ -811,13 +840,24 @@ function FeesPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Amount (UGX)</label>
-                <Input name="amount" type="number" required placeholder="e.g., 75000" />
+                <label className="text-sm font-medium">Amount (UGX) <span className="text-destructive">*</span></label>
+                <Input 
+                  name="amount" 
+                  type="number" 
+                  min={0}
+                  step={1000}
+                  required 
+                  placeholder="e.g., 75000"
+                  className={paymentFormErrors.amount ? 'border-destructive' : ''}
+                />
+                {paymentFormErrors.amount && (
+                  <p className="text-xs text-destructive mt-1">{paymentFormErrors.amount}</p>
+                )}
               </div>
               <div>
-                <label className="text-sm font-medium">Payment Method</label>
-                <Select name="paymentMethod" required>
-                  <SelectTrigger>
+                <label className="text-sm font-medium">Payment Method <span className="text-destructive">*</span></label>
+                <Select name="paymentMethod" onValueChange={() => setPaymentFormErrors(e => ({ ...e, paymentMethod: '' }))}>
+                  <SelectTrigger className={paymentFormErrors.paymentMethod ? 'border-destructive' : ''}>
                     <SelectValue placeholder="Select method" />
                   </SelectTrigger>
                   <SelectContent>
@@ -827,6 +867,9 @@ function FeesPage() {
                     <SelectItem value="school_pay">School Pay</SelectItem>
                   </SelectContent>
                 </Select>
+                {paymentFormErrors.paymentMethod && (
+                  <p className="text-xs text-destructive mt-1">{paymentFormErrors.paymentMethod}</p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">

@@ -901,18 +901,29 @@ function ExamsPage() {
               e.preventDefault()
               const formData = new FormData(e.currentTarget)
               const subjectIds = Array.from(e.currentTarget.querySelectorAll('input[name="subjects"]:checked')).map((input: any) => input.value)
+              const examType = formData.get('type') as string
+              const typeLabel = examType === 'test' ? 'Test' : examType === 'midterm' ? 'Midterm' : examType === 'final' ? 'Final' : examType === 'assignment' ? 'Assignment' : 'Quiz'
+              
               if (subjectIds.length === 0) {
-                alert('Please select at least one subject')
+                toast({ title: 'No subjects selected', description: 'Please select at least one subject', variant: 'error' })
                 return
               }
-              bulkCreateExamsMutation.mutate({
-                examSetId: selectedExamSet.id,
-                data: {
-                  subjectIds,
-                  type: formData.get('type'),
-                  examDate: formData.get('examDate'),
-                  totalMarks: parseInt(formData.get('totalMarks') as string) || 100,
-                  titleTemplate: formData.get('titleTemplate'),
+              
+              confirm({
+                title: `Create ${subjectIds.length} Exam${subjectIds.length > 1 ? 's' : ''}?`,
+                description: `This will create ${subjectIds.length} ${typeLabel} exams for the selected subjects. This action cannot be undone.`,
+                confirmText: `Create ${subjectIds.length} Exam${subjectIds.length > 1 ? 's' : ''}`,
+                onConfirm: () => {
+                  bulkCreateExamsMutation.mutate({
+                    examSetId: selectedExamSet.id,
+                    data: {
+                      subjectIds,
+                      type: examType,
+                      examDate: formData.get('examDate'),
+                      totalMarks: parseInt(formData.get('totalMarks') as string) || 100,
+                      titleTemplate: formData.get('titleTemplate'),
+                    }
+                  })
                 }
               })
             }} className="space-y-4 mt-6">

@@ -34,6 +34,13 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
+export function formatCurrencyShort(amount: number): string {
+  return new Intl.NumberFormat('en-UG', {
+    style: 'decimal',
+    maximumFractionDigits: 0
+  }).format(amount)
+}
+
 export function formatNumber(num: number): string {
   return new Intl.NumberFormat('en-UG').format(num)
 }

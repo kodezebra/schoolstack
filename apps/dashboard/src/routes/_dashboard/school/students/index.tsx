@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { cn, formatDateRelative } from '@/lib/utils'
+import { validatePhone } from '@/lib/validation'
 import { 
   Table, 
   TableBody, 
@@ -232,11 +233,18 @@ function StudentsPage() {
     const parentPhone = formData.get('parentPhone') as string
     
     if (!firstName?.trim()) errors.firstName = 'First name is required'
+    if (firstName?.length > 100) errors.firstName = 'Name is too long (max 100 characters)'
     if (!lastName?.trim()) errors.lastName = 'Last name is required'
+    if (lastName?.length > 100) errors.lastName = 'Name is too long (max 100 characters)'
     if (!gender) errors.gender = 'Please select a gender'
     if (!levelId) errors.levelId = 'Please select a class'
     if (!parentName?.trim()) errors.parentName = 'Parent name is required'
-    if (!parentPhone?.trim()) errors.parentPhone = 'Phone number is required'
+    if (!parentPhone?.trim()) {
+      errors.parentPhone = 'Phone number is required'
+    } else {
+      const phoneError = validatePhone(parentPhone)
+      if (phoneError) errors.parentPhone = phoneError
+    }
     
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors)
@@ -542,12 +550,13 @@ function StudentsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="admissionNo">Admission No.</Label>
+                <Label htmlFor="admissionNo">Admission No. <span className="text-xs text-muted-foreground">(optional)</span></Label>
                 <div className="flex gap-2 mt-1.5">
                   <Input 
                     id="admissionNo"
                     name="admissionNo" 
                     placeholder={generatedAdmNo || "Auto-generated"}
+                    maxLength={50}
                     className="flex-1"
                   />
                   <Button 
@@ -584,6 +593,7 @@ function StudentsPage() {
                   id="firstName"
                   name="firstName" 
                   placeholder="Enter first name"
+                  maxLength={100}
                   className={cn(formErrors.firstName && "border-destructive")}
                 />
                 {formErrors.firstName && <p className="text-xs text-destructive mt-1">{formErrors.firstName}</p>}
@@ -594,6 +604,7 @@ function StudentsPage() {
                   id="lastName"
                   name="lastName" 
                   placeholder="Enter last name"
+                  maxLength={100}
                   className={cn(formErrors.lastName && "border-destructive")}
                 />
                 {formErrors.lastName && <p className="text-xs text-destructive mt-1">{formErrors.lastName}</p>}
@@ -608,7 +619,7 @@ function StudentsPage() {
                 <SelectContent>
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="other">Prefer not to say</SelectItem>
                 </SelectContent>
               </Select>
               {formErrors.gender && <p className="text-xs text-destructive mt-1">{formErrors.gender}</p>}
@@ -619,6 +630,7 @@ function StudentsPage() {
                 id="parentName"
                 name="parentName" 
                 placeholder="Enter parent's full name"
+                maxLength={100}
                 className={cn(formErrors.parentName && "border-destructive")}
               />
               {formErrors.parentName && <p className="text-xs text-destructive mt-1">{formErrors.parentName}</p>}
@@ -629,19 +641,21 @@ function StudentsPage() {
                 <Input 
                   id="parentPhone"
                   name="parentPhone" 
-                  placeholder="07x xxx xxxx"
+                  placeholder="07xxxxxxxx"
+                  maxLength={15}
                   className={cn(formErrors.parentPhone && "border-destructive")}
                 />
                 {formErrors.parentPhone && <p className="text-xs text-destructive mt-1">{formErrors.parentPhone}</p>}
+                <p className="text-xs text-muted-foreground mt-1">Format: 0771234567</p>
               </div>
               <div>
-                <Label htmlFor="parentEmail">Email</Label>
-                <Input id="parentEmail" name="parentEmail" type="email" placeholder="optional@email.com" />
+                <Label htmlFor="parentEmail">Email <span className="text-xs text-muted-foreground">(optional)</span></Label>
+                <Input id="parentEmail" name="parentEmail" type="email" placeholder="parent@email.com" maxLength={255} />
               </div>
             </div>
             <div>
-              <Label htmlFor="address">Address</Label>
-              <Input id="address" name="address" placeholder="Home address (optional)" />
+              <Label htmlFor="address">Address <span className="text-xs text-muted-foreground">(optional)</span></Label>
+              <Input id="address" name="address" placeholder="Home address" maxLength={255} />
             </div>
             <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>

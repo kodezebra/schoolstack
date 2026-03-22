@@ -347,26 +347,29 @@ function UsersPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="add-name">Name</Label>
+              <Label htmlFor="add-name">Name <span className="text-xs text-muted-foreground">(optional)</span></Label>
               <Input
                 id="add-name"
                 value={addForm.name}
                 onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
                 placeholder="John Doe"
+                maxLength={100}
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="add-email">Email</Label>
+              <Label htmlFor="add-email">Email <span className="text-destructive">*</span></Label>
               <Input
                 id="add-email"
                 type="email"
                 value={addForm.email}
                 onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
                 placeholder="john@example.com"
+                maxLength={255}
+                required
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="add-password">Password</Label>
+              <Label htmlFor="add-password">Password <span className="text-destructive">*</span></Label>
               <Input
                 id="add-password"
                 type="password"
@@ -374,10 +377,12 @@ function UsersPage() {
                 onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
                 placeholder="Minimum 8 characters"
                 minLength={8}
+                maxLength={128}
+                required
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="add-role">Role</Label>
+              <Label htmlFor="add-role">Role <span className="text-destructive">*</span></Label>
               <Select
                 value={addForm.role}
                 onValueChange={(value: User['role']) => setAddForm({ ...addForm, role: value })}
