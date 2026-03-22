@@ -6,6 +6,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
   DialogDescription
 } from '@/components/ui/dialog'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useToast } from '@/components/ui/toast'
 import { Upload, Loader2, Image as ImageIcon, Trash2, Plus } from 'lucide-react'
 import { API_URL } from '@/config'
 
@@ -20,6 +22,8 @@ export function MediaPicker({
   const [isLoading, setIsLoading] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const { toast } = useToast()
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const fetchAssets = async () => {
     setIsLoading(true)
@@ -55,9 +59,11 @@ export function MediaPicker({
       })
       if (res.ok) {
         fetchAssets()
+        toast({ title: 'Upload complete', description: 'Your file has been uploaded.', variant: 'success' })
       }
     } catch (e) {
       console.error('Upload failed', e)
+      toast({ title: 'Upload failed', description: 'Could not upload the file.', variant: 'error' })
     } finally {
       setIsUploading(false)
     }
@@ -65,14 +71,24 @@ export function MediaPicker({
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation()
-    if (!confirm('Are you sure you want to delete this asset?')) return
-
-    try {
-      const res = await apiFetch(`/assets/${id}`, { method: 'DELETE' })
-      if (res.ok) fetchAssets()
-    } catch (e) {
-      console.error('Delete failed', e)
-    }
+    confirm({
+      title: 'Delete Asset',
+      description: 'Are you sure you want to delete this asset?',
+      confirmText: 'Delete',
+      variant: 'destructive',
+      onConfirm: async () => {
+        try {
+          const res = await apiFetch(`/assets/${id}`, { method: 'DELETE' })
+          if (res.ok) {
+            fetchAssets()
+            toast({ title: 'Asset deleted', description: 'The file has been removed.', variant: 'success' })
+          }
+        } catch (e) {
+          console.error('Delete failed', e)
+          toast({ title: 'Delete failed', description: 'Could not delete the file.', variant: 'error' })
+        }
+      }
+    })
   }
 
   const getAssetUrl = (key: string) => `${API_URL}/assets/${key}`
@@ -162,6 +178,7 @@ export function MediaPicker({
           <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>Close</Button>
         </div>
       </DialogContent>
+      {renderConfirmDialog()}
     </Dialog>
   )
 }

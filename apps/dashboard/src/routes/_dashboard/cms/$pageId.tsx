@@ -6,6 +6,7 @@ import { EditorHeader } from '@/components/cms-editor/EditorHeader'
 import { EditorSidebar } from '@/components/cms-editor/EditorSidebar'
 import { EditorCanvas } from '@/components/cms-editor/EditorCanvas'
 import { EditorInspector } from '@/components/cms-editor/EditorInspector'
+import { useToast } from '@/components/ui/toast'
 import { useState, useEffect } from 'react'
 
 export const Route = createFileRoute('/_dashboard/cms/$pageId')({
@@ -16,6 +17,7 @@ function CMSPageEditor() {
   const { pageId } = Route.useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [settings, setSettings] = useState<any>(null)
 
   const { data: pageData, isLoading } = useQuery({
@@ -78,14 +80,12 @@ function CMSPageEditor() {
 
   const saveBlocksMutation = useMutation({
     mutationFn: async ({ blocks, status }: { blocks: any[], status?: string }) => {
-      // Save blocks
       const res = await apiFetch(`/pages/${pageId}/blocks`, {
         method: 'PUT',
         body: JSON.stringify(blocks)
       })
       if (!res.ok) throw new Error('Failed to save blocks')
       
-      // Update status if provided (e.g., when publishing)
       if (status) {
         const settingsRes = await apiFetch(`/pages/${pageId}`, {
           method: 'PATCH',
@@ -96,10 +96,18 @@ function CMSPageEditor() {
       
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ['pages', pageId] })
       queryClient.invalidateQueries({ queryKey: ['pages'] })
       setIsDirty(false)
+      if (status === 'published') {
+        toast({ title: 'Page published', description: 'Your changes are now live.', variant: 'success' })
+      } else {
+        toast({ title: 'Changes saved', description: 'Your changes have been saved.', variant: 'success' })
+      }
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to save changes', variant: 'error' })
     }
   })
 
@@ -118,10 +126,10 @@ function CMSPageEditor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pages', pageId] })
       queryClient.invalidateQueries({ queryKey: ['pages'] })
+      toast({ title: 'Settings saved', description: 'Page settings have been updated.', variant: 'success' })
     },
     onError: (error) => {
-      console.error('Failed to update settings:', error)
-      alert(`Failed to save settings: ${error.message}`)
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to save settings', variant: 'error' })
     }
   })
 
@@ -136,6 +144,10 @@ function CMSPageEditor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pages'] })
       navigate({ to: '/cms' })
+      toast({ title: 'Page deleted', description: 'The page has been removed.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to delete page', variant: 'error' })
     }
   })
 

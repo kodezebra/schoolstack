@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
+import { useToast } from '@/components/ui/toast'
 
 export const Route = createFileRoute('/_dashboard/school/settings')({
   component: SchoolSettingsPage,
@@ -77,6 +78,7 @@ interface LevelSubject {
 
 function LevelSubjectList({ levelId, teachers, onConfirm }: { levelId: string; teachers: Staff[]; onConfirm: (options: { title: string; description: string; confirmText?: string; variant?: "default" | "destructive"; onConfirm: () => void }) => void }) {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const { data: levelSubjects } = useQuery<LevelSubject[]>({
     queryKey: ['school-level-subjects', levelId],
     queryFn: async () => {
@@ -97,6 +99,10 @@ function LevelSubjectList({ levelId, teachers, onConfirm }: { levelId: string; t
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-level-subjects', levelId] })
+      toast({ title: 'Teacher assigned', description: 'The teacher has been updated.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to assign teacher', variant: 'error' })
     }
   })
 
@@ -108,6 +114,10 @@ function LevelSubjectList({ levelId, teachers, onConfirm }: { levelId: string; t
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-level-subjects', levelId] })
+      toast({ title: 'Subject removed', description: 'The subject has been removed from this class.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to remove subject', variant: 'error' })
     }
   })
 
@@ -162,6 +172,7 @@ function LevelSubjectList({ levelId, teachers, onConfirm }: { levelId: string; t
 
 function SchoolSettingsPage() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [isAddYearDialogOpen, setIsAddYearDialogOpen] = useState(false)
   const [isAddLevelDialogOpen, setIsAddLevelDialogOpen] = useState(false)
   const { confirm, renderConfirmDialog } = useConfirmDialog()
@@ -215,6 +226,10 @@ function SchoolSettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-levels'] })
+      toast({ title: 'Class updated', description: 'Changes saved successfully.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to update class', variant: 'error' })
     }
   })
 
@@ -229,6 +244,10 @@ function SchoolSettingsPage() {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['school-level-subjects', variables.levelId] })
+      toast({ title: 'Subjects added', description: 'The subjects have been assigned to this class.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to add subjects', variant: 'error' })
     }
   })
 
@@ -244,6 +263,10 @@ function SchoolSettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-academic-years'] })
       setIsAddYearDialogOpen(false)
+      toast({ title: 'Academic year created', description: 'The new year has been added.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to create year', variant: 'error' })
     }
   })
 
@@ -258,6 +281,10 @@ function SchoolSettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-academic-years'] })
+      toast({ title: 'Current year set', description: 'This year is now the active academic year.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to set current year', variant: 'error' })
     }
   })
 
@@ -269,6 +296,10 @@ function SchoolSettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-academic-years'] })
+      toast({ title: 'Year deleted', description: 'The academic year has been removed.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to delete year', variant: 'error' })
     }
   })
 
@@ -284,10 +315,11 @@ function SchoolSettingsPage() {
     onSuccess: (newLevel) => {
       queryClient.invalidateQueries({ queryKey: ['school-levels'] })
       setIsAddLevelDialogOpen(false)
-      // The LevelSubjectList now fetches its own data based on its levelId prop.
-      // We don't need selectedLevelId state here as it's not directly used for rendering a specific levelSubjects list in this component.
-      // However, we need to ensure the correct levelSubjects query is invalidated when a new level is added.
       queryClient.invalidateQueries({ queryKey: ['school-level-subjects', newLevel.id] })
+      toast({ title: 'Class created', description: 'The new class has been added.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to create class', variant: 'error' })
     }
   })
 
@@ -299,6 +331,10 @@ function SchoolSettingsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-levels'] })
+      toast({ title: 'Class deleted', description: 'The class has been removed.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to delete class', variant: 'error' })
     }
   })
 
