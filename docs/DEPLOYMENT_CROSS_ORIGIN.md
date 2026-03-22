@@ -1,5 +1,7 @@
 # Cross-Origin Deployment (.dev domains)
 
+> **Note**: This guide has been consolidated into [deployment.md](deployment.md). Please use that file for the most up-to-date deployment instructions.
+
 Use this guide for **testing on Cloudflare's default domains** (`.workers.dev` and `.pages.dev`) before you have a custom domain.
 
 ## Architecture Limitations

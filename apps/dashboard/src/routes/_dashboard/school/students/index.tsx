@@ -29,12 +29,13 @@ import {
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Select,
   SelectContent,
@@ -96,6 +97,7 @@ function StudentsPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const { data: response, isLoading } = useQuery<StudentsResponse>({
     queryKey: ['school-students', levelFilter, statusFilter, page, limit],
@@ -369,9 +371,13 @@ function StudentsPage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => {
-                            if (confirm('Are you sure you want to PERMANENTLY delete this student? This will also delete their fee history and exam results.')) {
-                              deleteMutation.mutate(student.id)
-                            }
+                            confirm({
+                              title: "Delete Student",
+                              description: "Are you sure you want to PERMANENTLY delete this student? This will also delete their fee history and exam results.",
+                              confirmText: "Delete",
+                              variant: "destructive",
+                              onConfirm: () => deleteMutation.mutate(student.id),
+                            })
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -414,14 +420,14 @@ function StudentsPage() {
         </div>
       )}
 
-      {/* Add Student Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add New Student</DialogTitle>
-            <DialogDescription>Enter student enrollment details.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAddStudent} className="space-y-4">
+      {/* Add Student Sheet */}
+      <Sheet open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[500px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Add New Student</SheetTitle>
+            <SheetDescription>Enter student enrollment details.</SheetDescription>
+          </SheetHeader>
+          <form onSubmit={handleAddStudent} className="space-y-4 mt-6">
             <div className="flex justify-center">
               <div className="relative">
                 <input
@@ -546,16 +552,17 @@ function StudentsPage() {
               <label className="text-sm font-medium">Address</label>
               <Input name="address" />
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? 'Adding...' : 'Add Student'}
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
+      {renderConfirmDialog()}
     </div>
   )
 }

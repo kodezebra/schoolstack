@@ -9,17 +9,13 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table'
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { 
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
+import {
   Mail, 
   Trash2, 
   Archive, 
@@ -42,11 +38,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
 
 export const Route = createFileRoute('/_dashboard/submissions')({
   component: SubmissionsPage,
@@ -71,6 +62,7 @@ function SubmissionsPage() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [copiedEmail, setCopiedEmail] = useState<string | null>(null)
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const { data: submissions, isLoading } = useQuery<Submission[]>({
     queryKey: ['submissions'],
@@ -315,9 +307,13 @@ function SubmissionsPage() {
                   variant="destructive" 
                   size="sm"
                   onClick={() => {
-                    if (confirm('Are you sure you want to delete this submission?')) {
-                      deleteMutation.mutate(selectedSubmission.id)
-                    }
+                    confirm({
+                      title: "Delete Submission",
+                      description: "Are you sure you want to delete this submission?",
+                      confirmText: "Delete",
+                      variant: "destructive",
+                      onConfirm: () => deleteMutation.mutate(selectedSubmission.id),
+                    })
                   }}
                   disabled={deleteMutation.isPending}
                 >
@@ -328,6 +324,8 @@ function SubmissionsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {renderConfirmDialog()}
     </div>
   )
 }

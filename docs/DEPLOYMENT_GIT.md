@@ -1,5 +1,7 @@
 # Git-Based Deployment (CI/CD)
 
+> **Note**: This guide has been consolidated into [deployment.md](deployment.md). Please use that file for the most up-to-date deployment instructions.
+
 This is the recommended way to deploy the **Dashboard** for production. Cloudflare will automatically build and deploy your site every time you push to your Git repository.
 
 ## Step 1: Connect to Cloudflare Pages

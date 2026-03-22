@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Avatar } from '@/components/ui/photo-upload'
 import { 
   BarChart3,
@@ -389,7 +389,7 @@ function ReportsPage() {
                         const subjectResult = student.subjects.find(s => s.subjectId === subject.id)
                         return (
                           <td key={subject.id} className="px-2 py-2 text-center">
-                            {subjectResult?.percentage !== null ? (
+                            {subjectResult && subjectResult.percentage !== null ? (
                               <span 
                                 className="inline-block px-1.5 py-0.5 rounded text-xs font-semibold text-white min-w-[32px]"
                                 style={{ backgroundColor: subjectResult.gradeColor }}

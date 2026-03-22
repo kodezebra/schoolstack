@@ -26,10 +26,12 @@ import {
   ChevronRight,
   AlertCircle,
   CheckCircle,
+  BookMarked,
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Route } from '@/routes/_dashboard/route'
 import { UserMenu } from '@/components/user-menu'
+import { HelpButton } from '@/components/help'
 import { Avatar } from '@/components/ui/photo-upload'
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -91,6 +93,7 @@ const navigation = [
     items: [
       { name: 'Profile', to: '/profile', icon: User, description: 'Your personal settings', color: 'text-blue-600' },
       { name: 'Settings', to: '/settings', icon: Settings, description: 'System configuration', color: 'text-slate-600', allowedRoles: ['owner', 'admin'] },
+      { name: 'Help Center', to: '/help', icon: BookMarked, description: 'Guides and support', color: 'text-teal-600' },
     ]
   },
 ]
@@ -526,6 +529,9 @@ export function DashboardLayout() {
               </DropdownMenuContent>
             </DropdownMenu>
             <UserMenu user={user} />
+            
+            {/* Help Button - Floating in bottom right, but we'll also show a small icon here */}
+            <HelpButton />
           </div>
         </header>
 

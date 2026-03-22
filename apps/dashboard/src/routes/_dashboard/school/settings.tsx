@@ -15,12 +15,12 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import {
   Select,
   SelectContent,
@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export const Route = createFileRoute('/_dashboard/school/settings')({
   component: SchoolSettingsPage,
@@ -74,7 +75,7 @@ interface LevelSubject {
   teacherName?: string
 }
 
-function LevelSubjectList({ levelId, teachers }: { levelId: string; teachers: Staff[] }) {
+function LevelSubjectList({ levelId, teachers, onConfirm }: { levelId: string; teachers: Staff[]; onConfirm: (options: { title: string; description: string; confirmText?: string; variant?: "default" | "destructive"; onConfirm: () => void }) => void }) {
   const queryClient = useQueryClient()
   const { data: levelSubjects } = useQuery<LevelSubject[]>({
     queryKey: ['school-level-subjects', levelId],
@@ -123,7 +124,13 @@ function LevelSubjectList({ levelId, teachers }: { levelId: string; teachers: St
               size="icon" 
               className="h-6 w-6 text-muted-foreground hover:text-destructive"
               onClick={() => {
-                if(confirm('Remove this subject from class?')) deleteMutation.mutate(ls.id)
+                onConfirm({
+                  title: "Remove Subject",
+                  description: "Remove this subject from class?",
+                  confirmText: "Remove",
+                  variant: "destructive",
+                  onConfirm: () => deleteMutation.mutate(ls.id),
+                })
               }}
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -157,6 +164,7 @@ function SchoolSettingsPage() {
   const queryClient = useQueryClient()
   const [isAddYearDialogOpen, setIsAddYearDialogOpen] = useState(false)
   const [isAddLevelDialogOpen, setIsAddLevelDialogOpen] = useState(false)
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const { data: staff } = useQuery<Staff[]>({
     queryKey: ['school-staff'],
@@ -378,9 +386,13 @@ function SchoolSettingsPage() {
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
                         onClick={() => {
-                          if (confirm('Are you sure? This will delete data linked to this year!')) {
-                            deleteYearMutation.mutate(year.id)
-                          }
+                          confirm({
+                            title: "Delete Academic Year",
+                            description: "Are you sure? This will delete data linked to this year!",
+                            confirmText: "Delete",
+                            variant: "destructive",
+                            onConfirm: () => deleteYearMutation.mutate(year.id),
+                          })
                         }}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -444,9 +456,13 @@ function SchoolSettingsPage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => {
-                            if (confirm('Delete this class and its data?')) {
-                              deleteLevelMutation.mutate(level.id)
-                            }
+                            confirm({
+                              title: "Delete Class",
+                              description: "Delete this class and its data?",
+                              confirmText: "Delete",
+                              variant: "destructive",
+                              onConfirm: () => deleteLevelMutation.mutate(level.id),
+                            })
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -482,12 +498,15 @@ function SchoolSettingsPage() {
                               variant="ghost" 
                               className="h-8 text-xs"
                               onClick={() => {
-                                if (confirm(`Add all subjects to ${level.name}?`)) {
-                                  addLevelSubjectsMutation.mutate({
+                                confirm({
+                                  title: "Add All Subjects",
+                                  description: `Add all subjects to ${level.name}?`,
+                                  confirmText: "Add All",
+                                  onConfirm: () => addLevelSubjectsMutation.mutate({
                                     levelId: level.id,
                                     subjectIds: subjects?.map(s => s.id) || []
-                                  })
-                                }
+                                  }),
+                                })
                               }}
                             >
                               Add All
@@ -495,7 +514,7 @@ function SchoolSettingsPage() {
                           </div>
                         </div>
                         
-                        <LevelSubjectList levelId={level.id} teachers={teachers} />
+                        <LevelSubjectList levelId={level.id} teachers={teachers} onConfirm={confirm} />
                       </div>
                     </div>
                   ))}
@@ -506,14 +525,14 @@ function SchoolSettingsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Add Year Dialog */}
-      <Dialog open={isAddYearDialogOpen} onOpenChange={setIsAddYearDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Academic Year</DialogTitle>
-            <DialogDescription>Create a new period.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAddYear} className="space-y-4">
+      {/* Add Year Sheet */}
+      <Sheet open={isAddYearDialogOpen} onOpenChange={setIsAddYearDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Add Academic Year</SheetTitle>
+            <SheetDescription>Create a new period.</SheetDescription>
+          </SheetHeader>
+          <form onSubmit={handleAddYear} className="space-y-4 mt-6">
             <div>
               <label className="text-sm font-medium">Year Name</label>
               <Input name="name" required placeholder="e.g., 2024-2025" />
@@ -528,24 +547,24 @@ function SchoolSettingsPage() {
                 <Input name="endDate" type="date" required />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsAddYearDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={createYearMutation.isPending}>
                 {createYearMutation.isPending ? 'Creating...' : 'Create Year'}
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
-      {/* Add Level Dialog */}
-      <Dialog open={isAddLevelDialogOpen} onOpenChange={setIsAddLevelDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Class</DialogTitle>
-            <DialogDescription>Select a common class or enter manually.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
+      {/* Add Level Sheet */}
+      <Sheet open={isAddLevelDialogOpen} onOpenChange={setIsAddLevelDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Add Class</SheetTitle>
+            <SheetDescription>Select a common class or enter manually.</SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 mt-6">
             <div className="space-y-2">
               <label className="text-sm font-medium">Quick Pick</label>
               <div className="grid grid-cols-3 gap-2">
@@ -589,7 +608,7 @@ function SchoolSettingsPage() {
                 <label className="text-sm font-medium">Order</label>
                 <Input name="order" type="number" placeholder="e.g., 11" />
               </div>
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="flex justify-end gap-2 pt-4 pb-4">
                 <Button type="button" variant="outline" onClick={() => setIsAddLevelDialogOpen(false)}>Cancel</Button>
                 <Button type="submit" disabled={createLevelMutation.isPending}>
                   {createLevelMutation.isPending ? 'Creating...' : 'Create'}
@@ -597,8 +616,10 @@ function SchoolSettingsPage() {
               </div>
             </form>
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
+
+      {renderConfirmDialog()}
     </div>
   )
 }

@@ -9,7 +9,7 @@ import {
   Plus,
   Trash2,
   Calendar,
-  Pencil
+  Settings2
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -246,7 +246,7 @@ function TermsPage() {
                 </div>
                 <div className="flex gap-2 mt-4 pt-4 border-t">
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => openEditDialog(term)}>
-                    <Pencil className="h-4 w-4 mr-1" /> Edit
+                    <Settings2 className="h-4 w-4 mr-1" /> Edit
                   </Button>
                   <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     onClick={() => deleteMutation.mutate(term.id)}>

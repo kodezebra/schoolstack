@@ -17,6 +17,7 @@ import { Route as DashboardUsersRouteImport } from './routes/_dashboard/users'
 import { Route as DashboardSubmissionsRouteImport } from './routes/_dashboard/submissions'
 import { Route as DashboardSettingsRouteImport } from './routes/_dashboard/settings'
 import { Route as DashboardProfileRouteImport } from './routes/_dashboard/profile'
+import { Route as DashboardHelpRouteImport } from './routes/_dashboard/help'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as DashboardCmsIndexRouteImport } from './routes/_dashboard/cms/index'
 import { Route as DashboardSchoolSettingsRouteImport } from './routes/_dashboard/school/settings'
@@ -72,6 +73,11 @@ const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
 const DashboardProfileRoute = DashboardProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardHelpRoute = DashboardHelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
 const AuthLoginRoute = AuthLoginRouteImport.update({
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/': typeof DashboardIndexRoute
   '/about': typeof AboutRoute
   '/login': typeof AuthLoginRoute
+  '/help': typeof DashboardHelpRoute
   '/profile': typeof DashboardProfileRoute
   '/settings': typeof DashboardSettingsRoute
   '/submissions': typeof DashboardSubmissionsRoute
@@ -206,6 +213,7 @@ export interface FileRoutesByTo {
   '/': typeof DashboardIndexRoute
   '/about': typeof AboutRoute
   '/login': typeof AuthLoginRoute
+  '/help': typeof DashboardHelpRoute
   '/profile': typeof DashboardProfileRoute
   '/settings': typeof DashboardSettingsRoute
   '/submissions': typeof DashboardSubmissionsRoute
@@ -234,6 +242,7 @@ export interface FileRoutesById {
   '/_dashboard': typeof DashboardRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/_auth/login': typeof AuthLoginRoute
+  '/_dashboard/help': typeof DashboardHelpRoute
   '/_dashboard/profile': typeof DashboardProfileRoute
   '/_dashboard/settings': typeof DashboardSettingsRoute
   '/_dashboard/submissions': typeof DashboardSubmissionsRoute
@@ -263,6 +272,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/login'
+    | '/help'
     | '/profile'
     | '/settings'
     | '/submissions'
@@ -289,6 +299,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/login'
+    | '/help'
     | '/profile'
     | '/settings'
     | '/submissions'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
     | '/_dashboard'
     | '/about'
     | '/_auth/login'
+    | '/_dashboard/help'
     | '/_dashboard/profile'
     | '/_dashboard/settings'
     | '/_dashboard/submissions'
@@ -402,6 +414,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof DashboardProfileRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/_dashboard/help': {
+      id: '/_dashboard/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof DashboardHelpRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/_auth/login': {
@@ -546,6 +565,7 @@ const AuthRouteRouteWithChildren = AuthRouteRoute._addFileChildren(
 )
 
 interface DashboardRouteRouteChildren {
+  DashboardHelpRoute: typeof DashboardHelpRoute
   DashboardProfileRoute: typeof DashboardProfileRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSubmissionsRoute: typeof DashboardSubmissionsRoute
@@ -571,6 +591,7 @@ interface DashboardRouteRouteChildren {
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
+  DashboardHelpRoute: DashboardHelpRoute,
   DashboardProfileRoute: DashboardProfileRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSubmissionsRoute: DashboardSubmissionsRoute,

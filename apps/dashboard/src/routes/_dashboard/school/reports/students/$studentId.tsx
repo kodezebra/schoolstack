@@ -9,7 +9,6 @@ import {
   GraduationCap,
   Star,
   CheckCircle2,
-  Heart,
   Smile,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -97,7 +96,7 @@ interface ReportData {
 function StudentReportPage() {
   const { studentId } = Route.useParams()
   const [selectedTerm, setSelectedTerm] = useState<string>('')
-  const [selectedYear, setSelectedYear] = useState<string>('')
+  const [selectedYear] = useState<string>('')
 
   const { data: reportData, isLoading } = useQuery<ReportData>({
     queryKey: ['school-reports-student', studentId, selectedTerm, selectedYear],
@@ -116,12 +115,6 @@ function StudentReportPage() {
   const handlePrint = () => {
     window.print()
   }
-
-  const today = new Date().toLocaleDateString('en-UG', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  })
 
   const getGradeRemarks = (grade: string | null): string => {
     if (!grade) return 'Keep trying!'

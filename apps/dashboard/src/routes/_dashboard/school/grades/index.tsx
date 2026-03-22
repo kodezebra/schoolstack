@@ -13,12 +13,12 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import {
   Select,
   SelectContent,
@@ -321,171 +321,173 @@ function GradeScalesPage() {
         </div>
       )}
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingScale ? 'Edit Grade Scale' : 'Create Grade Scale'}</DialogTitle>
-            <DialogDescription>
+      <Sheet open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[600px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{editingScale ? 'Edit Grade Scale' : 'Create Grade Scale'}</SheetTitle>
+            <SheetDescription>
               {editingScale ? 'Update the grade scale below.' : 'Create a new grading system. Use the presets or build your own.'}
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           
-          {!editingScale && (
-            <div className="space-y-3">
-              <label className="text-sm font-medium">Quick Start with Preset</label>
-              <div className="flex flex-wrap gap-2">
-                {PRESETS.map((preset, i) => (
-                  <Button 
-                    key={i}
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => applyPreset(preset)}
-                    className="text-xs"
-                  >
-                    <Copy className="h-3 w-3 mr-1" /> {preset.name}
-                  </Button>
-                ))}
-              </div>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or build manually</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Scale Name</label>
-                <Input 
-                  placeholder="e.g., Primary School Scale" 
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Academic Year (Optional)</label>
-                <Select 
-                  value={formData.academicYearId} 
-                  onValueChange={(v) => setFormData({ ...formData, academicYearId: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Years" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Academic Years</SelectItem>
-                    {academicYears?.map(year => (
-                      <SelectItem key={year.id} value={year.id}>{year.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium">Grades</label>
-                <Button variant="outline" size="sm" onClick={addGrade}>
-                  <Plus className="h-4 w-4 mr-1" /> Add Grade
-                </Button>
-              </div>
-              
-              <div className="space-y-2">
-                {formData.grades.map((grade, index) => (
-                  <div key={index} className="grid grid-cols-[auto_auto_auto_auto_auto] gap-2 items-center p-2 border rounded-lg">
-                    <input
-                      type="color"
-                      value={grade.color}
-                      onChange={(e) => updateGrade(index, 'color', e.target.value)}
-                      className="w-8 h-8 rounded cursor-pointer border-0"
-                    />
-                    <Input
-                      placeholder="Grade"
-                      className="w-16"
-                      value={grade.grade}
-                      onChange={(e) => updateGrade(index, 'grade', e.target.value)}
-                    />
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Input
-                        type="number"
-                        className="w-14"
-                        value={grade.minMarks}
-                        onChange={(e) => updateGrade(index, 'minMarks', parseInt(e.target.value) || 0)}
-                      />
-                      <span>to</span>
-                      <Input
-                        type="number"
-                        className="w-14"
-                        value={grade.maxMarks}
-                        onChange={(e) => updateGrade(index, 'maxMarks', parseInt(e.target.value) || 0)}
-                      />
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">Pts:</span>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        className="w-14"
-                        value={grade.points}
-                        onChange={(e) => updateGrade(index, 'points', parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
-                      onClick={() => removeGrade(index)}
-                      disabled={formData.grades.length <= 1}
+          <div className="space-y-6 mt-6">
+            {!editingScale && (
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Quick Start with Preset</label>
+                <div className="flex flex-wrap gap-2">
+                  {PRESETS.map((preset, i) => (
+                    <Button 
+                      key={i}
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => applyPreset(preset)}
+                      className="text-xs"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Copy className="h-3 w-3 mr-1" /> {preset.name}
                     </Button>
+                  ))}
+                </div>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
                   </div>
-                ))}
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">Or build manually</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                id="isDefault"
-                checked={formData.isDefault}
-                onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
-                className="rounded border-gray-300"
-              />
-              <label htmlFor="isDefault" className="text-sm">
-                Set as default grade scale
-              </label>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Preview</label>
-              <div className="flex flex-wrap gap-2 p-3 bg-muted rounded-lg">
-                {formData.grades.map((g, i) => (
-                  <div 
-                    key={i}
-                    className="px-3 py-1.5 rounded-full text-sm font-medium text-white shadow-sm"
-                    style={{ backgroundColor: g.color }}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Scale Name</label>
+                  <Input 
+                    placeholder="e.g., Primary School Scale" 
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Academic Year (Optional)</label>
+                  <Select 
+                    value={formData.academicYearId} 
+                    onValueChange={(v) => setFormData({ ...formData, academicYearId: v })}
                   >
-                    {g.grade || '?'} ({g.minMarks}-{g.maxMarks})
-                  </div>
-                ))}
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Years" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Academic Years</SelectItem>
+                      {academicYears?.map(year => (
+                        <SelectItem key={year.id} value={year.id}>{year.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
 
-            <Button 
-              className="w-full" 
-              onClick={handleSubmit}
-              disabled={!formData.name || formData.grades.length === 0}
-            >
-              {editingScale ? 'Update Grade Scale' : 'Create Grade Scale'}
-            </Button>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Grades</label>
+                  <Button variant="outline" size="sm" onClick={addGrade}>
+                    <Plus className="h-4 w-4 mr-1" /> Add Grade
+                  </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  {formData.grades.map((grade, index) => (
+                    <div key={index} className="grid grid-cols-[auto_auto_auto_auto_auto] gap-2 items-center p-2 border rounded-lg">
+                      <input
+                        type="color"
+                        value={grade.color}
+                        onChange={(e) => updateGrade(index, 'color', e.target.value)}
+                        className="w-8 h-8 rounded cursor-pointer border-0"
+                      />
+                      <Input
+                        placeholder="Grade"
+                        className="w-16"
+                        value={grade.grade}
+                        onChange={(e) => updateGrade(index, 'grade', e.target.value)}
+                      />
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Input
+                          type="number"
+                          className="w-14"
+                          value={grade.minMarks}
+                          onChange={(e) => updateGrade(index, 'minMarks', parseInt(e.target.value) || 0)}
+                        />
+                        <span>to</span>
+                        <Input
+                          type="number"
+                          className="w-14"
+                          value={grade.maxMarks}
+                          onChange={(e) => updateGrade(index, 'maxMarks', parseInt(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">Pts:</span>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          className="w-14"
+                          value={grade.points}
+                          onChange={(e) => updateGrade(index, 'points', parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50 shrink-0"
+                        onClick={() => removeGrade(index)}
+                        disabled={formData.grades.length <= 1}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  id="isDefault"
+                  checked={formData.isDefault}
+                  onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="isDefault" className="text-sm">
+                  Set as default grade scale
+                </label>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Preview</label>
+                <div className="flex flex-wrap gap-2 p-3 bg-muted rounded-lg">
+                  {formData.grades.map((g, i) => (
+                    <div 
+                      key={i}
+                      className="px-3 py-1.5 rounded-full text-sm font-medium text-white shadow-sm"
+                      style={{ backgroundColor: g.color }}
+                    >
+                      {g.grade || '?'} ({g.minMarks}-{g.maxMarks})
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <Button 
+                className="w-full" 
+                onClick={handleSubmit}
+                disabled={!formData.name || formData.grades.length === 0}
+              >
+                {editingScale ? 'Update Grade Scale' : 'Create Grade Scale'}
+              </Button>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

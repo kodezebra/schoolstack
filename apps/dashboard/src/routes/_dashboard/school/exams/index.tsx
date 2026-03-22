@@ -26,12 +26,12 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import {
   Select,
   SelectContent,
@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export const Route = createFileRoute('/_dashboard/school/exams/')({
   component: ExamsPage,
@@ -119,6 +120,7 @@ function ExamsPage() {
     termId: '',
     name: ''
   })
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const { data: exams, isLoading } = useQuery<Exam[]>({
     queryKey: ['school-exams', yearFilter, levelFilter, subjectFilter],
@@ -271,17 +273,6 @@ function ExamsPage() {
         body: JSON.stringify(data)
       })
       if (!res.ok) throw new Error('Failed to add subjects')
-      return res.json()
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['school-level-subjects'] })
-    }
-  })
-
-  const deleteLevelSubjectMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const res = await apiFetch(`/school/exams/subjects/levels/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to remove subject from level')
       return res.json()
     },
     onSuccess: () => {
@@ -456,9 +447,13 @@ function ExamsPage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => {
-                            if (confirm('Are you sure you want to delete this exam?')) {
-                              deleteMutation.mutate(exam.id)
-                            }
+                            confirm({
+                              title: "Delete Exam",
+                              description: "Are you sure you want to delete this exam?",
+                              confirmText: "Delete",
+                              variant: "destructive",
+                              onConfirm: () => deleteMutation.mutate(exam.id),
+                            })
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -473,14 +468,14 @@ function ExamsPage() {
         </CardContent>
       </Card>
 
-      {/* Add Exam Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create New Exam</DialogTitle>
-            <DialogDescription>Set up exam details and schedule.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAddExam} className="space-y-4">
+      {/* Add Exam Sheet */}
+      <Sheet open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Create New Exam</SheetTitle>
+            <SheetDescription>Set up exam details and schedule.</SheetDescription>
+          </SheetHeader>
+          <form onSubmit={handleAddExam} className="space-y-4 mt-6">
             <div>
               <label className="text-sm font-medium">Exam Title</label>
               <Input name="title" required placeholder="e.g., Term 1 Mathematics Exam" />
@@ -564,15 +559,15 @@ function ExamsPage() {
               <label className="text-sm font-medium">Exam Date</label>
               <Input name="examDate" type="date" required />
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? 'Creating...' : 'Create Exam'}
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
       </TabsContent>
 
       {/* Exam Sets Tab */}
@@ -636,9 +631,13 @@ function ExamsPage() {
                             size="icon"
                             className="h-8 w-8 text-muted-foreground hover:text-destructive"
                             onClick={() => {
-                              if (confirm('Are you sure you want to delete this exam set?')) {
-                                deleteExamSetMutation.mutate(set.id)
-                              }
+                              confirm({
+                                title: "Delete Exam Set",
+                                description: "Are you sure you want to delete this exam set?",
+                                confirmText: "Delete",
+                                variant: "destructive",
+                                onConfirm: () => deleteExamSetMutation.mutate(set.id),
+                              })
                             }}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -655,14 +654,14 @@ function ExamsPage() {
       </TabsContent>
       </Tabs>
 
-      {/* Add Level Subjects Dialog */}
-      <Dialog open={isAddLevelSubjectDialogOpen} onOpenChange={setIsAddLevelSubjectDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Subjects to {levels?.find(l => l.id === levelFilter)?.name}</DialogTitle>
-            <DialogDescription>Select subjects to assign to this level.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
+      {/* Add Level Subjects Sheet */}
+      <Sheet open={isAddLevelSubjectDialogOpen} onOpenChange={setIsAddLevelSubjectDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Add Subjects to {levels?.find(l => l.id === levelFilter)?.name}</SheetTitle>
+            <SheetDescription>Select subjects to assign to this level.</SheetDescription>
+          </SheetHeader>
+          <div className="space-y-4 mt-6">
             <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-1">
               {unassignedSubjects.length === 0 ? (
                 <p className="col-span-2 text-center text-sm text-muted-foreground py-4">
@@ -687,20 +686,20 @@ function ExamsPage() {
                 ))
               )}
             </div>
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-2 pb-4">
               <Button variant="outline" onClick={() => setIsAddLevelSubjectDialogOpen(false)}>Close</Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
-      {/* Create Exam Set Dialog */}
-      <Dialog open={isExamSetDialogOpen} onOpenChange={setIsExamSetDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create Exam Set</DialogTitle>
-            <DialogDescription>Group multiple exams together</DialogDescription>
-          </DialogHeader>
+      {/* Create Exam Set Sheet */}
+      <Sheet open={isExamSetDialogOpen} onOpenChange={setIsExamSetDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Create Exam Set</SheetTitle>
+            <SheetDescription>Group multiple exams together</SheetDescription>
+          </SheetHeader>
           <form onSubmit={(e) => {
             e.preventDefault()
             const formData = new FormData(e.currentTarget)
@@ -713,7 +712,7 @@ function ExamsPage() {
               startDate: formData.get('startDate') || undefined,
               endDate: formData.get('endDate') || undefined,
             })
-          }} className="space-y-4">
+          }} className="space-y-4 mt-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Academic Year</label>
@@ -802,7 +801,7 @@ function ExamsPage() {
                 <Input name="endDate" type="date" />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => {
                 setExamSetForm({ yearId: '', termId: '', name: '' })
                 setIsExamSetDialogOpen(false)
@@ -812,19 +811,19 @@ function ExamsPage() {
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
-      {/* Bulk Create Exams Dialog */}
-      <Dialog open={isBulkExamDialogOpen} onOpenChange={(open) => {
+      {/* Bulk Create Exams Sheet */}
+      <Sheet open={isBulkExamDialogOpen} onOpenChange={(open) => {
         setIsBulkExamDialogOpen(open)
         if (!open) setSelectedExamSet(null)
       }}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Exams to Set</DialogTitle>
-            <DialogDescription>Create multiple exams at once for {selectedExamSet?.name}</DialogDescription>
-          </DialogHeader>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Add Exams to Set</SheetTitle>
+            <SheetDescription>Create multiple exams at once for {selectedExamSet?.name}</SheetDescription>
+          </SheetHeader>
           {selectedExamSet && (
             <form onSubmit={(e) => {
               e.preventDefault()
@@ -844,7 +843,7 @@ function ExamsPage() {
                   titleTemplate: formData.get('titleTemplate'),
                 }
               })
-            }} className="space-y-4">
+            }} className="space-y-4 mt-6">
               <div>
                 <label className="text-sm font-medium">Exam Type</label>
                 <Select name="type" required defaultValue="test">
@@ -881,7 +880,7 @@ function ExamsPage() {
                   ))}
                 </div>
               </div>
-              <div className="flex justify-end gap-2 pt-4">
+              <div className="flex justify-end gap-2 pt-4 pb-4">
                 <Button type="button" variant="outline" onClick={() => {
                   setIsBulkExamDialogOpen(false)
                   setSelectedExamSet(null)
@@ -892,9 +891,10 @@ function ExamsPage() {
               </div>
             </form>
           )}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
+      {renderConfirmDialog()}
     </div>
   )
 }

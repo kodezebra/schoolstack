@@ -229,6 +229,86 @@ app.get('/:id/fees', requireRole('owner', 'admin', 'teacher'), async (c) => {
   return c.json([...feesWithBalance, ...extraFeesWithBalance])
 })
 
+app.get('/extra-fee-students', requireRole('owner', 'admin', 'teacher'), async (c) => {
+  const db = getDb(c)
+  const title = c.req.query('title')
+  const levelId = c.req.query('levelId')
+  const search = c.req.query('search')
+  const page = parseInt(c.req.query('page') || '1')
+  const limit = parseInt(c.req.query('limit') || '50')
+  const offset = (page - 1) * limit
+
+  if (!title) {
+    return c.json({ error: 'title is required' }, 400)
+  }
+
+  let conditions: any[] = [
+    eq(studentFees.title, title),
+    eq(studentFees.status, 'active')
+  ]
+  if (levelId) conditions.push(eq(students.levelId, levelId))
+  if (search) {
+    conditions.push(
+      sql`(${like(students.firstName, `%${search}%`)} OR ${like(students.lastName, `%${search}%`)} OR ${like(students.admissionNo, `%${search}%`)})`
+    )
+  }
+
+  const whereClause = and(...conditions)
+
+  const [totalResult] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(studentFees)
+    .innerJoin(students, eq(studentFees.studentId, students.id))
+    .where(whereClause)
+
+  const total = totalResult?.count || 0
+
+  const studentList = await db
+    .select({
+      id: students.id,
+      admissionNo: students.admissionNo,
+      firstName: students.firstName,
+      lastName: students.lastName,
+      levelId: students.levelId,
+      levelName: levels.name,
+      extraFeeId: studentFees.id,
+      amount: studentFees.amount,
+      isRecurring: studentFees.isRecurring,
+    })
+    .from(studentFees)
+    .innerJoin(students, eq(studentFees.studentId, students.id))
+    .leftJoin(levels, eq(students.levelId, levels.id))
+    .where(whereClause)
+    .orderBy(levels.order, students.lastName)
+    .limit(limit)
+    .offset(offset)
+
+  return c.json({
+    data: studentList,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  })
+})
+
+app.get('/extra-fee-counts', requireRole('owner', 'admin', 'teacher'), async (c) => {
+  const db = getDb(c)
+
+  const counts = await db
+    .select({
+      title: studentFees.title,
+      count: sql<number>`count(*)`,
+    })
+    .from(studentFees)
+    .where(eq(studentFees.status, 'active'))
+    .groupBy(studentFees.title)
+
+  return c.json(counts)
+})
+
 app.post('/', requireRole('owner', 'admin'), async (c) => {
   const db = getDb(c)
   const body = await c.req.json()

@@ -43,6 +43,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Badge } from "@/components/ui/badge"
 import {
   MoreVertical,
@@ -73,6 +74,7 @@ function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   // Form states
   const [addForm, setAddForm] = useState({
@@ -310,9 +312,13 @@ function UsersPage() {
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => {
-                            if (confirm(`Are you sure you want to delete ${user.name || user.email}?`)) {
-                              deleteUserMutation.mutate(user.id)
-                            }
+                            confirm({
+                              title: "Delete User",
+                              description: `Are you sure you want to delete ${user.name || user.email}?`,
+                              confirmText: "Delete",
+                              variant: "destructive",
+                              onConfirm: () => deleteUserMutation.mutate(user.id),
+                            })
                           }}
                           className="text-destructive focus:text-destructive"
                           disabled={user.id === currentUser?.id}
@@ -492,6 +498,8 @@ function UsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {renderConfirmDialog()}
     </div>
   )
 }

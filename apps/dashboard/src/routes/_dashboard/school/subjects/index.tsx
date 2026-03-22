@@ -24,12 +24,13 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export const Route = createFileRoute('/_dashboard/school/subjects/')({
   component: SubjectsPage,
@@ -50,6 +51,7 @@ function SubjectsPage() {
   const [selectedCommon, setSelectedCommon] = useState<string[]>([])
   const [newSubjectName, setNewSubjectName] = useState('')
   const [newSubjectCode, setNewSubjectCode] = useState('')
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const commonSubjects = [
     { name: 'Mathematics', code: 'MATH' },
@@ -201,9 +203,13 @@ function SubjectsPage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => {
-                            if (confirm('Are you sure you want to delete this subject?')) {
-                              deleteMutation.mutate(subject.id)
-                            }
+                            confirm({
+                              title: "Delete Subject",
+                              description: "Are you sure you want to delete this subject?",
+                              confirmText: "Delete",
+                              variant: "destructive",
+                              onConfirm: () => deleteMutation.mutate(subject.id),
+                            })
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -218,14 +224,14 @@ function SubjectsPage() {
         </CardContent>
       </Card>
 
-      {/* Add Subject Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Subjects</DialogTitle>
-            <DialogDescription>Select multiple common subjects or add a custom one.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-6 pt-4">
+      {/* Add Subject Sheet */}
+      <Sheet open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Add Subjects</SheetTitle>
+            <SheetDescription>Select multiple common subjects or add a custom one.</SheetDescription>
+          </SheetHeader>
+          <div className="space-y-6 mt-6">
             <div className="space-y-3">
               <label className="text-sm font-semibold text-primary">Quick Select (Common Ugandan Subjects)</label>
               <div className="flex flex-wrap gap-2">
@@ -284,7 +290,7 @@ function SubjectsPage() {
                   onChange={(e) => setNewSubjectCode(e.target.value)}
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2 pt-2 pb-4">
                 <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
                 <Button type="submit" disabled={createMutation.isPending}>
                   {createMutation.isPending ? 'Adding...' : 'Add Custom'}
@@ -292,9 +298,10 @@ function SubjectsPage() {
               </div>
             </form>
           </div>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
+      {renderConfirmDialog()}
     </div>
   )
 }

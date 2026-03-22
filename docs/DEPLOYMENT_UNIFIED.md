@@ -1,5 +1,7 @@
 # Unified Same Domain Deployment (Recommended for Production)
 
+> **Note**: This guide has been consolidated into [deployment.md](deployment.md). Please use that file for the most up-to-date deployment instructions.
+
 This architecture uses Cloudflare's platform to serve both your **Dashboard (Pages)** and **Server (Workers)** on a single domain (e.g., `app.yourdomain.com`).
 
 ## Architecture Benefits

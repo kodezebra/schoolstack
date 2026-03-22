@@ -17,7 +17,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { 
   Plus,
   Search,
-  DollarSign,
   Trash2,
   Banknote,
   AlertCircle,
@@ -27,12 +26,12 @@ import {
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import {
   Select,
   SelectContent,
@@ -40,6 +39,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export const Route = createFileRoute('/_dashboard/school/fees')({
   component: FeesPage,
@@ -109,8 +109,9 @@ function FeesPage() {
   const [isAddFeeDialogOpen, setIsAddFeeDialogOpen] = useState(false)
   const [isAddPaymentDialogOpen, setIsAddPaymentDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
 
-  const { data: feeStructures, isLoading: feesLoading } = useQuery<FeeStructure[]>({
+  const { data: feeStructures } = useQuery<FeeStructure[]>({
     queryKey: ['school-fees'],
     queryFn: async () => {
       const res = await apiFetch('/school/fees')
@@ -425,9 +426,13 @@ function FeesPage() {
                             size="icon"
                             className="h-8 w-8 text-muted-foreground hover:text-destructive"
                             onClick={() => {
-                              if (confirm('Are you sure you want to delete this fee structure?')) {
-                                deleteFeeMutation.mutate(fee.id)
-                              }
+                              confirm({
+                                title: "Delete Fee Structure",
+                                description: "Are you sure you want to delete this fee structure?",
+                                confirmText: "Delete",
+                                variant: "destructive",
+                                onConfirm: () => deleteFeeMutation.mutate(fee.id),
+                              })
                             }}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -594,14 +599,14 @@ function FeesPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Add Fee Dialog */}
-      <Dialog open={isAddFeeDialogOpen} onOpenChange={setIsAddFeeDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create Fee Structure</DialogTitle>
-            <DialogDescription>Set up a new fee for a class.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAddFee} className="space-y-4">
+      {/* Add Fee Sheet */}
+      <Sheet open={isAddFeeDialogOpen} onOpenChange={setIsAddFeeDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Create Fee Structure</SheetTitle>
+            <SheetDescription>Set up a new fee for a class.</SheetDescription>
+          </SheetHeader>
+          <form onSubmit={handleAddFee} className="space-y-4 mt-6">
             <div>
               <label className="text-sm font-medium">Title</label>
               <Input name="title" required placeholder="e.g., Tuition Fee" />
@@ -649,24 +654,24 @@ function FeesPage() {
               <label className="text-sm font-medium">Description</label>
               <Input name="description" placeholder="Optional description" />
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsAddFeeDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={createFeeMutation.isPending}>
                 {createFeeMutation.isPending ? 'Creating...' : 'Create Fee'}
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
-      {/* Add Payment Dialog */}
-      <Dialog open={isAddPaymentDialogOpen} onOpenChange={setIsAddPaymentDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Record Payment</DialogTitle>
-            <DialogDescription>Record a fee payment from a student.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAddPayment} className="space-y-4">
+      {/* Add Payment Sheet */}
+      <Sheet open={isAddPaymentDialogOpen} onOpenChange={setIsAddPaymentDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Record Payment</SheetTitle>
+            <SheetDescription>Record a fee payment from a student.</SheetDescription>
+          </SheetHeader>
+          <form onSubmit={handleAddPayment} className="space-y-4 mt-6">
             <div>
               <label className="text-sm font-medium">Student</label>
               <Select name="studentId" required>
@@ -727,15 +732,17 @@ function FeesPage() {
                 <Input name="notes" placeholder="Optional" />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsAddPaymentDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={createPaymentMutation.isPending}>
                 {createPaymentMutation.isPending ? 'Recording...' : 'Record Payment'}
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
+
+      {renderConfirmDialog()}
     </div>
   )
 }

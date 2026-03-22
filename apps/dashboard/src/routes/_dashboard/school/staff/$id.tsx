@@ -11,7 +11,7 @@ import {
   Mail,
   Phone,
   Calendar,
-  Pencil,
+  Settings2,
   Trash2,
   Save,
   X,
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select"
 import { PhotoUpload } from '@/components/ui/photo-upload'
 import { RoleBadge } from '@/components/ui/status-badge'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export const Route = createFileRoute('/_dashboard/school/staff/$id')({
   component: StaffDetailPage,
@@ -54,6 +55,7 @@ function StaffDetailPage() {
   const queryClient = useQueryClient()
   const [isEditing, setIsEditing] = useState(false)
   const [editedData, setEditedData] = useState<Staff | null>(null)
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const { data: staff, isLoading } = useQuery<Staff>({
     queryKey: ['school-staff', id],
@@ -172,12 +174,16 @@ function StaffDetailPage() {
           ) : (
             <>
               <Button variant="outline" size="sm" onClick={startEdit}>
-                <Pencil className="mr-2 h-4 w-4" /> Edit
+                <Settings2 className="mr-2 h-4 w-4" /> Edit
               </Button>
               <Button variant="destructive" size="sm" onClick={() => {
-                if (confirm('Are you sure you want to PERMANENTLY delete this staff member? This cannot be undone.')) {
-                  deleteMutation.mutate()
-                }
+                confirm({
+                  title: "Delete Staff",
+                  description: "Are you sure you want to PERMANENTLY delete this staff member? This cannot be undone.",
+                  confirmText: "Delete",
+                  variant: "destructive",
+                  onConfirm: () => deleteMutation.mutate(),
+                })
               }}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete
               </Button>
@@ -388,6 +394,8 @@ function StaffDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {renderConfirmDialog()}
     </div>
   )
 }

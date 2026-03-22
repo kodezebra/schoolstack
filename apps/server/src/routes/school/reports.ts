@@ -270,7 +270,7 @@ app.get('/student/:studentId', requireRole('owner', 'admin', 'editor'), async (c
     }
   })
   
-  const filledResults = subjectResults.filter(r => r.examId !== undefined && r.marks !== null)
+  const filledResults = subjectResults.filter(r => r.examId !== undefined && r.marks !== null) as { marks: number; totalMarks: number }[]
   const { totalObtained, totalMax, average } = calculateTotalAndAverage(filledResults)
   const overallGrade = getGrade(average, defaultGradeScale)
   

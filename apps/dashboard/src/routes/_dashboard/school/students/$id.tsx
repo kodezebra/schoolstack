@@ -13,7 +13,7 @@ import {
   Mail,
   MapPin,
   Calendar,
-  Pencil,
+  Settings2,
   Trash2,
   Save,
   X,
@@ -24,19 +24,21 @@ import { useState } from 'react'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { PhotoUpload } from '@/components/ui/photo-upload'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export const Route = createFileRoute('/_dashboard/school/students/$id')({
   component: StudentDetailPage,
@@ -114,6 +116,7 @@ function StudentDetailPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [editedData, setEditedData] = useState<Student | null>(null)
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
   const [paymentForm, setPaymentForm] = useState({
     feeId: '',
     feeType: 'base' as 'base' | 'extra',
@@ -388,12 +391,16 @@ function StudentDetailPage() {
           ) : (
             <>
               <Button variant="outline" size="sm" onClick={startEdit}>
-                <Pencil className="mr-2 h-4 w-4" /> Edit
+                <Settings2 className="mr-2 h-4 w-4" /> Edit
               </Button>
               <Button variant="destructive" size="sm" onClick={() => {
-                if (confirm('Are you sure you want to PERMANENTLY delete this student? This will also delete their fee history and exam results.')) {
-                  deleteMutation.mutate()
-                }
+                confirm({
+                  title: "Delete Student",
+                  description: "Are you sure you want to PERMANENTLY delete this student? This will also delete their fee history and exam results.",
+                  confirmText: "Delete",
+                  variant: "destructive",
+                  onConfirm: () => deleteMutation.mutate(),
+                })
               }}>
                 <Trash2 className="mr-2 h-4 w-4" /> Delete
               </Button>
@@ -725,9 +732,13 @@ function StudentDetailPage() {
                               size="icon"
                               className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               onClick={() => {
-                                if (confirm(`Remove "${fee.title}" from this student's charges?`)) {
-                                  removeExtraFeeMutation.mutate(fee.id)
-                                }
+                                confirm({
+                                  title: "Remove Charge",
+                                  description: `Remove "${fee.title}" from this student's charges?`,
+                                  confirmText: "Remove",
+                                  variant: "destructive",
+                                  onConfirm: () => removeExtraFeeMutation.mutate(fee.id),
+                                })
                               }}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -819,14 +830,14 @@ function StudentDetailPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Record Payment Dialog */}
-      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Record Payment</DialogTitle>
-            <DialogDescription>Record a new payment for {student.firstName} {student.lastName}</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handlePaymentSubmit} className="space-y-4">
+      {/* Record Payment Sheet */}
+      <Sheet open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Record Payment</SheetTitle>
+            <SheetDescription>Record a new payment for {student.firstName} {student.lastName}</SheetDescription>
+          </SheetHeader>
+          <form onSubmit={handlePaymentSubmit} className="space-y-4 mt-6">
             <div>
               <label className="text-sm font-medium">Fee</label>
               <Select 
@@ -848,24 +859,24 @@ function StudentDetailPage() {
                 </SelectTrigger>
                 <SelectContent>
                   {feeBalances?.filter(f => f.type === 'base').length !== 0 && (
-                    <>
+                    <SelectGroup>
                       <SelectLabel>Base Fees</SelectLabel>
                       {feeBalances?.filter(f => f.type === 'base').map((fee) => (
                         <SelectItem key={fee.id} value={fee.id}>
                           {fee.title} - {formatCurrency(fee.amountDue)} {fee.balance > 0 ? `(Bal: ${formatCurrency(fee.balance)})` : ''}
                         </SelectItem>
                       ))}
-                    </>
+                    </SelectGroup>
                   )}
                   {feeBalances?.filter(f => f.type === 'extra').length !== 0 && (
-                    <>
+                    <SelectGroup>
                       <SelectLabel>Extra Charges</SelectLabel>
                       {feeBalances?.filter(f => f.type === 'extra').map((fee) => (
                         <SelectItem key={fee.id} value={fee.id}>
                           {fee.title} - {formatCurrency(fee.amountDue)} {fee.balance > 0 ? `(Bal: ${formatCurrency(fee.balance)})` : ''}
                         </SelectItem>
                       ))}
-                    </>
+                    </SelectGroup>
                   )}
                 </SelectContent>
               </Select>
@@ -937,26 +948,26 @@ function StudentDetailPage() {
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={paymentMutation.isPending || !paymentForm.feeId || parseFloat(paymentForm.amount) <= 0}>
                 {paymentMutation.isPending ? 'Recording...' : 'Record Payment'}
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
-      {/* Adjust Fee Dialog */}
-      <Dialog open={isAdjustDialogOpen} onOpenChange={setIsAdjustDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Adjust Fee Amount</DialogTitle>
-            <DialogDescription>
+      {/* Adjust Fee Sheet */}
+      <Sheet open={isAdjustDialogOpen} onOpenChange={setIsAdjustDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Adjust Fee Amount</SheetTitle>
+            <SheetDescription>
               Override the fee amount for {student.firstName} {student.lastName}. 
               Leave blank or enter original amount to remove adjustment.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <form onSubmit={(e) => {
             e.preventDefault()
             const fee = feeBalances?.find(f => f.id === adjustForm.feeStructureId)
@@ -977,7 +988,7 @@ function StudentDetailPage() {
                 reason: adjustForm.reason || undefined
               })
             }
-          }} className="space-y-4">
+          }} className="space-y-4 mt-6">
             <div>
               <label className="text-sm font-medium">Fee</label>
               <Select 
@@ -1030,29 +1041,29 @@ function StudentDetailPage() {
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsAdjustDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={adjustFeeMutation.isPending || !adjustForm.feeStructureId || !adjustForm.overrideAmount}>
                 {adjustFeeMutation.isPending ? 'Saving...' : 'Save Adjustment'}
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
 
-      {/* Add Extra Charge Dialog */}
-      <Dialog open={isExtraFeeDialogOpen} onOpenChange={setIsExtraFeeDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Extra Charge</DialogTitle>
-            <DialogDescription>
+      {/* Add Extra Charge Sheet */}
+      <Sheet open={isExtraFeeDialogOpen} onOpenChange={setIsExtraFeeDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Add Extra Charge</SheetTitle>
+            <SheetDescription>
               Select from common charges or enter a custom one.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           
           {/* Library Options */}
           {extraFeesLibrary && extraFeesLibrary.length > 0 && (
-            <div className="space-y-2">
+            <div className="space-y-2 mt-6">
               <label className="text-sm font-medium">Common Charges</label>
               <div className="grid grid-cols-2 gap-2">
                 {extraFeesLibrary.map((fee) => (
@@ -1139,15 +1150,17 @@ function StudentDetailPage() {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsExtraFeeDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={addExtraFeeMutation.isPending || !extraFeeForm.title || !extraFeeForm.amount}>
                 {addExtraFeeMutation.isPending ? 'Adding...' : 'Add Charge'}
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
+
+      {renderConfirmDialog()}
     </div>
   )
 }

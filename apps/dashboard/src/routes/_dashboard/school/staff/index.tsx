@@ -25,12 +25,12 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import {
   Select,
   SelectContent,
@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 
 export const Route = createFileRoute('/_dashboard/school/staff/')({
   component: StaffPage,
@@ -70,6 +71,7 @@ function StaffPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const { data: staff, isLoading } = useQuery<Staff[]>({
     queryKey: ['school-staff', roleFilter, statusFilter],
@@ -294,9 +296,13 @@ function StaffPage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => {
-                            if (confirm('Are you sure you want to PERMANENTLY delete this staff member? This cannot be undone.')) {
-                              deleteMutation.mutate(member.id)
-                            }
+                            confirm({
+                              title: "Delete Staff",
+                              description: "Are you sure you want to PERMANENTLY delete this staff member? This cannot be undone.",
+                              confirmText: "Delete",
+                              variant: "destructive",
+                              onConfirm: () => deleteMutation.mutate(member.id),
+                            })
                           }}
                         >
                           <Trash2 className="h-4 w-4" />
@@ -311,14 +317,14 @@ function StaffPage() {
         </CardContent>
       </Card>
 
-      {/* Add Staff Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add New Staff</DialogTitle>
-            <DialogDescription>Enter staff member details.</DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleAddStaff} className="space-y-4">
+      {/* Add Staff Sheet */}
+      <Sheet open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[500px] p-6 overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Add New Staff</SheetTitle>
+            <SheetDescription>Enter staff member details.</SheetDescription>
+          </SheetHeader>
+          <form onSubmit={handleAddStaff} className="space-y-4 mt-6">
             <div className="flex justify-center">
               <div className="relative">
                 <input
@@ -437,15 +443,17 @@ function StaffPage() {
                 <Input name="experience" placeholder="e.g., 5 years" />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={createMutation.isPending}>
                 {createMutation.isPending ? 'Adding...' : 'Add Staff'}
               </Button>
             </div>
           </form>
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
+
+      {renderConfirmDialog()}
     </div>
   )
 }

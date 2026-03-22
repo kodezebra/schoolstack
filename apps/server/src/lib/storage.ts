@@ -59,6 +59,6 @@ export async function uploadPhoto(
   return { url: `${origin}/api/assets/${path}`, success: true }
 }
 
-export function getPhotoPath(entityType: 'students' | 'staff', id: string): string {
+export function getPhotoPath(entityType: 'students' | 'staff' | 'users', id: string): string {
   return `photos/${entityType}/${id}.jpg`
 }
