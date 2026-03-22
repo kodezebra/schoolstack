@@ -13,9 +13,27 @@ export function formatDate(date: string | Date): string {
   })
 }
 
+export function formatDateRelative(date: string | Date): string {
+  const now = new Date()
+  const d = new Date(date)
+  const diffMs = now.getTime() - d.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  
+  if (diffDays === 0) return 'Today'
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
+  return formatDate(date)
+}
+
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-UG', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'UGX',
+    maximumFractionDigits: 0
   }).format(amount)
+}
+
+export function formatNumber(num: number): string {
+  return new Intl.NumberFormat('en-UG').format(num)
 }

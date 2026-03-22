@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
+import { formatDateRelative } from '@/lib/utils'
 import { 
   Table, 
   TableBody, 
@@ -14,6 +15,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { useToast } from '@/components/ui/toast'
+import { EmptyState } from '@/components/ui/empty-state'
 import { 
   Plus,
   Search,
@@ -21,9 +25,10 @@ import {
   Banknote,
   AlertCircle,
   CheckCircle,
-  Users
+  Users,
+  Receipt
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import {
   Sheet,
@@ -106,9 +111,11 @@ interface BalanceTotals {
 
 function FeesPage() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [isAddFeeDialogOpen, setIsAddFeeDialogOpen] = useState(false)
   const [isAddPaymentDialogOpen, setIsAddPaymentDialogOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [studentSearch, setStudentSearch] = useState('')
   const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const { data: feeStructures } = useQuery<FeeStructure[]>({
@@ -183,18 +190,41 @@ function FeesPage() {
 
   const students = studentsData?.data || []
 
+  const filteredStudents = useMemo(() => {
+    if (!studentSearch.trim()) return students
+    const query = studentSearch.toLowerCase()
+    return students.filter((s: any) => 
+      `${s.firstName} ${s.lastName} ${s.admissionNo}`.toLowerCase().includes(query)
+    )
+  }, [students, studentSearch])
+
   const createFeeMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await apiFetch('/school/fees', {
         method: 'POST',
         body: JSON.stringify(data)
       })
-      if (!res.ok) throw new Error('Failed to create fee')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to create fee')
+      }
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['school-fees'] })
       setIsAddFeeDialogOpen(false)
+      toast({
+        title: 'Fee structure created',
+        description: `${data.title} has been added.`,
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to create fee',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -204,12 +234,28 @@ function FeesPage() {
         method: 'POST',
         body: JSON.stringify(data)
       })
-      if (!res.ok) throw new Error('Failed to record payment')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to record payment')
+      }
       return res.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-payments'] })
+      queryClient.invalidateQueries({ queryKey: ['school-fee-balances'] })
       setIsAddPaymentDialogOpen(false)
+      toast({
+        title: 'Payment recorded',
+        description: 'The payment has been saved successfully.',
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to record payment',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -221,10 +267,21 @@ function FeesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-fees'] })
+      toast({
+        title: 'Fee structure deleted',
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Delete failed',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
-  const formatCurrency = (amount: number) => {
+  const fmtCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-UG', { style: 'currency', currency: 'UGX', maximumFractionDigits: 0 }).format(amount)
   }
 
@@ -288,7 +345,8 @@ function FeesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Fees</h1>
+          <Breadcrumb items={[{ label: 'Fee Management' }]} />
+          <h1 className="text-3xl font-bold tracking-tight mt-2">Fee Management</h1>
           <p className="text-muted-foreground">Manage fee structures and record payments.</p>
         </div>
         <div className="flex gap-2">
@@ -306,7 +364,7 @@ function FeesPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Total Collected</CardDescription>
-            <CardTitle className="text-2xl">{formatCurrency(totalCollected)}</CardTitle>
+            <CardTitle className="text-2xl">{fmtCurrency(totalCollected)}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
@@ -360,14 +418,22 @@ function FeesPage() {
                 <TableBody>
                   {filteredPayments.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                        No payments found.
+                      <TableCell colSpan={6}>
+                        <EmptyState
+                          icon={<Receipt className="h-6 w-6" />}
+                          title="No payments yet"
+                          description="Record your first fee payment to track collections"
+                          action={{
+                            label: 'Record Payment',
+                            onClick: () => setIsAddPaymentDialogOpen(true)
+                          }}
+                        />
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredPayments.map((payment) => (
                       <TableRow key={payment.id}>
-                        <TableCell>{new Date(payment.paymentDate).toLocaleDateString()}</TableCell>
+                        <TableCell>{formatDateRelative(payment.paymentDate)}</TableCell>
                         <TableCell>
                           <div className="flex flex-col">
                             <span className="font-medium">{payment.studentName}</span>
@@ -375,7 +441,7 @@ function FeesPage() {
                           </div>
                         </TableCell>
                         <TableCell>{payment.feeTitle}</TableCell>
-                        <TableCell className="font-medium">{formatCurrency(payment.amount)}</TableCell>
+                        <TableCell className="font-medium">{fmtCurrency(payment.amount)}</TableCell>
                         <TableCell>{getMethodBadge(payment.paymentMethod)}</TableCell>
                         <TableCell className="text-muted-foreground">{payment.transactionNo || '-'}</TableCell>
                       </TableRow>
@@ -404,8 +470,16 @@ function FeesPage() {
                 <TableBody>
                   {feeStructures?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                        No fee structures found.
+                      <TableCell colSpan={6}>
+                        <EmptyState
+                          icon={<Banknote className="h-6 w-6" />}
+                          title="No fee structures yet"
+                          description="Create fee structures to start collecting payments"
+                          action={{
+                            label: 'Create Fee Structure',
+                            onClick: () => setIsAddFeeDialogOpen(true)
+                          }}
+                        />
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -413,7 +487,7 @@ function FeesPage() {
                       <TableRow key={fee.id}>
                         <TableCell className="font-medium">{fee.title}</TableCell>
                         <TableCell>{fee.scopeDisplay || 'All Classes'}</TableCell>
-                        <TableCell>{formatCurrency(fee.amount)}</TableCell>
+                        <TableCell>{fmtCurrency(fee.amount)}</TableCell>
                         <TableCell>{fee.dueDate ? new Date(fee.dueDate).toLocaleDateString() : '-'}</TableCell>
                         <TableCell>
                           <Badge variant={fee.status === 'active' ? 'default' : 'secondary'}>
@@ -505,19 +579,19 @@ function FeesPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Total Expected</CardDescription>
-                <CardTitle className="text-2xl">{formatCurrency(balancesData?.totals.totalFees || 0)}</CardTitle>
+                <CardTitle className="text-2xl">{fmtCurrency(balancesData?.totals.totalFees || 0)}</CardTitle>
               </CardHeader>
             </Card>
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Total Collected</CardDescription>
-                <CardTitle className="text-2xl text-green-600">{formatCurrency(balancesData?.totals.totalPaid || 0)}</CardTitle>
+                <CardTitle className="text-2xl text-green-600">{fmtCurrency(balancesData?.totals.totalPaid || 0)}</CardTitle>
               </CardHeader>
             </Card>
             <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
               <CardHeader className="pb-2">
                 <CardDescription>Outstanding</CardDescription>
-                <CardTitle className="text-2xl text-red-600">{formatCurrency(balancesData?.totals.totalOutstanding || 0)}</CardTitle>
+                <CardTitle className="text-2xl text-red-600">{fmtCurrency(balancesData?.totals.totalOutstanding || 0)}</CardTitle>
               </CardHeader>
             </Card>
           </div>
@@ -559,8 +633,12 @@ function FeesPage() {
                     </TableRow>
                   ) : balancesData?.students.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                        No students found.
+                      <TableCell colSpan={6}>
+                        <EmptyState
+                          icon={<Users className="h-6 w-6" />}
+                          title="No student balances"
+                          description="Student balances will appear after fee structures are created and students are enrolled"
+                        />
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -573,10 +651,10 @@ function FeesPage() {
                           <p className="text-xs text-muted-foreground">{student.admissionNo}</p>
                         </TableCell>
                         <TableCell>{student.levelName}</TableCell>
-                        <TableCell className="text-right font-medium">{formatCurrency(student.totalFees)}</TableCell>
-                        <TableCell className="text-right text-green-600">{formatCurrency(student.totalPaid)}</TableCell>
+                        <TableCell className="text-right font-medium">{fmtCurrency(student.totalFees)}</TableCell>
+                        <TableCell className="text-right text-green-600">{fmtCurrency(student.totalPaid)}</TableCell>
                         <TableCell className={`text-right font-medium ${student.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                          {formatCurrency(Math.max(0, student.balance))}
+                          {fmtCurrency(Math.max(0, student.balance))}
                         </TableCell>
                         <TableCell className="text-center">
                           {student.isPaid ? (
@@ -665,7 +743,10 @@ function FeesPage() {
       </Sheet>
 
       {/* Add Payment Sheet */}
-      <Sheet open={isAddPaymentDialogOpen} onOpenChange={setIsAddPaymentDialogOpen}>
+      <Sheet open={isAddPaymentDialogOpen} onOpenChange={(open) => {
+        setIsAddPaymentDialogOpen(open)
+        if (!open) setStudentSearch('')
+      }}>
         <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Record Payment</SheetTitle>
@@ -674,16 +755,36 @@ function FeesPage() {
           <form onSubmit={handleAddPayment} className="space-y-4 mt-6">
             <div>
               <label className="text-sm font-medium">Student</label>
+              <div className="relative mt-1.5">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name or ID..."
+                  value={studentSearch}
+                  onChange={(e) => setStudentSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
               <Select name="studentId" required>
-                <SelectTrigger>
+                <SelectTrigger className="mt-2">
                   <SelectValue placeholder="Select student" />
                 </SelectTrigger>
                 <SelectContent>
-                  {students?.map(student => (
-                    <SelectItem key={student.id} value={student.id}>
-                      {student.firstName} {student.lastName} ({student.admissionNo})
-                    </SelectItem>
-                  ))}
+                  {filteredStudents.length === 0 ? (
+                    <div className="py-6 text-center text-sm text-muted-foreground">
+                      {studentSearch ? 'No students found' : 'Type to search students'}
+                    </div>
+                  ) : (
+                    filteredStudents.slice(0, 50).map(student => (
+                      <SelectItem key={student.id} value={student.id}>
+                        {student.firstName} {student.lastName} ({student.admissionNo})
+                      </SelectItem>
+                    ))
+                  )}
+                  {filteredStudents.length > 50 && (
+                    <div className="py-2 text-center text-xs text-muted-foreground border-t">
+                      Showing 50 of {filteredStudents.length} students
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -694,11 +795,17 @@ function FeesPage() {
                   <SelectValue placeholder="Select fee" />
                 </SelectTrigger>
                 <SelectContent>
-                  {feeStructures?.filter(f => f.status === 'active').map(fee => (
-                    <SelectItem key={fee.id} value={fee.id}>
-                      {fee.title} - {fee.levelName} ({formatCurrency(fee.amount)})
-                    </SelectItem>
-                  ))}
+                  {feeStructures?.filter(f => f.status === 'active').length === 0 ? (
+                    <div className="py-6 text-center text-sm text-muted-foreground">
+                      No active fee structures. Create one first.
+                    </div>
+                  ) : (
+                    feeStructures?.filter(f => f.status === 'active').map(fee => (
+                      <SelectItem key={fee.id} value={fee.id}>
+                        {fee.title} - {fee.levelName} ({fmtCurrency(fee.amount)})
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
             </div>

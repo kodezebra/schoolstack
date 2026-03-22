@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
+import { cn, formatDateRelative } from '@/lib/utils'
 import { 
   Table, 
   TableBody, 
@@ -16,8 +17,11 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Avatar } from '@/components/ui/photo-upload'
 import { StatusBadge } from '@/components/ui/status-badge'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { useToast } from '@/components/ui/toast'
 import {
   Plus,
   Search,
@@ -87,6 +91,7 @@ interface StudentsResponse {
 
 function StudentsPage() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [levelFilter, setLevelFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -97,6 +102,7 @@ function StudentsPage() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   const { data: response, isLoading } = useQuery<StudentsResponse>({
@@ -131,7 +137,10 @@ function StudentsPage() {
         method: 'POST',
         body: JSON.stringify(data)
       })
-      if (!res.ok) throw new Error('Failed to create student')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to create student')
+      }
       const newStudent = await res.json()
       
       if (selectedPhoto) {
@@ -149,10 +158,23 @@ function StudentsPage() {
       
       return newStudent
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['school-students'] })
       setIsAddDialogOpen(false)
       setSelectedPhoto(null)
+      setFormErrors({})
+      toast({
+        title: 'Student added',
+        description: `${data.firstName} ${data.lastName} has been enrolled.`,
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to add student',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -164,6 +186,18 @@ function StudentsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-students'] })
+      toast({
+        title: 'Student deleted',
+        description: 'The student record has been removed.',
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Delete failed',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -185,18 +219,41 @@ function StudentsPage() {
 
   const handleAddStudent = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setFormErrors({})
+    
     const formData = new FormData(e.currentTarget)
+    const errors: Record<string, string> = {}
+    
+    const firstName = formData.get('firstName') as string
+    const lastName = formData.get('lastName') as string
+    const gender = formData.get('gender') as string
+    const levelId = formData.get('levelId') as string
+    const parentName = formData.get('parentName') as string
+    const parentPhone = formData.get('parentPhone') as string
+    
+    if (!firstName?.trim()) errors.firstName = 'First name is required'
+    if (!lastName?.trim()) errors.lastName = 'Last name is required'
+    if (!gender) errors.gender = 'Please select a gender'
+    if (!levelId) errors.levelId = 'Please select a class'
+    if (!parentName?.trim()) errors.parentName = 'Parent name is required'
+    if (!parentPhone?.trim()) errors.parentPhone = 'Phone number is required'
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      return
+    }
+    
     const admNo = formData.get('admissionNo') as string
     createMutation.mutate({
       admissionNo: admNo || generatedAdmNo || undefined,
-      firstName: formData.get('firstName'),
-      lastName: formData.get('lastName'),
-      gender: formData.get('gender'),
-      levelId: formData.get('levelId'),
-      parentName: formData.get('parentName'),
-      parentPhone: formData.get('parentPhone'),
-      parentEmail: formData.get('parentEmail') || undefined,
-      address: formData.get('address') || undefined,
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      gender,
+      levelId,
+      parentName: parentName.trim(),
+      parentPhone: parentPhone.trim(),
+      parentEmail: formData.get('parentEmail') as string || undefined,
+      address: formData.get('address') as string || undefined,
     })
   }
 
@@ -227,7 +284,8 @@ function StudentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Students</h1>
+          <Breadcrumb items={[{ label: 'Students' }]} />
+          <h1 className="text-3xl font-bold tracking-tight mt-2">Students</h1>
           <p className="text-muted-foreground">Manage student enrollment and records.</p>
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)}>
@@ -353,6 +411,9 @@ function StudentsPage() {
                         <span className="text-xs text-muted-foreground">{student.parentPhone}</span>
                       </div>
                     </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <span className="text-sm text-muted-foreground">{student.enrollmentDate ? formatDateRelative(student.enrollmentDate) : '-'}</span>
+                    </TableCell>
                     <TableCell><StatusBadge status={student.status} /></TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
@@ -421,11 +482,14 @@ function StudentsPage() {
       )}
 
       {/* Add Student Sheet */}
-      <Sheet open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+      <Sheet open={isAddDialogOpen} onOpenChange={(open) => {
+        setIsAddDialogOpen(open)
+        if (!open) setFormErrors({})
+      }}>
         <SheetContent className="w-[400px] sm:w-[500px] p-6 overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Add New Student</SheetTitle>
-            <SheetDescription>Enter student enrollment details.</SheetDescription>
+            <SheetDescription>Fill in the student details below.</SheetDescription>
           </SheetHeader>
           <form onSubmit={handleAddStudent} className="space-y-4 mt-6">
             <div className="flex justify-center">
@@ -478,9 +542,10 @@ function StudentsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Admission No.</label>
-                <div className="flex gap-2">
+                <Label htmlFor="admissionNo">Admission No.</Label>
+                <div className="flex gap-2 mt-1.5">
                   <Input 
+                    id="admissionNo"
                     name="admissionNo" 
                     placeholder={generatedAdmNo || "Auto-generated"}
                     className="flex-1"
@@ -498,9 +563,9 @@ function StudentsPage() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium">Class</label>
-                <Select name="levelId" required>
-                  <SelectTrigger>
+                <Label htmlFor="levelId">Class <span className="text-destructive">*</span></Label>
+                <Select name="levelId" onValueChange={() => setFormErrors(e => ({ ...e, levelId: '' }))}>
+                  <SelectTrigger className={cn(formErrors.levelId && "border-destructive")}>
                     <SelectValue placeholder="Select class" />
                   </SelectTrigger>
                   <SelectContent>
@@ -509,22 +574,35 @@ function StudentsPage() {
                     ))}
                   </SelectContent>
                 </Select>
+                {formErrors.levelId && <p className="text-xs text-destructive mt-1">{formErrors.levelId}</p>}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">First Name</label>
-                <Input name="firstName" required />
+                <Label htmlFor="firstName">First Name <span className="text-destructive">*</span></Label>
+                <Input 
+                  id="firstName"
+                  name="firstName" 
+                  placeholder="Enter first name"
+                  className={cn(formErrors.firstName && "border-destructive")}
+                />
+                {formErrors.firstName && <p className="text-xs text-destructive mt-1">{formErrors.firstName}</p>}
               </div>
               <div>
-                <label className="text-sm font-medium">Last Name</label>
-                <Input name="lastName" required />
+                <Label htmlFor="lastName">Last Name <span className="text-destructive">*</span></Label>
+                <Input 
+                  id="lastName"
+                  name="lastName" 
+                  placeholder="Enter last name"
+                  className={cn(formErrors.lastName && "border-destructive")}
+                />
+                {formErrors.lastName && <p className="text-xs text-destructive mt-1">{formErrors.lastName}</p>}
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium">Gender</label>
-              <Select name="gender" required>
-                <SelectTrigger>
+              <Label htmlFor="gender">Gender <span className="text-destructive">*</span></Label>
+              <Select name="gender" onValueChange={() => setFormErrors(e => ({ ...e, gender: '' }))}>
+                <SelectTrigger className={cn(formErrors.gender && "border-destructive")}>
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
@@ -533,24 +611,37 @@ function StudentsPage() {
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+              {formErrors.gender && <p className="text-xs text-destructive mt-1">{formErrors.gender}</p>}
             </div>
             <div>
-              <label className="text-sm font-medium">Parent Name</label>
-              <Input name="parentName" required />
+              <Label htmlFor="parentName">Parent Name <span className="text-destructive">*</span></Label>
+              <Input 
+                id="parentName"
+                name="parentName" 
+                placeholder="Enter parent's full name"
+                className={cn(formErrors.parentName && "border-destructive")}
+              />
+              {formErrors.parentName && <p className="text-xs text-destructive mt-1">{formErrors.parentName}</p>}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Parent Phone</label>
-                <Input name="parentPhone" required placeholder="07x xxx xxxx" />
+                <Label htmlFor="parentPhone">Phone <span className="text-destructive">*</span></Label>
+                <Input 
+                  id="parentPhone"
+                  name="parentPhone" 
+                  placeholder="07x xxx xxxx"
+                  className={cn(formErrors.parentPhone && "border-destructive")}
+                />
+                {formErrors.parentPhone && <p className="text-xs text-destructive mt-1">{formErrors.parentPhone}</p>}
               </div>
               <div>
-                <label className="text-sm font-medium">Parent Email</label>
-                <Input name="parentEmail" type="email" />
+                <Label htmlFor="parentEmail">Email</Label>
+                <Input id="parentEmail" name="parentEmail" type="email" placeholder="optional@email.com" />
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium">Address</label>
-              <Input name="address" />
+              <Label htmlFor="address">Address</Label>
+              <Input id="address" name="address" placeholder="Home address (optional)" />
             </div>
             <div className="flex justify-end gap-2 pt-4 pb-4">
               <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>

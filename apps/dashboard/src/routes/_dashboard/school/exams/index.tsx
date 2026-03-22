@@ -17,6 +17,9 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { useToast } from '@/components/ui/toast'
+import { EmptyState } from '@/components/ui/empty-state'
 import { 
   Plus,
   Search,
@@ -107,6 +110,7 @@ interface LevelSubject {
 
 function ExamsPage() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState('')
   const [yearFilter, setYearFilter] = useState<string>('all')
   const [levelFilter, setLevelFilter] = useState<string>('all')
@@ -179,12 +183,27 @@ function ExamsPage() {
         method: 'POST',
         body: JSON.stringify(data)
       })
-      if (!res.ok) throw new Error('Failed to create exam')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to create exam')
+      }
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['school-exams'] })
       setIsAddDialogOpen(false)
+      toast({
+        title: 'Exam created',
+        description: `${data.title} has been added.`,
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to create exam',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -196,6 +215,17 @@ function ExamsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-exams'] })
+      toast({
+        title: 'Exam deleted',
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Delete failed',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -229,12 +259,26 @@ function ExamsPage() {
         method: 'POST',
         body: JSON.stringify(data)
       })
-      if (!res.ok) throw new Error('Failed to create exam set')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to create exam set')
+      }
       return res.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-exam-sets'] })
       setIsExamSetDialogOpen(false)
+      toast({
+        title: 'Exam set created',
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to create exam set',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -246,6 +290,17 @@ function ExamsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-exam-sets'] })
+      toast({
+        title: 'Exam set deleted',
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Delete failed',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -335,7 +390,8 @@ function ExamsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Exams</h1>
+          <Breadcrumb items={[{ label: 'Exams' }]} />
+          <h1 className="text-3xl font-bold tracking-tight mt-2">Exams</h1>
           <p className="text-muted-foreground">Manage exams and test schedules.</p>
         </div>
         <div className="flex gap-2">
@@ -412,8 +468,16 @@ function ExamsPage() {
             <TableBody>
               {filteredExams.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
-                    No exams found.
+                  <TableCell colSpan={8}>
+                    <EmptyState
+                      icon={<FileText className="h-6 w-6" />}
+                      title="No exams created yet"
+                      description="Create exams to track student performance and generate report cards"
+                      action={{
+                        label: 'Create Exam',
+                        onClick: () => setIsAddDialogOpen(true)
+                      }}
+                    />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -488,9 +552,9 @@ function ExamsPage() {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="test">BOT (Beg of Term)</SelectItem>
-                    <SelectItem value="midterm">MOT (Mid Term)</SelectItem>
-                    <SelectItem value="final">EOT (End of Term)</SelectItem>
+                    <SelectItem value="test">Beginning of Term</SelectItem>
+                    <SelectItem value="midterm">Mid Term</SelectItem>
+                    <SelectItem value="final">End of Term</SelectItem>
                     <SelectItem value="assignment">Assignment</SelectItem>
                     <SelectItem value="quiz">Quiz</SelectItem>
                   </SelectContent>
@@ -597,8 +661,16 @@ function ExamsPage() {
               <TableBody>
                 {examSets?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">
-                      No exam sets found. Create one to get started.
+                    <TableCell colSpan={7}>
+                      <EmptyState
+                        icon={<Folder className="h-6 w-6" />}
+                        title="No exam sets yet"
+                        description="Group exams together for easier management (e.g., Mid Term Exams)"
+                        action={{
+                          label: 'Create Exam Set',
+                          onClick: () => setIsExamSetDialogOpen(true)
+                        }}
+                      />
                     </TableCell>
                   </TableRow>
                 ) : (

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import "./index.css"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
+import { ToastProvider } from "@/components/ui/toast"
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -34,7 +35,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <RouterProvider router={router} context={{ queryClient }} />
+        <ToastProvider>
+          <RouterProvider router={router} context={{ queryClient }} />
+        </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>

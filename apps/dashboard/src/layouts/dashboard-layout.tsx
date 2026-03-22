@@ -1,32 +1,33 @@
 import { Link, Outlet, useLocation } from '@tanstack/react-router'
 import {
   LayoutDashboard,
-  Settings,
-  Users,
-  ShieldCheck,
-  Menu,
-  Bell,
   FileCode2,
-  User,
   Inbox,
   UsersRound,
-  Banknote,
-  ScrollText,
+  Users,
+  User,
   BookOpen,
   FileText,
   Calendar,
-  BarChart3,
   Scale,
+  BarChart3,
   DollarSign,
-  Search,
-  HelpCircle,
+  Banknote,
   Plus,
+  ScrollText,
+  Settings,
+  BookMarked,
+  Menu,
+  Bell,
+  ChevronRight,
   ChevronDown,
   GraduationCap,
-  ChevronRight,
-  AlertCircle,
+  HelpCircle,
   CheckCircle,
-  BookMarked,
+  Search,
+  ShieldCheck,
+  X,
+  AlertCircle,
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Route } from '@/routes/_dashboard/route'
@@ -43,17 +44,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-// Navigation with user-friendly names, descriptions, colors, and badges
-// allowedRoles: undefined = all roles, otherwise array of allowed roles
-// owner, admin, teacher, viewer
 const navigation = [
   {
     section: 'Main',
     color: 'border-blue-400',
     items: [
       { name: 'Dashboard', to: '/', icon: LayoutDashboard, description: 'Home and overview', color: 'text-blue-600' },
-      { name: 'Website Pages', to: '/cms', icon: FileCode2, description: 'Edit your website content', color: 'text-blue-600', allowedRoles: ['owner', 'admin', 'editor'] },
-      { name: 'Messages', to: '/submissions', icon: Inbox, description: 'Contact form submissions', color: 'text-green-600', badge: 'messagesCount' },
+      { name: 'Edit Pages', to: '/cms', icon: FileCode2, description: 'Edit your website content', color: 'text-blue-600', allowedRoles: ['owner', 'admin', 'editor'] },
+      { name: 'Contact Inbox', to: '/submissions', icon: Inbox, description: 'Contact form submissions', color: 'text-green-600', badge: 'messagesCount' },
     ]
   },
   {
@@ -72,7 +70,7 @@ const navigation = [
       { name: 'Subjects', to: '/school/subjects/', icon: BookOpen, description: 'Manage school subjects', color: 'text-purple-600' },
       { name: 'Exams', to: '/school/exams/', icon: FileText, description: 'Create and manage exams', color: 'text-purple-600' },
       { name: 'Terms', to: '/school/terms/', icon: Calendar, description: 'Academic terms and years', color: 'text-orange-600' },
-      { name: 'Grading System', to: '/school/grades/', icon: Scale, description: 'Manage grade scales', color: 'text-purple-600', allowedRoles: ['owner', 'admin'] },
+      { name: 'Grading', to: '/school/grades/', icon: Scale, description: 'Manage grade scales', color: 'text-purple-600', allowedRoles: ['owner', 'admin'] },
       { name: 'Reports', to: '/school/reports/', icon: BarChart3, description: 'Student performance reports', color: 'text-pink-600' },
     ]
   },
@@ -80,20 +78,19 @@ const navigation = [
     section: 'Finance',
     color: 'border-orange-400',
     items: [
-      { name: 'Outstanding Fees', to: '/school/reports/fees', icon: DollarSign, description: 'View unpaid fees', color: 'text-indigo-600', badge: 'outstandingFeesCount' },
-      { name: 'Record Payment', to: '/school/fees', icon: Banknote, description: 'Log fee payments', color: 'text-orange-600' },
-      { name: 'Fee Structures', to: '/school/fees', icon: Banknote, description: 'Configure fee structures', color: 'text-orange-600', allowedRoles: ['owner', 'admin'] },
-      { name: 'Extra Charges', to: '/school/extra-charges', icon: Plus, description: 'Manage transport, trips, and other charges', color: 'text-green-600', allowedRoles: ['owner', 'admin'] },
-      { name: 'School Settings', to: '/school/settings', icon: ScrollText, description: 'School information', color: 'text-slate-600', allowedRoles: ['owner', 'admin'] },
+      { name: 'Fee Reports', to: '/school/reports/fees', icon: DollarSign, description: 'Track unpaid fees', color: 'text-indigo-600', badge: 'outstandingFeesCount' },
+      { name: 'Fee Management', to: '/school/fees', icon: Banknote, description: 'Manage fees and payments', color: 'text-orange-600' },
+      { name: 'Extra Charges', to: '/school/extra-charges', icon: Plus, description: 'Transport, trips, and other charges', color: 'text-green-600', allowedRoles: ['owner', 'admin'] },
     ]
   },
   {
-    section: 'Account',
+    section: 'Settings',
     color: 'border-slate-400',
     items: [
-      { name: 'Profile', to: '/profile', icon: User, description: 'Your personal settings', color: 'text-blue-600' },
-      { name: 'Settings', to: '/settings', icon: Settings, description: 'System configuration', color: 'text-slate-600', allowedRoles: ['owner', 'admin'] },
-      { name: 'Help Center', to: '/help', icon: BookMarked, description: 'Guides and support', color: 'text-teal-600' },
+      { name: 'School Setup', to: '/school/settings', icon: ScrollText, description: 'Classes, years, and teachers', color: 'text-slate-600', allowedRoles: ['owner', 'admin'] },
+      { name: 'My Profile', to: '/profile', icon: User, description: 'Your personal settings', color: 'text-blue-600' },
+      { name: 'System Settings', to: '/settings', icon: Settings, description: 'Branding and configuration', color: 'text-slate-600', allowedRoles: ['owner', 'admin'] },
+      { name: 'Help', to: '/help', icon: BookMarked, description: 'Guides and support', color: 'text-teal-600' },
     ]
   },
 ]
@@ -334,11 +331,19 @@ export function DashboardLayout() {
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 border-r bg-background transition-transform duration-300 md:block md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex h-full flex-col">
-          <div className="flex h-14 items-center border-b px-6">
+          <div className="flex h-14 items-center justify-between border-b px-4">
             <Link to="/" className="flex items-center gap-2 font-semibold text-primary">
               <ShieldCheck className="h-6 w-6" />
               <span className="font-bold tracking-tight text-slate-900">{settings?.logoText || 'SchoolStack'}</span>
             </Link>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden h-8 w-8"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
 
           {/* Search */}
@@ -348,7 +353,7 @@ export function DashboardLayout() {
               <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search... (⌘K)"
+                placeholder="Search menu..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm outline-none focus:border-ring focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/70"

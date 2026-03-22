@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -78,11 +78,8 @@ function Login() {
           {loginMutation.isPending ? 'Logging in...' : 'Login'}
         </Button>
       </form>
-      <div className="text-center text-sm">
-        Don&apos;t have an account?{' '}
-        <Link to="/" className="underline underline-offset-4 hover:text-primary">
-          Contact Support
-        </Link>
+      <div className="text-center text-sm text-muted-foreground">
+        Need access? Contact your school administrator.
       </div>
     </div>
   )

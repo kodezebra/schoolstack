@@ -45,14 +45,15 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Badge } from "@/components/ui/badge"
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { useToast } from '@/components/ui/toast'
 import {
   MoreVertical,
   UserPlus,
   Edit,
   Trash2,
   Shield,
-  Loader2,
-  AlertCircle
+  Loader2
 } from 'lucide-react'
 
 export const Route = createFileRoute('/_dashboard/users')({
@@ -69,11 +70,10 @@ interface User {
 
 function UsersPage() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const { confirm, renderConfirmDialog } = useConfirmDialog()
 
   // Form states
@@ -123,16 +123,22 @@ function UsersPage() {
       }
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setIsAddDialogOpen(false)
       setAddForm({ name: '', email: '', password: '', role: 'viewer' })
-      setSuccessMessage('User created successfully')
-      setTimeout(() => setSuccessMessage(null), 3000)
+      toast({
+        title: 'User created',
+        description: `${data.name || data.email} can now log in.`,
+        variant: 'success'
+      })
     },
     onError: (error: Error) => {
-      setError(error.message)
-      setTimeout(() => setError(null), 5000)
+      toast({
+        title: 'Failed to create user',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -153,12 +159,17 @@ function UsersPage() {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       setIsEditDialogOpen(false)
       setSelectedUser(null)
-      setSuccessMessage('User updated successfully')
-      setTimeout(() => setSuccessMessage(null), 3000)
+      toast({
+        title: 'User updated',
+        variant: 'success'
+      })
     },
     onError: (error: Error) => {
-      setError(error.message)
-      setTimeout(() => setError(null), 5000)
+      toast({
+        title: 'Update failed',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -176,12 +187,17 @@ function UsersPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
-      setSuccessMessage('User deleted successfully')
-      setTimeout(() => setSuccessMessage(null), 3000)
+      toast({
+        title: 'User deleted',
+        variant: 'success'
+      })
     },
     onError: (error: Error) => {
-      setError(error.message)
-      setTimeout(() => setError(null), 5000)
+      toast({
+        title: 'Delete failed',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -238,34 +254,18 @@ function UsersPage() {
   }
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      <div>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-            <p className="text-muted-foreground mt-1">Manage team members and their permissions</p>
-          </div>
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-            <UserPlus className="h-4 w-4" />
-            Add User
-          </Button>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <Breadcrumb items={[{ label: 'Users' }]} />
+          <h1 className="text-3xl font-bold tracking-tight mt-2">User Management</h1>
+          <p className="text-muted-foreground mt-1">Manage team members and their permissions</p>
         </div>
+        <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+          <UserPlus className="h-4 w-4" />
+          Add User
+        </Button>
       </div>
-
-      {/* Success/Error Messages */}
-      {successMessage && (
-        <div className="flex items-center gap-2 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-700 dark:text-emerald-400">
-          <Shield className="h-5 w-5 shrink-0" />
-          <p className="text-sm font-medium">{successMessage}</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <p className="text-sm font-medium">{error}</p>
-        </div>
-      )}
 
       <Card>
         <CardHeader>
@@ -386,10 +386,30 @@ function UsersPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="owner">Owner</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="owner">
+                    <div className="flex flex-col">
+                      <span>Owner</span>
+                      <span className="text-xs text-muted-foreground">Full access, cannot be changed</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="admin">
+                    <div className="flex flex-col">
+                      <span>Admin</span>
+                      <span className="text-xs text-muted-foreground">Manage all settings and users</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="editor">
+                    <div className="flex flex-col">
+                      <span>Editor</span>
+                      <span className="text-xs text-muted-foreground">Edit website and manage students</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="viewer">
+                    <div className="flex flex-col">
+                      <span>Viewer</span>
+                      <span className="text-xs text-muted-foreground">Read-only access</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -455,10 +475,30 @@ function UsersPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="owner">Owner</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                  <SelectItem value="viewer">Viewer</SelectItem>
+                  <SelectItem value="owner">
+                    <div className="flex flex-col">
+                      <span>Owner</span>
+                      <span className="text-xs text-muted-foreground">Full access, cannot be changed</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="admin">
+                    <div className="flex flex-col">
+                      <span>Admin</span>
+                      <span className="text-xs text-muted-foreground">Manage all settings and users</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="editor">
+                    <div className="flex flex-col">
+                      <span>Editor</span>
+                      <span className="text-xs text-muted-foreground">Edit website and manage students</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="viewer">
+                    <div className="flex flex-col">
+                      <span>Viewer</span>
+                      <span className="text-xs text-muted-foreground">Read-only access</span>
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
               {selectedUser?.id === currentUser?.id && (

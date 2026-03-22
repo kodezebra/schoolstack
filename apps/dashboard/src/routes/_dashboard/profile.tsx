@@ -8,13 +8,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { PhotoUpload } from '@/components/ui/photo-upload'
+import { Breadcrumb } from '@/components/ui/breadcrumb'
+import { useToast } from '@/components/ui/toast'
 import {
   User,
   Lock,
   Save,
   Loader2,
-  CheckCircle2,
-  AlertCircle
+  CheckCircle2
 } from 'lucide-react'
 
 export const Route = createFileRoute('/_dashboard/profile')({
@@ -23,6 +24,7 @@ export const Route = createFileRoute('/_dashboard/profile')({
 
 function ProfilePage() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [activeTab, setActiveTab] = useState('account')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
@@ -33,8 +35,7 @@ function ProfilePage() {
     newPassword: '',
     confirmPassword: ''
   })
-  const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
   // Fetch current user
   const { data: user, isLoading } = useQuery({
@@ -72,12 +73,17 @@ function ProfilePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['me'] })
       setHasUnsavedChanges(false)
-      setSuccessMessage('Profile updated successfully')
-      setTimeout(() => setSuccessMessage(null), 3000)
+      toast({
+        title: 'Profile updated',
+        variant: 'success'
+      })
     },
     onError: (error: Error) => {
-      setError(error.message)
-      setTimeout(() => setError(null), 5000)
+      toast({
+        title: 'Update failed',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -96,12 +102,18 @@ function ProfilePage() {
     },
     onSuccess: () => {
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
-      setSuccessMessage('Password changed successfully')
-      setTimeout(() => setSuccessMessage(null), 3000)
+      setFormErrors({})
+      toast({
+        title: 'Password changed',
+        variant: 'success'
+      })
     },
     onError: (error: Error) => {
-      setError(error.message)
-      setTimeout(() => setError(null), 5000)
+      toast({
+        title: 'Password change failed',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -113,14 +125,25 @@ function ProfilePage() {
   }
 
   const handlePasswordSubmit = () => {
+    const errors: Record<string, string> = {}
+    
+    if (!passwordForm.currentPassword) {
+      errors.currentPassword = 'Current password is required'
+    }
+    if (!passwordForm.newPassword) {
+      errors.newPassword = 'New password is required'
+    } else if (passwordForm.newPassword.length < 8) {
+      errors.newPassword = 'Password must be at least 8 characters'
+    }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setError('New passwords do not match')
+      errors.confirmPassword = 'Passwords do not match'
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
       return
     }
-    if (passwordForm.newPassword.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
-    }
+    
     changePasswordMutation.mutate({
       currentPassword: passwordForm.currentPassword,
       newPassword: passwordForm.newPassword
@@ -139,26 +162,12 @@ function ProfilePage() {
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Profile Settings</h1>
+        <Breadcrumb items={[{ label: 'Profile' }]} />
+        <h1 className="text-3xl font-bold tracking-tight mt-2">Profile Settings</h1>
         <p className="text-muted-foreground mt-1">Manage your account settings and preferences</p>
       </div>
-
-      {/* Success/Error Messages */}
-      {successMessage && (
-        <div className="flex items-center gap-2 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-700 dark:text-emerald-400">
-          <CheckCircle2 className="h-5 w-5 shrink-0" />
-          <p className="text-sm font-medium">{successMessage}</p>
-        </div>
-      )}
-
-      {error && (
-        <div className="flex items-center gap-2 p-4 bg-destructive/10 border border-destructive/20 rounded-lg text-destructive">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <p className="text-sm font-medium">{error}</p>
-        </div>
-      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-2">
@@ -248,39 +257,54 @@ function ProfilePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="currentPassword">Current Password</Label>
+                  <Label htmlFor="currentPassword">Current Password <span className="text-destructive">*</span></Label>
                   <Input
                     id="currentPassword"
                     type="password"
                     value={passwordForm.currentPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                    onChange={(e) => {
+                      setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
+                      setFormErrors(e => ({ ...e, currentPassword: '' }))
+                    }}
                     placeholder="Enter current password"
+                    className={formErrors.currentPassword ? 'border-destructive' : ''}
                   />
+                  {formErrors.currentPassword && <p className="text-xs text-destructive">{formErrors.currentPassword}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="newPassword">New Password</Label>
+                  <Label htmlFor="newPassword">New Password <span className="text-destructive">*</span></Label>
                   <Input
                     id="newPassword"
                     type="password"
                     value={passwordForm.newPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                    placeholder="Enter new password"
+                    onChange={(e) => {
+                      setPasswordForm({ ...passwordForm, newPassword: e.target.value })
+                      setFormErrors(e => ({ ...e, newPassword: '' }))
+                    }}
+                    placeholder="Minimum 8 characters"
+                    className={formErrors.newPassword ? 'border-destructive' : ''}
                   />
+                  {formErrors.newPassword && <p className="text-xs text-destructive">{formErrors.newPassword}</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                  <Label htmlFor="confirmPassword">Confirm New Password <span className="text-destructive">*</span></Label>
                   <Input
                     id="confirmPassword"
                     type="password"
                     value={passwordForm.confirmPassword}
-                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                    placeholder="Confirm new password"
+                    onChange={(e) => {
+                      setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
+                      setFormErrors(e => ({ ...e, confirmPassword: '' }))
+                    }}
+                    placeholder="Re-enter new password"
+                    className={formErrors.confirmPassword ? 'border-destructive' : ''}
                   />
+                  {formErrors.confirmPassword && <p className="text-xs text-destructive">{formErrors.confirmPassword}</p>}
                 </div>
                 <div className="pt-4">
                   <Button
                     onClick={handlePasswordSubmit}
-                    disabled={changePasswordMutation.isPending || !passwordForm.currentPassword || !passwordForm.newPassword}
+                    disabled={changePasswordMutation.isPending}
                     className="gap-2"
                   >
                     {changePasswordMutation.isPending ? (
