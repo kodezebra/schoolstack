@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useToast } from '@/components/ui/toast'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import { 
   Plus,
   Trash2,
@@ -49,6 +51,8 @@ interface AcademicYear {
 
 function TermsPage() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingTerm, setEditingTerm] = useState<Term | null>(null)
   const [selectedYear, setSelectedYear] = useState<string>('')
@@ -93,6 +97,10 @@ function TermsPage() {
       queryClient.invalidateQueries({ queryKey: ['school-terms'] })
       setIsDialogOpen(false)
       resetForm()
+      toast({ title: 'Term created', description: 'The academic term has been added successfully.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to create term', variant: 'error' })
     }
   })
 
@@ -110,6 +118,10 @@ function TermsPage() {
       setIsDialogOpen(false)
       setEditingTerm(null)
       resetForm()
+      toast({ title: 'Term updated', description: 'The academic term has been updated successfully.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to update term', variant: 'error' })
     }
   })
 
@@ -123,6 +135,10 @@ function TermsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-terms'] })
+      toast({ title: 'Term deleted', description: 'The academic term has been removed.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to delete term', variant: 'error' })
     }
   })
 
@@ -249,7 +265,15 @@ function TermsPage() {
                     <Settings2 className="h-4 w-4 mr-1" /> Edit
                   </Button>
                   <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => deleteMutation.mutate(term.id)}>
+                    onClick={() => {
+                      confirm({
+                        title: 'Delete Term',
+                        description: `Are you sure you want to delete "${term.name}"? This action cannot be undone.`,
+                        confirmText: 'Delete',
+                        variant: 'destructive',
+                        onConfirm: () => deleteMutation.mutate(term.id)
+                      })
+                    }}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -336,6 +360,7 @@ function TermsPage() {
           </div>
         </DialogContent>
       </Dialog>
+      {renderConfirmDialog()}
     </div>
   )
 }

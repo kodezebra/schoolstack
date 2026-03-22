@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useToast } from '@/components/ui/toast'
+import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import { 
   Plus,
   Trash2,
@@ -80,6 +82,8 @@ const PRESETS = [
 
 function GradeScalesPage() {
   const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const { confirm, renderConfirmDialog } = useConfirmDialog()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingScale, setEditingScale] = useState<GradeScale | null>(null)
   const [selectedYear, setSelectedYear] = useState<string>('')
@@ -128,6 +132,10 @@ function GradeScalesPage() {
       queryClient.invalidateQueries({ queryKey: ['grade-scales'] })
       setIsDialogOpen(false)
       resetForm()
+      toast({ title: 'Grade scale created', description: 'The grading system has been added successfully.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to create grade scale', variant: 'error' })
     }
   })
 
@@ -145,6 +153,10 @@ function GradeScalesPage() {
       setIsDialogOpen(false)
       setEditingScale(null)
       resetForm()
+      toast({ title: 'Grade scale updated', description: 'The grading system has been updated successfully.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to update grade scale', variant: 'error' })
     }
   })
 
@@ -158,6 +170,10 @@ function GradeScalesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['grade-scales'] })
+      toast({ title: 'Grade scale deleted', description: 'The grading system has been removed.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to delete grade scale', variant: 'error' })
     }
   })
 
@@ -311,7 +327,15 @@ function GradeScalesPage() {
                     Edit
                   </Button>
                   <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    onClick={() => deleteMutation.mutate(scale.id)}>
+                    onClick={() => {
+                      confirm({
+                        title: 'Delete Grade Scale',
+                        description: `Are you sure you want to delete "${scale.name}"? This action cannot be undone.`,
+                        confirmText: 'Delete',
+                        variant: 'destructive',
+                        onConfirm: () => deleteMutation.mutate(scale.id)
+                      })
+                    }}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -488,6 +512,7 @@ function GradeScalesPage() {
           </div>
         </SheetContent>
       </Sheet>
+      {renderConfirmDialog()}
     </div>
   )
 }

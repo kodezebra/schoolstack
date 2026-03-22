@@ -110,6 +110,26 @@ function UsersPage() {
     }
   })
 
+  // Permission helpers
+  const isOwner = currentUser?.role === 'owner'
+  const isAdmin = currentUser?.role === 'admin'
+  const canManageUsers = isOwner || isAdmin
+  const ownerCount = users?.filter(u => u.role === 'owner').length || 0
+
+  const canDeleteUser = (user: User): boolean => {
+    if (user.id === currentUser?.id) return false
+    if (user.role === 'owner') {
+      if (!isOwner) return false
+      if (ownerCount <= 1) return false
+    }
+    return true
+  }
+
+  const canEditUser = (user: User): boolean => {
+    if (user.role === 'owner' && !isOwner) return false
+    return true
+  }
+
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (data: typeof addForm) => {
@@ -261,10 +281,12 @@ function UsersPage() {
           <h1 className="text-3xl font-bold tracking-tight mt-2">User Management</h1>
           <p className="text-muted-foreground mt-1">Manage team members and their permissions</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
-          <UserPlus className="h-4 w-4" />
-          Add User
-        </Button>
+        {canManageUsers && (
+          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Add User
+          </Button>
+        )}
       </div>
 
       <Card>
@@ -297,37 +319,52 @@ function UsersPage() {
                     {new Date(user.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => openEditDialog(user)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            confirm({
-                              title: "Delete User",
-                              description: `Are you sure you want to delete ${user.name || user.email}?`,
-                              confirmText: "Delete",
-                              variant: "destructive",
-                              onConfirm: () => deleteUserMutation.mutate(user.id),
-                            })
-                          }}
-                          className="text-destructive focus:text-destructive"
-                          disabled={user.id === currentUser?.id}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {canManageUsers && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {canEditUser(user) ? (
+                            <DropdownMenuItem onClick={() => openEditDialog(user)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem disabled>
+                              <Shield className="h-4 w-4 mr-2" />
+                              Edit (Restricted)
+                            </DropdownMenuItem>
+                          )}
+                          {canDeleteUser(user) ? (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                confirm({
+                                  title: "Delete User",
+                                  description: `Are you sure you want to delete ${user.name || user.email}? This action cannot be undone.`,
+                                  confirmText: "Delete",
+                                  variant: "destructive",
+                                  onConfirm: () => deleteUserMutation.mutate(user.id),
+                                })
+                              }}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem disabled className="text-muted-foreground">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {user.role === 'owner' && ownerCount <= 1 ? 'Cannot delete last owner' : 'Cannot delete'}
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -391,12 +428,14 @@ function UsersPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="owner">
-                    <div className="flex flex-col">
-                      <span>Owner</span>
-                      <span className="text-xs text-muted-foreground">Full access, cannot be changed</span>
-                    </div>
-                  </SelectItem>
+                  {isOwner && (
+                    <SelectItem value="owner">
+                      <div className="flex flex-col">
+                        <span>Owner</span>
+                        <span className="text-xs text-muted-foreground">Full access, cannot be changed</span>
+                      </div>
+                    </SelectItem>
+                  )}
                   <SelectItem value="admin">
                     <div className="flex flex-col">
                       <span>Admin</span>
@@ -417,6 +456,11 @@ function UsersPage() {
                   </SelectItem>
                 </SelectContent>
               </Select>
+              {isAdmin && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Only owners can create other owners
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -457,6 +501,7 @@ function UsersPage() {
                 value={editForm.name}
                 onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                 placeholder="John Doe"
+                disabled={!canEditUser(selectedUser!)}
               />
             </div>
             <div className="grid gap-2">
@@ -467,6 +512,7 @@ function UsersPage() {
                 value={editForm.email}
                 onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                 placeholder="john@example.com"
+                disabled={!canEditUser(selectedUser!)}
               />
             </div>
             <div className="grid gap-2">
@@ -474,18 +520,20 @@ function UsersPage() {
               <Select
                 value={editForm.role}
                 onValueChange={(value: User['role']) => setEditForm({ ...editForm, role: value })}
-                disabled={selectedUser?.id === currentUser?.id || selectedUser?.role === 'owner'}
+                disabled={!canEditUser(selectedUser!)}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="owner">
-                    <div className="flex flex-col">
-                      <span>Owner</span>
-                      <span className="text-xs text-muted-foreground">Full access, cannot be changed</span>
-                    </div>
-                  </SelectItem>
+                  {isOwner && (
+                    <SelectItem value="owner">
+                      <div className="flex flex-col">
+                        <span>Owner</span>
+                        <span className="text-xs text-muted-foreground">Full access, cannot be changed</span>
+                      </div>
+                    </SelectItem>
+                  )}
                   <SelectItem value="admin">
                     <div className="flex flex-col">
                       <span>Admin</span>
@@ -507,10 +555,19 @@ function UsersPage() {
                 </SelectContent>
               </Select>
               {selectedUser?.id === currentUser?.id && (
-                <p className="text-xs text-muted-foreground">You cannot change your own role</p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Shield className="h-3 w-3" /> You cannot change your own role
+                </p>
               )}
-              {selectedUser?.role === 'owner' && (
-                <p className="text-xs text-muted-foreground">Owner role cannot be changed</p>
+              {selectedUser?.role === 'owner' && !isOwner && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <Shield className="h-3 w-3" /> Only owners can edit other owners
+                </p>
+              )}
+              {selectedUser?.role === 'owner' && isOwner && ownerCount <= 1 && (
+                <p className="text-xs text-amber-600 flex items-center gap-1">
+                  <Shield className="h-3 w-3" /> You are the only owner - cannot change your role
+                </p>
               )}
             </div>
           </div>
@@ -518,28 +575,37 @@ function UsersPage() {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteUser}
-              disabled={deleteUserMutation.isPending || selectedUser?.id === currentUser?.id}
-              className="mr-auto"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-            <Button onClick={handleEditUser} disabled={updateUserMutation.isPending}>
-              {updateUserMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Shield className="h-4 w-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
+            {canDeleteUser(selectedUser!) && (
+              <Button
+                variant="destructive"
+                onClick={handleDeleteUser}
+                disabled={deleteUserMutation.isPending}
+                className="mr-auto"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </Button>
+            )}
+            {canEditUser(selectedUser!) ? (
+              <Button onClick={handleEditUser} disabled={updateUserMutation.isPending}>
+                {updateUserMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Shield className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            ) : (
+              <Button disabled>
+                <Shield className="h-4 w-4 mr-2" />
+                Cannot Edit
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

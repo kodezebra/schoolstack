@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { useToast } from '@/components/ui/toast'
 import { 
   ArrowLeft,
   User,
@@ -113,6 +114,7 @@ interface StudentDetail extends Student {
 function StudentDetailPage() {
   const { id } = Route.useParams()
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const [isEditing, setIsEditing] = useState(false)
   const [editedData, setEditedData] = useState<Student | null>(null)
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
@@ -181,26 +183,55 @@ function StudentDetailPage() {
         method: 'PATCH',
         body: JSON.stringify(data)
       })
-      if (!res.ok) throw new Error('Failed to update student')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to update student')
+      }
       return res.json()
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['school-student', id] })
       queryClient.invalidateQueries({ queryKey: ['school-students'] })
       setIsEditing(false)
       setEditedData(null)
+      toast({
+        title: 'Student updated',
+        description: `${data.firstName} ${data.lastName}'s record has been saved.`,
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to update student',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
       const res = await apiFetch(`/school/students/${id}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to withdraw student')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to delete student')
+      }
       return res.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-students'] })
+      toast({
+        title: 'Student deleted',
+        variant: 'success'
+      })
       window.history.back()
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to delete student',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -225,7 +256,10 @@ function StudentDetailPage() {
         method: 'POST',
         body: JSON.stringify(payload)
       })
-      if (!res.ok) throw new Error('Failed to record payment')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to record payment')
+      }
       return res.json()
     },
     onSuccess: () => {
@@ -242,6 +276,18 @@ function StudentDetailPage() {
         receiptNo: '',
         notes: ''
       })
+      toast({
+        title: 'Payment recorded',
+        description: 'The payment has been saved successfully.',
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to record payment',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -251,13 +297,28 @@ function StudentDetailPage() {
         method: 'POST',
         body: JSON.stringify({ ...data, studentId: id })
       })
-      if (!res.ok) throw new Error('Failed to adjust fee')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to adjust fee')
+      }
       return res.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-student-fees', id] })
       setIsAdjustDialogOpen(false)
       setAdjustForm({ feeStructureId: '', overrideAmount: '', reason: '' })
+      toast({
+        title: 'Fee adjusted',
+        description: 'The fee amount has been updated.',
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to adjust fee',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -267,13 +328,28 @@ function StudentDetailPage() {
         method: 'POST',
         body: JSON.stringify(data)
       })
-      if (!res.ok) throw new Error('Failed to add extra fee')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to add extra fee')
+      }
       return res.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-student-fees', id] })
       setIsExtraFeeDialogOpen(false)
       setExtraFeeForm({ title: '', amount: '', isRecurring: true })
+      toast({
+        title: 'Extra charge added',
+        description: 'The charge has been added to the student.',
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to add charge',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
@@ -282,11 +358,25 @@ function StudentDetailPage() {
       const res = await apiFetch(`/school/students/${id}/fees/extra/${feeId}`, {
         method: 'DELETE'
       })
-      if (!res.ok) throw new Error('Failed to remove extra fee')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Failed to remove extra fee')
+      }
       return res.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['school-student-fees', id] })
+      toast({
+        title: 'Charge removed',
+        variant: 'success'
+      })
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Failed to remove charge',
+        description: error.message,
+        variant: 'error'
+      })
     }
   })
 
