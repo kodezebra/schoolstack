@@ -30,13 +30,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 export const Route = createFileRoute('/_dashboard/school/subjects/')({
   component: SubjectsPage,
@@ -48,12 +41,6 @@ interface Subject {
   code?: string
   academicYearId: string
   createdAt: string
-}
-
-interface AcademicYear {
-  id: string
-  name: string
-  status?: string
 }
 
 function SubjectsPage() {

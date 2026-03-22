@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, desc } from 'drizzle-orm'
 import { assets } from '@/db/schema'
 import { createId } from '@paralleldrive/cuid2'
@@ -23,7 +23,7 @@ app.post('/upload', authMiddleware, requireRole('owner', 'admin', 'editor'), asy
 
   if (!file) return c.json({ error: 'No file uploaded' }, 400)
 
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const key = `${createId()}-${file.name}`
   
   await c.env.ASSETS.put(key, file.stream(), {
@@ -43,7 +43,7 @@ app.post('/upload', authMiddleware, requireRole('owner', 'admin', 'editor'), asy
 
 // LIST - editor+
 app.get('/', authMiddleware, requireRole('owner', 'admin', 'editor'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const result = await db.select().from(assets).orderBy(desc(assets.createdAt))
   return c.json(result)
 })
@@ -67,7 +67,7 @@ app.get('/*', async (c) => {
 // DELETE - admin+
 app.delete('/:id', authMiddleware, requireRole('owner', 'admin'), async (c) => {
   const id = c.req.param('id')
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
 
   const asset = await db.select().from(assets).where(eq(assets.id, id)).get()
   if (!asset) return c.notFound()

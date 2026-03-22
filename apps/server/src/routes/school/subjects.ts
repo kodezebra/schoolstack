@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, desc } from 'drizzle-orm'
 import { subjects, academicYears } from '@/db/schema'
 import { authMiddleware, requireRole } from '@/middleware/auth'
@@ -19,13 +19,13 @@ const subjectSchema = z.object({
 })
 
 app.get('/', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const subjectList = await db.select().from(subjects).orderBy(desc(subjects.createdAt))
   return c.json(subjectList)
 })
 
 app.post('/', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   const data = subjectSchema.parse(body)
   
@@ -38,7 +38,7 @@ app.post('/', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   
@@ -52,7 +52,7 @@ app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.delete('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   await db.delete(subjects).where(eq(subjects.id, id))

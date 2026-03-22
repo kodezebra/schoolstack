@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, sql } from 'drizzle-orm'
 import { levels, staff } from '@/db/schema'
 import { authMiddleware, requireRole } from '@/middleware/auth'
@@ -21,7 +21,7 @@ const levelSchema = z.object({
 })
 
 app.get('/', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const academicYearId = c.req.query('academicYearId')
   
   const query = db.select({
@@ -45,7 +45,7 @@ app.get('/', requireRole('owner', 'admin', 'teacher'), async (c) => {
 })
 
 app.post('/', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   const data = levelSchema.parse(body)
   
@@ -60,7 +60,7 @@ app.post('/', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   const data = levelSchema.partial().parse(body) // Use partial to allow partial updates
@@ -80,7 +80,7 @@ app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.delete('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   await db.delete(levels).where(eq(levels.id, id))

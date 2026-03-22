@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, desc } from 'drizzle-orm'
 import { contactSubmissions } from '@/db/schema'
 import { z } from 'zod'
@@ -21,7 +21,7 @@ const submissionSchema = z.object({
 
 // 1. PUBLIC: Submit Contact Form
 app.post('/', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   let body: any
   
   try {
@@ -68,7 +68,7 @@ app.use('/*', authMiddleware)
 
 // 2. ADMIN: List all submissions
 app.get('/', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const results = await db.select()
     .from(contactSubmissions)
     .orderBy(desc(contactSubmissions.createdAt))
@@ -85,7 +85,7 @@ app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
     return c.json({ error: 'Invalid status' }, 400)
   }
 
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const [updated] = await db.update(contactSubmissions)
     .set({ status, updatedAt: new Date() })
     .where(eq(contactSubmissions.id, id))
@@ -98,7 +98,7 @@ app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
 // 4. ADMIN: Delete a submission
 app.delete('/:id', requireRole('owner', 'admin'), async (c) => {
   const id = c.req.param('id')
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   
   const deleted = await db.delete(contactSubmissions)
     .where(eq(contactSubmissions.id, id))

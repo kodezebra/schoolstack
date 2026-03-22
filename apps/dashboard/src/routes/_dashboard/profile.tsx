@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Avatar } from '@/components/ui/photo-upload'
+import { PhotoUpload } from '@/components/ui/photo-upload'
 import {
   User,
   Lock,
@@ -176,9 +178,24 @@ function ProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Account Information</CardTitle>
-                <CardDescription>Update your name and email address</CardDescription>
+                <CardDescription>Update your name, email, and profile photo</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Profile Photo */}
+                <div className="flex items-center gap-4">
+                  <PhotoUpload
+                    entityType="user"
+                    entityId={user?.id || null}
+                    currentPhoto={user?.photo}
+                    size="lg"
+                  />
+                  <div>
+                    <h3 className="font-semibold text-lg">{user?.name || 'User'}</h3>
+                    <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    <p className="text-xs text-muted-foreground mt-1 capitalize">{user?.role}</p>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
                   <Input

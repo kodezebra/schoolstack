@@ -21,6 +21,7 @@ import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as DashboardCmsIndexRouteImport } from './routes/_dashboard/cms/index'
 import { Route as DashboardSchoolSettingsRouteImport } from './routes/_dashboard/school/settings'
 import { Route as DashboardSchoolFeesRouteImport } from './routes/_dashboard/school/fees'
+import { Route as DashboardSchoolExtraChargesRouteImport } from './routes/_dashboard/school/extra-charges'
 import { Route as DashboardCmsPageIdRouteImport } from './routes/_dashboard/cms/$pageId'
 import { Route as DashboardSchoolTermsIndexRouteImport } from './routes/_dashboard/school/terms/index'
 import { Route as DashboardSchoolSubjectsIndexRouteImport } from './routes/_dashboard/school/subjects/index'
@@ -93,6 +94,12 @@ const DashboardSchoolFeesRoute = DashboardSchoolFeesRouteImport.update({
   path: '/school/fees',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardSchoolExtraChargesRoute =
+  DashboardSchoolExtraChargesRouteImport.update({
+    id: '/school/extra-charges',
+    path: '/school/extra-charges',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
 const DashboardCmsPageIdRoute = DashboardCmsPageIdRouteImport.update({
   id: '/cms/$pageId',
   path: '/cms/$pageId',
@@ -178,6 +185,7 @@ export interface FileRoutesByFullPath {
   '/submissions': typeof DashboardSubmissionsRoute
   '/users': typeof DashboardUsersRoute
   '/cms/$pageId': typeof DashboardCmsPageIdRoute
+  '/school/extra-charges': typeof DashboardSchoolExtraChargesRoute
   '/school/fees': typeof DashboardSchoolFeesRoute
   '/school/settings': typeof DashboardSchoolSettingsRoute
   '/cms/': typeof DashboardCmsIndexRoute
@@ -203,6 +211,7 @@ export interface FileRoutesByTo {
   '/submissions': typeof DashboardSubmissionsRoute
   '/users': typeof DashboardUsersRoute
   '/cms/$pageId': typeof DashboardCmsPageIdRoute
+  '/school/extra-charges': typeof DashboardSchoolExtraChargesRoute
   '/school/fees': typeof DashboardSchoolFeesRoute
   '/school/settings': typeof DashboardSchoolSettingsRoute
   '/cms': typeof DashboardCmsIndexRoute
@@ -231,6 +240,7 @@ export interface FileRoutesById {
   '/_dashboard/users': typeof DashboardUsersRoute
   '/_dashboard/': typeof DashboardIndexRoute
   '/_dashboard/cms/$pageId': typeof DashboardCmsPageIdRoute
+  '/_dashboard/school/extra-charges': typeof DashboardSchoolExtraChargesRoute
   '/_dashboard/school/fees': typeof DashboardSchoolFeesRoute
   '/_dashboard/school/settings': typeof DashboardSchoolSettingsRoute
   '/_dashboard/cms/': typeof DashboardCmsIndexRoute
@@ -258,6 +268,7 @@ export interface FileRouteTypes {
     | '/submissions'
     | '/users'
     | '/cms/$pageId'
+    | '/school/extra-charges'
     | '/school/fees'
     | '/school/settings'
     | '/cms/'
@@ -283,6 +294,7 @@ export interface FileRouteTypes {
     | '/submissions'
     | '/users'
     | '/cms/$pageId'
+    | '/school/extra-charges'
     | '/school/fees'
     | '/school/settings'
     | '/cms'
@@ -310,6 +322,7 @@ export interface FileRouteTypes {
     | '/_dashboard/users'
     | '/_dashboard/'
     | '/_dashboard/cms/$pageId'
+    | '/_dashboard/school/extra-charges'
     | '/_dashboard/school/fees'
     | '/_dashboard/school/settings'
     | '/_dashboard/cms/'
@@ -417,6 +430,13 @@ declare module '@tanstack/react-router' {
       path: '/school/fees'
       fullPath: '/school/fees'
       preLoaderRoute: typeof DashboardSchoolFeesRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/_dashboard/school/extra-charges': {
+      id: '/_dashboard/school/extra-charges'
+      path: '/school/extra-charges'
+      fullPath: '/school/extra-charges'
+      preLoaderRoute: typeof DashboardSchoolExtraChargesRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
     '/_dashboard/cms/$pageId': {
@@ -532,6 +552,7 @@ interface DashboardRouteRouteChildren {
   DashboardUsersRoute: typeof DashboardUsersRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
   DashboardCmsPageIdRoute: typeof DashboardCmsPageIdRoute
+  DashboardSchoolExtraChargesRoute: typeof DashboardSchoolExtraChargesRoute
   DashboardSchoolFeesRoute: typeof DashboardSchoolFeesRoute
   DashboardSchoolSettingsRoute: typeof DashboardSchoolSettingsRoute
   DashboardCmsIndexRoute: typeof DashboardCmsIndexRoute
@@ -556,6 +577,7 @@ const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
   DashboardUsersRoute: DashboardUsersRoute,
   DashboardIndexRoute: DashboardIndexRoute,
   DashboardCmsPageIdRoute: DashboardCmsPageIdRoute,
+  DashboardSchoolExtraChargesRoute: DashboardSchoolExtraChargesRoute,
   DashboardSchoolFeesRoute: DashboardSchoolFeesRoute,
   DashboardSchoolSettingsRoute: DashboardSchoolSettingsRoute,
   DashboardCmsIndexRoute: DashboardCmsIndexRoute,

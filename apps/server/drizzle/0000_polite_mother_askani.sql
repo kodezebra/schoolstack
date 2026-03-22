@@ -100,7 +100,8 @@ CREATE TABLE `fee_overrides` (
 CREATE TABLE `fee_payments` (
 	`id` text PRIMARY KEY NOT NULL,
 	`student_id` text NOT NULL,
-	`fee_structure_id` text NOT NULL,
+	`fee_structure_id` text,
+	`extra_fee_id` text,
 	`amount` integer NOT NULL,
 	`payment_date` integer NOT NULL,
 	`payment_method` text NOT NULL,
@@ -109,7 +110,8 @@ CREATE TABLE `fee_payments` (
 	`notes` text,
 	`created_at` integer NOT NULL,
 	FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON UPDATE no action ON DELETE cascade,
-	FOREIGN KEY (`fee_structure_id`) REFERENCES `fee_structures`(`id`) ON UPDATE no action ON DELETE cascade
+	FOREIGN KEY (`fee_structure_id`) REFERENCES `fee_structures`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`extra_fee_id`) REFERENCES `student_fees`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
 CREATE TABLE `fee_structures` (
@@ -205,7 +207,8 @@ CREATE TABLE `site_settings` (
 	`font_body` text DEFAULT 'Plus Jakarta Sans' NOT NULL,
 	`border_radius` text DEFAULT 'lg' NOT NULL,
 	`dark_mode` text DEFAULT 'system' NOT NULL,
-	`updated_at` integer NOT NULL
+	`updated_at` integer NOT NULL,
+	`extra_fees_library` text
 );
 --> statement-breakpoint
 CREATE TABLE `staff` (
@@ -227,6 +230,17 @@ CREATE TABLE `staff` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `staff_employee_no_unique` ON `staff` (`employee_no`);--> statement-breakpoint
+CREATE TABLE `student_fees` (
+	`id` text PRIMARY KEY NOT NULL,
+	`student_id` text NOT NULL,
+	`title` text NOT NULL,
+	`amount` integer NOT NULL,
+	`is_recurring` integer DEFAULT true NOT NULL,
+	`status` text DEFAULT 'active' NOT NULL,
+	`created_at` integer NOT NULL,
+	FOREIGN KEY (`student_id`) REFERENCES `students`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
 CREATE TABLE `students` (
 	`id` text PRIMARY KEY NOT NULL,
 	`admission_no` text NOT NULL,

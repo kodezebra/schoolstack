@@ -1,11 +1,18 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, sql } from 'drizzle-orm'
 import { users, sessions } from '@/db/schema'
 import { setCookie, deleteCookie, getCookie } from 'hono/cookie'
 import { createId } from '@paralleldrive/cuid2'
+import { validatePhoto, uploadPhoto, deletePhoto, getPhotoPath } from '@/lib/storage'
+import { authMiddleware, requireRole } from '@/middleware/auth'
 
-const app = new Hono<{ Bindings: { DB: D1Database } }>()
+type Bindings = {
+  DB: D1Database
+  ASSETS: R2Bucket
+}
+
+const app = new Hono<{ Bindings: Bindings }>()
 
 // Helper: Simple Hash
 async function hashPassword(password: string) {
@@ -19,7 +26,7 @@ async function hashPassword(password: string) {
 
 // BOOTSTRAP: Create first user only
 app.post('/bootstrap', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
 
   // Check if any user exists
   const existingUser = await db.select().from(users).limit(1).get()
@@ -46,7 +53,7 @@ app.post('/bootstrap', async (c) => {
 
 // SIGNUP (Optional: You might want to remove this if only one admin is allowed)
 app.post('/signup', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const { email, password, name } = await c.req.json()
 
   const passwordHash = await hashPassword(password)
@@ -65,7 +72,7 @@ app.post('/signup', async (c) => {
 
 // LOGIN
 app.post('/login', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const { email, password } = await c.req.json()
 
   const user = await db.select().from(users).where(eq(users.email, email as string)).get()
@@ -93,12 +100,12 @@ app.post('/login', async (c) => {
     expires: expiresAt,
   })
 
-  return c.json({ message: 'Logged in', user: { id: user.id, email: user.email, name: user.name } })
+  return c.json({ message: 'Logged in', user: { id: user.id, email: user.email, name: user.name, photo: user.photo } })
 })
 
 // LOGOUT
 app.post('/logout', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const sessionId = getCookie(c, 'session')
   if (sessionId) {
     await db.delete(sessions).where(eq(sessions.id, sessionId))
@@ -109,7 +116,7 @@ app.post('/logout', async (c) => {
 
 // GET ME
 app.get('/me', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const sessionId = getCookie(c, 'session')
   if (!sessionId) return c.json(null)
 
@@ -119,12 +126,12 @@ app.get('/me', async (c) => {
   const user = await db.select().from(users).where(eq(users.id, session.userId as string)).get()
   if (!user) return c.json(null)
 
-  return c.json({ id: user.id, email: user.email, name: user.name, role: user.role })
+  return c.json({ id: user.id, email: user.email, name: user.name, role: user.role, photo: user.photo })
 })
 
 // PATCH ME - Update profile
 app.patch('/me', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const sessionId = getCookie(c, 'session')
   if (!sessionId) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -152,7 +159,7 @@ app.patch('/me', async (c) => {
       .where(eq(users.id, session.userId as string))
       .returning()
 
-    return c.json({ id: updatedUser.id, email: updatedUser.email, name: updatedUser.name, role: updatedUser.role })
+    return c.json({ id: updatedUser.id, email: updatedUser.email, name: updatedUser.name, role: updatedUser.role, photo: updatedUser.photo })
   } catch (e: any) {
     // Handle unique constraint violation for email
     if (e.message?.includes('UNIQUE') || e.message?.includes('duplicate')) {
@@ -164,7 +171,7 @@ app.patch('/me', async (c) => {
 
 // POST CHANGE PASSWORD
 app.post('/change-password', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const sessionId = getCookie(c, 'session')
   if (!sessionId) return c.json({ error: 'Unauthorized' }, 401)
 
@@ -197,6 +204,63 @@ app.post('/change-password', async (c) => {
     .where(eq(users.id, session.userId as string))
 
   return c.json({ message: 'Password changed successfully' })
+})
+
+// Photo upload for user profile
+app.post('/me/photo', authMiddleware, requireRole('owner', 'admin', 'editor'), async (c) => {
+  const db = getDb(c)
+  const sessionId = getCookie(c, 'session')
+  if (!sessionId) return c.json({ error: 'Unauthorized' }, 401)
+
+  const session = await db.select().from(sessions).where(eq(sessions.id, sessionId as string)).get()
+  if (!session || session.expiresAt < new Date()) return c.json({ error: 'Unauthorized' }, 401)
+
+  const formData = await c.req.parseBody()
+  const file = formData['photo'] as File | null
+
+  if (!file) {
+    return c.json({ error: 'No file provided' }, 400)
+  }
+
+  const validation = validatePhoto(file)
+  if (!validation.valid) {
+    return c.json({ error: validation.error }, 400)
+  }
+
+  const path = getPhotoPath('users', session.userId as string)
+  const result = await uploadPhoto(c.env.ASSETS, file, path, c.req.url)
+
+  if (!result.success) {
+    return c.json({ error: 'Failed to upload file to storage' }, 500)
+  }
+
+  const [updatedUser] = await db.update(users)
+    .set({ photo: result.url, updatedAt: new Date() })
+    .where(eq(users.id, session.userId as string))
+    .returning()
+
+  return c.json({ photo: result.url, success: true, user: { id: updatedUser.id, name: updatedUser.name, email: updatedUser.email, role: updatedUser.role, photo: updatedUser.photo } })
+})
+
+// Delete user profile photo
+app.delete('/me/photo', authMiddleware, requireRole('owner', 'admin', 'editor'), async (c) => {
+  const db = getDb(c)
+  const sessionId = getCookie(c, 'session')
+  if (!sessionId) return c.json({ error: 'Unauthorized' }, 401)
+
+  const session = await db.select().from(sessions).where(eq(sessions.id, sessionId as string)).get()
+  if (!session || session.expiresAt < new Date()) return c.json({ error: 'Unauthorized' }, 401)
+
+  const user = await db.select().from(users).where(eq(users.id, session.userId as string)).get()
+  if (!user) return c.json({ error: 'User not found' }, 404)
+
+  await deletePhoto(c.env.ASSETS, user.photo || '')
+
+  await db.update(users)
+    .set({ photo: null, updatedAt: new Date() })
+    .where(eq(users.id, session.userId as string))
+
+  return c.json({ success: true })
 })
 
 export default app

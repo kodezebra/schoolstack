@@ -2,14 +2,15 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
+import { Avatar } from '@/components/ui/photo-upload'
 import { 
   ArrowLeft,
   Printer,
-  User,
   GraduationCap,
-  MapPin,
-  Phone,
-  BookOpen
+  Star,
+  CheckCircle2,
+  Heart,
+  Smile,
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -31,6 +32,7 @@ interface SchoolInfo {
   email: string
   logoType: string
   logoIcon: string
+  logoImage: string | null
 }
 
 interface Student {
@@ -41,6 +43,7 @@ interface Student {
   rollNo: string | null
   gender: string
   dob: string | null
+  photo?: string | null
 }
 
 interface Level {
@@ -57,12 +60,12 @@ interface SubjectResult {
   subjectId: string
   subjectName: string
   subjectCode: string | null
-  examId?: string
-  examTitle: string
-  marks: number
-  totalMarks: number
-  percentage: number
-  grade: string
+  examId?: string | null
+  examTitle?: string | null
+  marks: number | null
+  totalMarks: number | null
+  percentage: number | null
+  grade: string | null
   gradeColor: string
   points: number
   notes: string
@@ -88,7 +91,7 @@ interface ReportData {
   term: Term | null
   subjects: SubjectResult[]
   summary: Summary
-  gradeScale: { grade: string; color: string }[]
+  gradeScale: { grade: string; color: string; minMarks: number }[]
 }
 
 function StudentReportPage() {
@@ -120,13 +123,14 @@ function StudentReportPage() {
     day: 'numeric' 
   })
 
-  const getGradeRemarks = (grade: string): string => {
+  const getGradeRemarks = (grade: string | null): string => {
+    if (!grade) return 'Keep trying!'
     switch (grade) {
-      case 'A': return 'Excellent'
-      case 'B': return 'Very Good'
-      case 'C': return 'Good'
-      case 'D': return 'Fair'
-      default: return 'Needs Improvement'
+      case 'A': return 'Amazing work! You are a superstar.'
+      case 'B': return 'Great job! Keep up the good work.'
+      case 'C': return 'Good progress, keep practicing!'
+      case 'D': return 'Keep working hard, you can do it!'
+      default: return 'Let\'s work together to improve.'
     }
   }
 
@@ -146,269 +150,251 @@ function StudentReportPage() {
     )
   }
 
+  const evaluatedSubjects = [...reportData.subjects]
+    .sort((a, b) => (b.percentage || 0) - (a.percentage || 0))
+
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto font-sans">
       {/* Controls - Hidden when printing */}
-      <div className="flex items-center justify-between mb-6 no-print">
+      <div className="flex items-center justify-between mb-4 no-print">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+          <Button variant="ghost" size="icon" asChild className="rounded-full hover:bg-slate-100 h-8 w-8">
             <Link to="/school/reports">
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Student Report</h1>
-            <p className="text-muted-foreground">View and print student performance</p>
-          </div>
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">Report Card</h1>
         </div>
-        <Button onClick={handlePrint}>
-          <Printer className="mr-2 h-4 w-4" /> Print Report
-        </Button>
+        <div className="flex items-center gap-3">
+          <Select value={selectedTerm} onValueChange={setSelectedTerm}>
+            <SelectTrigger className="w-36 h-9 bg-white">
+              <SelectValue placeholder="Select Term" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Full Year</SelectItem>
+              {reportData.term && <SelectItem value={reportData.term.id}>{reportData.term.name}</SelectItem>}
+            </SelectContent>
+          </Select>
+          <Button onClick={handlePrint} className="bg-[#FF6B6B] hover:bg-[#ee5a5a] h-9 text-white rounded-full px-6 shadow shadow-red-100">
+            <Printer className="mr-2 h-4 w-4" /> Print Report
+          </Button>
+        </div>
       </div>
 
-      <div className="flex items-center gap-4 mb-6 no-print">
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Academic Year" />
-          </SelectTrigger>
-          <SelectContent>
-            {reportData.academicYear && (
-              <SelectItem value={reportData.academicYear.id}>{reportData.academicYear.name}</SelectItem>
-            )}
-          </SelectContent>
-        </Select>
-        <Select value={selectedTerm} onValueChange={setSelectedTerm}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="All Terms" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Terms</SelectItem>
-            {reportData.term && (
-              <SelectItem value={reportData.term.id}>{reportData.term.name}</SelectItem>
-            )}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Report Card - COMPACT Single Page Layout */}
+      <main className="report-card-container bg-white shadow-2xl rounded-xl overflow-hidden print:shadow-none print:rounded-none w-full max-w-[210mm] min-h-[297mm] mx-auto flex flex-col relative print:m-0">
+        
+        {/* Playful Top Banner */}
+        <div className="h-3 w-full bg-[#4ECDC4] repeating-stripe"></div>
 
-      {/* Report Card */}
-      <div className="bg-white border rounded-lg overflow-hidden shadow-sm print:shadow-none print:border-0">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-slate-800 to-slate-900 text-white p-6 print:p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center">
-                <GraduationCap className="w-10 h-10" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold uppercase tracking-wide">{reportData.school.name}</h2>
-                <p className="text-slate-300 text-sm">
-                  {reportData.school.address && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {reportData.school.address}</span>}
-                </p>
-                <p className="text-slate-300 text-sm">
-                  <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {reportData.school.phone}</span>
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <h3 className="text-lg font-semibold uppercase tracking-wider">Report Card</h3>
-              <p className="text-slate-300 text-sm">
-                {reportData.academicYear?.name}
-              </p>
-              {reportData.term && (
-                <p className="text-slate-300 text-sm">{reportData.term.name}</p>
+        {/* Header Section - Shrinked */}
+        <header className="px-10 py-5 flex justify-between items-center border-b-2 border-dashed border-slate-100">
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center shadow-sm overflow-hidden border border-slate-100">
+              {reportData.school.logoImage ? (
+                <img src={reportData.school.logoImage} alt="School Logo" className="w-full h-full object-contain p-1.5" />
+              ) : (
+                <div className="bg-[#4ECDC4] w-full h-full flex items-center justify-center">
+                  <GraduationCap className="w-10 h-10 text-white" />
+                </div>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Student Info & Summary */}
-        <div className="p-6 print:p-4">
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Student Details */}
-            <div className="md:col-span-2 space-y-4">
-              <div className="flex items-center gap-3 pb-3 border-b">
-                <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-muted-foreground" />
-                </div>
-                <div>
-                  <h4 className="text-lg font-bold uppercase">{reportData.student.firstName} {reportData.student.lastName}</h4>
-                  <p className="text-sm text-muted-foreground">Student</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-muted/30 rounded-lg p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Admission No.</p>
-                  <p className="font-semibold font-mono text-sm">{reportData.student.admissionNo}</p>
-                </div>
-                {reportData.student.rollNo && (
-                  <div className="bg-muted/30 rounded-lg p-3">
-                    <p className="text-xs text-muted-foreground mb-1">Roll No.</p>
-                    <p className="font-semibold text-sm">{reportData.student.rollNo}</p>
-                  </div>
-                )}
-                <div className="bg-muted/30 rounded-lg p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Class</p>
-                  <p className="font-semibold text-sm">{reportData.level.name}</p>
-                </div>
-                <div className="bg-muted/30 rounded-lg p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Gender</p>
-                  <p className="font-semibold text-sm capitalize">{reportData.student.gender}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Performance Summary */}
-            <div className="bg-gradient-to-br from-slate-800 to-slate-900 text-white rounded-lg p-5">
-              <h4 className="text-sm font-semibold uppercase tracking-wider mb-4 text-slate-300">Performance Summary</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{reportData.summary.totalObtained}<span className="text-sm font-normal text-slate-400">/{reportData.summary.totalMax}</span></p>
-                  <p className="text-xs text-slate-400">Total Marks</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{reportData.summary.average}%</p>
-                  <p className="text-xs text-slate-400">Average</p>
-                </div>
-                <div className="text-center">
-                  <span 
-                    className="inline-block px-3 py-1 rounded text-lg font-bold"
-                    style={{ backgroundColor: reportData.summary.overallGradeColor }}
-                  >
-                    {reportData.summary.overallGrade}
-                  </span>
-                  <p className="text-xs text-slate-400 mt-1">Grade</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold">{reportData.summary.subjectCount}</p>
-                  <p className="text-xs text-slate-400">Subjects</p>
-                </div>
-              </div>
-              <div className="mt-4 pt-4 border-t border-slate-700 text-center">
-                <p className="text-sm font-medium">{getGradeRemarks(reportData.summary.overallGrade)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Subject Performance Table */}
-        <div className="px-6 pb-6 print:px-4 print:pb-4">
-          <div className="border-t pt-4">
-            <div className="flex items-center gap-2 mb-4">
-              <BookOpen className="w-5 h-5 text-muted-foreground" />
-              <h4 className="font-semibold">Subject Performance</h4>
-            </div>
-            <table className="w-full">
-              <thead>
-                <tr className="border-b-2 border-slate-200 print:border-black">
-                  <th className="text-left py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Subject</th>
-                  <th className="text-center py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Score</th>
-                  <th className="text-center py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Grade</th>
-                  <th className="text-left py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Remarks</th>
-                </tr>
-              </thead>
-              <tbody>
-                {reportData.subjects.filter(s => s.examId).map((subject, index) => (
-                  <tr key={subject.subjectId} className={index % 2 === 0 ? 'bg-muted/20' : ''}>
-                    <td className="py-3">
-                      <p className="font-medium">{subject.subjectName}</p>
-                      {subject.subjectCode && (
-                        <p className="text-xs text-muted-foreground">{subject.subjectCode}</p>
-                      )}
-                    </td>
-                    <td className="py-3 text-center">
-                      <span className="font-semibold">{subject.marks}</span>
-                      <span className="text-muted-foreground">/{subject.totalMarks}</span>
-                      <span className="text-xs text-muted-foreground ml-1">({subject.percentage}%)</span>
-                    </td>
-                    <td className="py-3 text-center">
-                      <span 
-                        className="inline-block px-2 py-1 rounded text-xs font-bold text-white min-w-[32px]"
-                        style={{ backgroundColor: subject.gradeColor }}
-                      >
-                        {subject.grade}
-                      </span>
-                    </td>
-                    <td className="py-3 text-sm text-muted-foreground">
-                      {subject.notes || getGradeRemarks(subject.grade)}
-                    </td>
-                  </tr>
-                ))}
-                {reportData.subjects.filter(s => !s.examId).length > 0 && (
-                  <tr className="text-muted-foreground">
-                    <td colSpan={4} className="py-2 text-sm italic">
-                      {reportData.subjects.filter(s => !s.examId).length} subject(s) not evaluated
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="bg-slate-50 border-t px-6 py-4 print:bg-white print:border-t-2 print:border-black">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Grade Scale */}
             <div>
-              <h5 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Grade Scale</h5>
-              <div className="flex flex-wrap gap-2">
-                {reportData.gradeScale.map((g, i) => (
-                  <span 
-                    key={i}
-                    className="px-2 py-1 rounded text-xs font-medium text-white"
-                    style={{ backgroundColor: g.color }}
-                  >
-                    {g.grade}
-                  </span>
+              <h1 className="text-2xl font-black text-[#FF6B6B] tracking-tight leading-none mb-1 school-title">{reportData.school.name}</h1>
+              <p className="text-[#4ECDC4] font-bold text-xs italic">{reportData.school.address || "Where little minds grow big!"}</p>
+            </div>
+          </div>
+          <div className="bg-[#FFE66D] text-[#2D3436] px-5 py-2 rounded-full font-black text-base transform rotate-1 shadow-sm border-b-2 border-yellow-400/30">
+            {reportData.term?.name || "Term Progress"} {reportData.academicYear?.name}
+          </div>
+        </header>
+
+        {/* Student Profile Section - Shrinked */}
+        <section className="px-10 py-5 bg-gradient-to-r from-[#FFF5F5] to-white flex items-center gap-8">
+          <div className="relative shrink-0">
+            <div className="w-24 h-24 rounded-full border-[5px] border-[#4ECDC4] overflow-hidden bg-slate-100 shadow relative z-10">
+              <Avatar 
+                photo={reportData.student.photo}
+                name={`${reportData.student.firstName} ${reportData.student.lastName}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="absolute -top-1 -right-1 w-8 h-8 bg-[#FFE66D] rounded-full flex items-center justify-center z-20 shadow transform rotate-12">
+              <Star className="w-4 h-4 text-[#FF6B6B] fill-[#FF6B6B]" />
+            </div>
+          </div>
+
+          <div className="flex-1 grid grid-cols-2 gap-y-3 gap-x-10">
+            <div className="space-y-0">
+              <label className="text-[8px] font-black text-[#636E72] uppercase tracking-widest">Student Name</label>
+              <p className="text-lg font-black text-[#2D3436] tracking-tight">{reportData.student.firstName} {reportData.student.lastName}</p>
+            </div>
+            <div className="space-y-0">
+              <label className="text-[8px] font-black text-[#636E72] uppercase tracking-widest">Class Level</label>
+              <p className="text-lg font-black text-[#2D3436] tracking-tight">{reportData.level.name}</p>
+            </div>
+            <div className="space-y-0">
+              <label className="text-[8px] font-black text-[#636E72] uppercase tracking-widest">Admission No</label>
+              <p className="text-sm font-bold text-[#2D3436]">{reportData.student.admissionNo}</p>
+            </div>
+            <div className="space-y-0">
+              <label className="text-[8px] font-black text-[#636E72] uppercase tracking-widest">Gender</label>
+              <p className="text-sm font-bold text-[#2D3436] capitalize">{reportData.student.gender}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Academic Content - Tighter Table */}
+        <div className="px-10 py-3 flex-1">
+          <div className="flex items-center gap-2 mb-3">
+            <Star className="w-4 h-4 text-[#FFE66D] fill-[#FFE66D]" />
+            <h2 className="text-lg font-black text-[#4ECDC4] tracking-tight">Academic Progress</h2>
+          </div>
+
+          <table className="w-full border-separate border-spacing-y-1">
+            <thead>
+              <tr className="text-left text-white bg-[#4ECDC4]">
+                <th className="py-2.5 px-5 rounded-l-xl font-black text-[9px] uppercase tracking-widest">Learning Subject</th>
+                <th className="py-2.5 px-3 text-center font-black text-[9px] uppercase tracking-widest">Score</th>
+                <th className="py-2.5 px-3 text-center font-black text-[9px] uppercase tracking-widest">Effort</th>
+                <th className="py-2.5 px-3 text-center font-black text-[9px] uppercase tracking-widest">Grade</th>
+                <th className="py-2.5 px-5 rounded-r-xl font-black text-[9px] uppercase tracking-widest">Teacher Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              {evaluatedSubjects.map((subject) => (
+                <tr key={subject.subjectId} className="bg-slate-50/50 transition-colors group">
+                  <td className="py-2.5 px-5">
+                    <span className="font-black text-[#2D3436] text-sm">{subject.subjectName}</span>
+                  </td>
+                  <td className="py-2.5 px-3 text-center">
+                    <span className="font-black text-[#2D3436] text-xs">{subject.percentage !== null ? `${subject.percentage}%` : '-'}</span>
+                  </td>
+                  <td className="py-2.5 px-3 text-center">
+                    <div className="flex justify-center gap-0.5">
+                      {[1, 2, 3].map(i => (
+                        <Smile key={i} className={`w-3 h-3 ${subject.percentage && subject.percentage > (40 + i*20) ? 'text-[#FF6B6B] fill-[#FF6B6B]' : 'text-slate-200'}`} />
+                      ))}
+                    </div>
+                  </td>
+                  <td className="py-2.5 px-3 text-center">
+                    <span 
+                      className="inline-flex items-center justify-center w-7 h-7 rounded text-white text-[9px] font-black shadow-sm"
+                      style={{ backgroundColor: subject.gradeColor || '#4ECDC4' }}
+                    >
+                      {subject.grade || '-'}
+                    </span>
+                  </td>
+                  <td className="py-2.5 px-5">
+                    <p className="text-[9px] text-slate-500 font-medium italic leading-snug line-clamp-1">
+                      "{subject.notes || getGradeRemarks(subject.grade)}"
+                    </p>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Highlights Section - Tighter */}
+          <div className="mt-4 grid grid-cols-2 gap-5">
+            <div className="bg-[#F8F9FA] rounded-xl p-4 border-2 border-slate-100 relative overflow-hidden">
+              <h3 className="text-sm font-black text-[#FF6B6B] mb-2 flex items-center gap-2">
+                <Star className="w-3.5 h-3.5 fill-[#FF6B6B]" /> Top Strengths
+              </h3>
+              <ul className="space-y-1.5">
+                {evaluatedSubjects.slice(0, 3).map((s, idx) => (
+                  <li key={idx} className="flex items-center gap-2 text-[11px] font-bold text-[#2D3436]">
+                    <CheckCircle2 className="w-3 h-3 text-[#4ECDC4]" /> {s.subjectName}
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
 
-            {/* Comments & Signatures */}
-            <div className="text-right">
-              <div className="mb-4">
-                <p className="text-xs text-muted-foreground">Class Teacher's Comment</p>
-                <div className="border-b border-slate-300 mt-1 h-6"></div>
+            <div className="bg-[#F8F9FA] rounded-xl p-4 border-2 border-slate-100">
+              <h3 className="text-sm font-black text-[#4ECDC4] mb-2 flex items-center gap-2">
+                <Smile className="w-3.5 h-3.5 fill-[#4ECDC4] text-[#4ECDC4]" /> Performance Recap
+              </h3>
+              <div className="flex items-center justify-between mb-2">
+                 <span className="text-slate-500 font-bold text-[9px] uppercase tracking-widest">Average</span>
+                 <span className="text-xl font-black text-[#2D3436]">{reportData.summary.average}%</span>
               </div>
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div>
-                  <p className="text-muted-foreground">Class Teacher</p>
-                  <div className="border-b border-slate-300 mt-4 h-6"></div>
-                  <p className="mt-1">Signature & Date</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Headteacher</p>
-                  <div className="border-b border-slate-300 mt-4 h-6"></div>
-                  <p className="mt-1">Signature & Date</p>
-                </div>
+              <div className="p-2 bg-white rounded-lg border border-slate-200 text-[9px] font-medium italic text-slate-600 leading-tight">
+                "{getGradeRemarks(reportData.summary.overallGrade)}"
               </div>
             </div>
-          </div>
-          
-          <div className="mt-4 pt-4 border-t text-center text-xs text-muted-foreground no-print">
-            Generated on {today} • {reportData.school.name}
-          </div>
-          <div className="hidden print:block text-center text-xs mt-4">
-            <p>Date: {today}</p>
           </div>
         </div>
-      </div>
 
-      {/* Print Styles */}
+        {/* Footers - Shrinked */}
+        <footer className="px-10 py-5 mt-auto bg-[#F0F4F8] flex justify-between items-end border-t-2 border-slate-100">
+          <div className="text-center w-36">
+             <div className="h-6 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
+             <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Class Teacher</p>
+          </div>
+          <div className="text-center w-36">
+             <div className="h-6 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
+             <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Head Teacher</p>
+          </div>
+          <div className="text-center w-36">
+             <div className="h-6 border-b-2 border-dashed border-slate-300 mb-1.5"></div>
+             <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Parent/Guardian</p>
+          </div>
+        </footer>
+
+        {/* Fine Print */}
+        <div className="px-10 py-2.5 bg-[#FF6B6B] text-white flex justify-between items-center text-[7px] font-black uppercase tracking-[0.2em]">
+           <span>KidzKave Digital School Records &copy; 2026</span>
+           <span className="flex items-center gap-1.5">Sunshine Verified <Star className="w-2.5 h-2.5 fill-white" /></span>
+        </div>
+      </main>
+
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap');
+        
+        .school-title {
+          font-family: 'Quicksand', sans-serif;
+        }
+
+        .repeating-stripe {
+          background: repeating-linear-gradient(
+            45deg,
+            #4ECDC4,
+            #4ECDC4 15px,
+            #45B7AF 15px,
+            #45B7AF 30px
+          );
+        }
+
         @media print {
+          @page {
+            size: A4;
+            margin: 0;
+          }
           body { 
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
           }
-          .no-print { 
-            display: none !important; 
-          }
-          .bg-white { 
-            width: 100%;
+          .no-print { display: none !important; }
+          .report-card-container {
             box-shadow: none !important;
-            border: 1px solid #000 !important;
+            border: none !important;
+            width: 210mm !important;
+            height: 297mm !important;
+            max-width: 210mm !important;
+            max-height: 297mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+          }
+          /* Fix for Chrome/Safari background printing */
+          * {
+            -webkit-print-color-adjust: exact !important;
           }
         }
       `}</style>

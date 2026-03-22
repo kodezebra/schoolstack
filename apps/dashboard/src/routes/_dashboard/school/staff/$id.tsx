@@ -17,7 +17,6 @@ import {
   X,
   GraduationCap,
   Briefcase,
-  Camera
 } from 'lucide-react'
 import { useState } from 'react'
 import {
@@ -28,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { PhotoUpload } from '@/components/ui/photo-upload'
+import { RoleBadge } from '@/components/ui/status-badge'
 
 export const Route = createFileRoute('/_dashboard/school/staff/$id')({
   component: StaffDetailPage,
@@ -118,16 +118,6 @@ function StaffDetailPage() {
       experience: editedData.experience,
       status: editedData.status,
     })
-  }
-
-  const getRoleBadge = (role: string) => {
-    const colors: Record<string, string> = {
-      teacher: 'bg-blue-100 text-blue-700',
-      admin: 'bg-purple-100 text-purple-700',
-      counselor: 'bg-green-100 text-green-700',
-      principal: 'bg-amber-100 text-amber-700',
-    }
-    return <Badge className={colors[role] || ''}>{role}</Badge>
   }
 
   if (isLoading) {
@@ -265,7 +255,7 @@ function StaffDetailPage() {
                 ) : (
                   <>
                     <div className="flex items-center gap-3">
-                      {getRoleBadge(staff.role)}
+                      <RoleBadge role={staff.role} />
                     </div>
                     <div className="flex items-center gap-3">
                       <Calendar className="h-4 w-4 text-muted-foreground" />

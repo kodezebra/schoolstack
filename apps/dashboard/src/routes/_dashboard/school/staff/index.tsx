@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Avatar } from '@/components/ui/photo-upload'
+import { RoleBadge } from '@/components/ui/status-badge'
 import { 
   Plus,
   Search,
@@ -135,16 +136,6 @@ function StaffPage() {
       s.email.toLowerCase().includes(query)
     )
   }) ?? []
-
-  const getRoleBadge = (role: string) => {
-    const colors: Record<string, string> = {
-      teacher: 'bg-blue-100 text-blue-700',
-      admin: 'bg-purple-100 text-purple-700',
-      counselor: 'bg-green-100 text-green-700',
-      principal: 'bg-amber-100 text-amber-700',
-    }
-    return <Badge className={colors[role] || ''}>{role}</Badge>
-  }
 
   const handleAddStaff = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -273,7 +264,7 @@ function StaffPage() {
                     </TableCell>
                     <TableCell className="font-medium">{member.employeeNo}</TableCell>
                     <TableCell>{member.firstName} {member.lastName}</TableCell>
-                    <TableCell>{getRoleBadge(member.role)}</TableCell>
+                    <TableCell><RoleBadge role={member.role} /></TableCell>
                     <TableCell>{member.department || '-'}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">

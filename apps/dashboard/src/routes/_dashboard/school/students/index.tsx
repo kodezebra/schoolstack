@@ -15,16 +15,17 @@ import {
   CardHeader 
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Avatar } from '@/components/ui/photo-upload'
-import { 
+import { StatusBadge } from '@/components/ui/status-badge'
+import {
   Plus,
   Search,
   Trash2,
   Settings2,
   RefreshCw,
-  Camera
+  Camera,
+  Users,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import {
@@ -180,21 +181,6 @@ function StudentsPage() {
     setPage(1)
   }, [levelFilter, statusFilter])
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Active</Badge>
-      case 'transferred':
-        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100">Transferred</Badge>
-      case 'graduated':
-        return <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-100">Graduated</Badge>
-      case 'withdrawn':
-        return <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100">Withdrawn</Badge>
-      default:
-        return <Badge>{status}</Badge>
-    }
-  }
-
   const handleAddStudent = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
@@ -304,8 +290,41 @@ function StudentsPage() {
             <TableBody>
               {filteredStudents.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">
-                    No students found.
+                  <TableCell colSpan={7} className="h-40">
+                    <div className="flex flex-col items-center justify-center text-center">
+                      {searchQuery || levelFilter !== 'all' || statusFilter !== 'all' ? (
+                        <>
+                          <Search className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                          <p className="text-sm font-medium text-muted-foreground mb-1">
+                            No students match your filters
+                          </p>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => {
+                              setSearchQuery('')
+                              setLevelFilter('all')
+                              setStatusFilter('all')
+                            }}
+                          >
+                            Clear Filters
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Users className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                          <p className="text-sm font-medium text-muted-foreground mb-1">
+                            No students enrolled yet
+                          </p>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            Get started by adding your first student record
+                          </p>
+                          <Button onClick={() => setIsAddDialogOpen(true)}>
+                            <Plus className="mr-2 h-4 w-4" /> Add Student
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -332,7 +351,7 @@ function StudentsPage() {
                         <span className="text-xs text-muted-foreground">{student.parentPhone}</span>
                       </div>
                     </TableCell>
-                    <TableCell>{getStatusBadge(student.status)}</TableCell>
+                    <TableCell><StatusBadge status={student.status} /></TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2" onClick={e => e.stopPropagation()}>
                         <Button

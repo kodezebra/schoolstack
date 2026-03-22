@@ -1,9 +1,11 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, desc, and } from 'drizzle-orm'
 import { staff } from '@/db/schema'
 import { authMiddleware, requireRole } from '@/middleware/auth'
 import { generateNumber } from '@/lib/generateNumber'
+import { deletePhoto } from '@/lib/storage'
+import { createPhotoRoutes } from '@/lib/photoRoutes'
 import { z } from 'zod'
 
 type Bindings = {
@@ -29,7 +31,7 @@ const staffSchema = z.object({
 })
 
 app.get('/', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const role = c.req.query('role') as 'teacher' | 'admin' | 'counselor' | 'principal' | undefined
   const status = c.req.query('status') as 'active' | 'inactive' | undefined
   
@@ -46,7 +48,7 @@ app.get('/', requireRole('owner', 'admin', 'teacher'), async (c) => {
 })
 
 app.get('/:id', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   const staffMember = await db.select().from(staff).where(eq(staff.id, id)).get()
@@ -56,7 +58,7 @@ app.get('/:id', requireRole('owner', 'admin', 'teacher'), async (c) => {
 })
 
 app.post('/', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   const data = staffSchema.parse(body)
   
@@ -79,7 +81,7 @@ app.post('/', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   
@@ -93,98 +95,19 @@ app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.delete('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   const staffMember = await db.select().from(staff).where(eq(staff.id, id)).get()
   if (!staffMember) return c.notFound()
 
-  // Clean up photo if exists
-  if (staffMember.photo) {
-    let key = staffMember.photo
-    if (staffMember.photo.includes('/assets/')) {
-      key = staffMember.photo.split('/assets/')[1]
-    }
-    try {
-      await c.env.ASSETS.delete(key)
-    } catch (err) {
-      console.error('Failed to delete photo from storage:', err)
-    }
-  }
+  await deletePhoto(c.env.ASSETS, staffMember.photo || '')
 
   await db.delete(staff).where(eq(staff.id, id))
   
   return c.json({ success: true })
 })
 
-app.post('/:id/photo', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
-  const id = c.req.param('id')
-  
-  const formData = await c.req.parseBody()
-  const file = formData['photo'] as File | null
-  
-  if (!file) {
-    return c.json({ error: 'No file provided' }, 400)
-  }
-  
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
-  if (!allowedTypes.includes(file.type)) {
-    return c.json({ error: 'Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed.' }, 400)
-  }
-  
-  const maxSize = 2 * 1024 * 1024 // 2MB
-  if (file.size > maxSize) {
-    return c.json({ error: 'File too large. Maximum size is 2MB.' }, 400)
-  }
-  
-  const key = `photos/staff/${id}.jpg`
-  
-  try {
-    await c.env.ASSETS.put(key, file.stream(), {
-      httpMetadata: { contentType: file.type },
-      customMetadata: { originalName: file.name }
-    })
-  } catch (err) {
-    console.error('R2 upload error:', err)
-    return c.json({ error: 'Failed to upload file to storage' }, 500)
-  }
-  
-  const origin = new URL(c.req.url).origin
-  const url = `${origin}/api/assets/${key}`
-  
-  const [updated] = await db.update(staff)
-    .set({ photo: url, updatedAt: new Date() })
-    .where(eq(staff.id, id))
-    .returning()
-  
-  if (!updated) return c.notFound()
-  
-  return c.json({ photo: url, success: true })
-})
-
-app.delete('/:id/photo', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
-  const id = c.req.param('id')
-  
-  const staffMember = await db.select().from(staff).where(eq(staff.id, id)).get()
-  if (!staffMember) return c.notFound()
-  
-  if (staffMember.photo) {
-    // Extract key from full URL if needed
-    let key = staffMember.photo
-    if (staffMember.photo.includes('/assets/')) {
-      key = staffMember.photo.split('/assets/')[1]
-    }
-    await c.env.ASSETS.delete(key)
-  }
-  
-  const [updated] = await db.update(staff)
-    .set({ photo: null, updatedAt: new Date() })
-    .where(eq(staff.id, id))
-    .returning()
-  
-  return c.json({ success: true })
-})
+app.route('/', createPhotoRoutes(staff, 'staff', staff.id))
 
 export default app

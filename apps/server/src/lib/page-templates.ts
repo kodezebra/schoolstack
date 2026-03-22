@@ -1,4 +1,6 @@
-import { Block } from '@/db/schema';
+import { blocks } from '@/db/schema';
+
+type Block = typeof blocks.$inferSelect;
 
 export interface PageTemplate {
   id: string;

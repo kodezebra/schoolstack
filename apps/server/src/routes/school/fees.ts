@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, desc, and, sql, inArray } from 'drizzle-orm'
-import { feeStructures, levels, students, feePayments, feeOverrides } from '@/db/schema'
+import { feeStructures, levels, students, feePayments, feeOverrides, studentFees } from '@/db/schema'
 import { authMiddleware, requireRole } from '@/middleware/auth'
+import { SCOPE_DISPLAY, SCOPE_OPTIONS, getScopeDisplay, getScopeForLevel } from '@/lib/fees'
 import { z } from 'zod'
 
 type Bindings = {
@@ -13,24 +14,7 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 app.use('/*', authMiddleware)
 
-const SCOPE_DISPLAY: Record<string, string> = {
-  all: 'All Classes',
-  preschool: 'Pre-School',
-  lower_primary: 'Lower Primary',
-  upper_primary: 'Upper Primary',
-}
-
-export const SCOPE_OPTIONS = [
-  { value: 'all', label: 'All Classes' },
-  { value: 'preschool', label: 'Pre-School (Day Care - Top Class)' },
-  { value: 'lower_primary', label: 'Lower Primary (Primary 1-3)' },
-  { value: 'upper_primary', label: 'Upper Primary (Primary 4-7)' },
-]
-
-export const getScopeDisplay = (scope: string | null): string => {
-  if (!scope || scope === 'class') return 'All Classes'
-  return SCOPE_DISPLAY[scope] || 'All Classes'
-}
+export { SCOPE_OPTIONS, getScopeDisplay }
 
 const feeStructureSchema = z.object({
   levelId: z.string().optional().nullable(),
@@ -44,7 +28,7 @@ const feeStructureSchema = z.object({
 })
 
 app.get('/', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const academicYearId = c.req.query('academicYearId')
   const levelId = c.req.query('levelId')
   
@@ -77,7 +61,7 @@ app.get('/', requireRole('owner', 'admin', 'teacher'), async (c) => {
 })
 
 app.post('/', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   const data = feeStructureSchema.parse(body)
   
@@ -96,7 +80,7 @@ app.post('/', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   
@@ -110,7 +94,7 @@ app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.delete('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   await db.delete(feeStructures).where(eq(feeStructures.id, id))
@@ -118,7 +102,7 @@ app.delete('/:id', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.get('/balances', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const academicYearId = c.req.query('academicYearId')
   const levelId = c.req.query('levelId')
   const status = c.req.query('status')
@@ -144,29 +128,21 @@ app.get('/balances', requireRole('owner', 'admin', 'teacher'), async (c) => {
   const allPayments = studentIds.length
     ? await db.select().from(feePayments).where(inArray(feePayments.studentId, studentIds))
     : []
-  
+
   const allOverrides = studentIds.length
     ? await db.select().from(feeOverrides).where(inArray(feeOverrides.studentId, studentIds))
     : []
 
+  const allExtraFees = studentIds.length
+    ? await db.select().from(studentFees).where(and(
+        inArray(studentFees.studentId, studentIds),
+        eq(studentFees.status, 'active')
+      ))
+    : []
+
   const paymentsByStudent = Object.groupBy(allPayments, p => p.studentId)
   const overridesByStudent = Object.groupBy(allOverrides, o => o.studentId)
-
-  const scopeRules: Record<string, { contains: string[] }> = {
-    preschool: { contains: ['day care', 'baby class', 'middle class', 'top class', 'nursery'] },
-    lower_primary: { contains: ['primary 1', 'primary 2', 'primary 3'] },
-    upper_primary: { contains: ['primary 4', 'primary 5', 'primary 6', 'primary 7'] },
-  }
-
-  const getScopeForLevel = (levelName: string): string | null => {
-    const lower = levelName.toLowerCase()
-    for (const [scope, rules] of Object.entries(scopeRules)) {
-      if (rules.contains.some(term => lower.includes(term))) {
-        return scope
-      }
-    }
-    return null
-  }
+  const extraFeesByStudent = Object.groupBy(allExtraFees, f => f.studentId)
 
   const studentBalances = studentsList.map(student => {
     const studentLevelName = levelMap[student.levelId] || ''
@@ -181,6 +157,7 @@ app.get('/balances', requireRole('owner', 'admin', 'teacher'), async (c) => {
 
     const studentPayments = paymentsByStudent[student.id] || []
     const studentOverrides = overridesByStudent[student.id] || []
+    const studentExtraFees = extraFeesByStudent[student.id] || []
     const overrideMap = new Map(studentOverrides.map(o => [o.feeStructureId, o]))
 
     let totalFees = 0
@@ -192,6 +169,12 @@ app.get('/balances', requireRole('owner', 'admin', 'teacher'), async (c) => {
       totalFees += amountDue
       const feePayments = studentPayments.filter(p => p.feeStructureId === fee.id)
       totalPaid += feePayments.reduce((sum, p) => sum + p.amount, 0)
+    })
+
+    studentExtraFees.forEach(fee => {
+      totalFees += fee.amount
+      const extraFeePayments = studentPayments.filter(p => p.extraFeeId === fee.id)
+      totalPaid += extraFeePayments.reduce((sum, p) => sum + p.amount, 0)
     })
 
     const balance = totalFees - totalPaid
@@ -240,7 +223,7 @@ const overrideSchema = z.object({
 })
 
 app.post('/overrides', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   const data = overrideSchema.parse(body)
   
@@ -272,7 +255,7 @@ app.post('/overrides', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.delete('/overrides', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const studentId = c.req.query('studentId')
   const feeStructureId = c.req.query('feeStructureId')
   

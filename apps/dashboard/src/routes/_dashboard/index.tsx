@@ -16,7 +16,9 @@ import {
   DollarSign,
   CheckCircle2,
   Clock,
-  TrendingUp
+  TrendingUp,
+  UserCheck,
+  CheckCircle,
 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,13 +33,13 @@ export const Route = createFileRoute('/_dashboard/')({
 function DashboardOverview() {
   const { user } = Route.useRouteContext()
 
-  // Fetch school stats
   const { data: studentsStats, isLoading: isLoadingStudents } = useQuery({
     queryKey: ['school', 'students', 'stats'],
     queryFn: async () => {
       const res = await apiFetch('/school/students?limit=1')
       if (!res.ok) return { total: 0 }
-      return res.json()
+      const data = await res.json()
+      return { total: data.pagination?.total || 0 }
     }
   })
 
@@ -68,6 +70,43 @@ function DashboardOverview() {
       if (!res.ok) throw new Error('Failed to fetch users')
       return res.json()
     }
+  })
+
+  // Recent activity feed
+  const { data: recentPayments } = useQuery({
+    queryKey: ['recent-payments'],
+    queryFn: async () => {
+      const res = await apiFetch('/school/payments')
+      if (!res.ok) return []
+      const all: any[] = await res.json()
+      return all.slice(0, 5).sort((a, b) => 
+        new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime()
+      )
+    },
+    refetchInterval: 30000
+  })
+
+  const { data: recentStudents } = useQuery({
+    queryKey: ['recent-students'],
+    queryFn: async () => {
+      const res = await apiFetch('/school/students?limit=5&status=active')
+      if (!res.ok) return []
+      const data = await res.json()
+      return (data.data || []).sort((a: any, b: any) => 
+        new Date(b.enrollmentDate).getTime() - new Date(a.enrollmentDate).getTime()
+      )
+    },
+    refetchInterval: 60000
+  })
+
+  const { data: recentMessages } = useQuery({
+    queryKey: ['recent-messages'],
+    queryFn: async () => {
+      const res = await apiFetch('/contact?limit=3')
+      if (!res.ok) return []
+      return (await res.json()).filter((m: any) => m.status === 'pending')
+    },
+    refetchInterval: 30000
   })
 
   // Flatten pages to count them and get recent ones
@@ -329,6 +368,112 @@ function DashboardOverview() {
                 School Settings
               </Button>
             </Link>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity Feed */}
+        <Card className="border-muted-foreground/10">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Recent Activity
+            </CardTitle>
+            <CardDescription>Latest actions across your school</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Recent Payments */}
+            {recentPayments && recentPayments.length > 0 && (
+              <div className="space-y-3">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Fee Payments
+                </div>
+                {recentPayments.slice(0, 3).map((payment: any) => (
+                  <div key={payment.id} className="flex items-start gap-3">
+                    <div className="h-8 w-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {payment.studentName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {payment.feeTitle} • {new Date(payment.paymentDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <span className="text-xs font-semibold text-green-600 dark:text-green-400 whitespace-nowrap">
+                      +UGX {(payment.amount || 0).toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Recent Student Enrollments */}
+            {recentStudents && recentStudents.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  New Students
+                </div>
+                {recentStudents.slice(0, 2).map((student: any) => (
+                  <Link 
+                    key={student.id} 
+                    to="/school/students/$id" 
+                    params={{ id: student.id }}
+                    className="flex items-start gap-3 group"
+                  >
+                    <div className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
+                      <UserCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium group-hover:text-primary transition-colors">
+                        {student.firstName} {student.lastName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {student.levelName} • {new Date(student.enrollmentDate).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Pending Messages */}
+            {recentMessages && recentMessages.length > 0 && (
+              <div className="space-y-3 pt-2">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  New Messages
+                </div>
+                {recentMessages.slice(0, 2).map((msg: any) => (
+                  <Link 
+                    key={msg.id} 
+                    to="/submissions"
+                    className="flex items-start gap-3 group"
+                  >
+                    <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-200 dark:group-hover:bg-amber-900/50 transition-colors">
+                      <Inbox className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium group-hover:text-primary transition-colors">
+                        {msg.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {msg.subject || 'Contact form submission'}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {(!recentPayments || recentPayments.length === 0) && 
+             (!recentStudents || recentStudents.length === 0) && 
+             (!recentMessages || recentMessages.length === 0) && (
+              <div className="text-center py-8">
+                <Clock className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No recent activity</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

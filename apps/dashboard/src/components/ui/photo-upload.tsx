@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 interface PhotoUploadProps {
   currentPhoto?: string | null
   entityId?: string | null
-  entityType: 'student' | 'staff'
+  entityType: 'student' | 'staff' | 'user'
   onUploadSuccess?: (photo: string) => void
   onDeleteSuccess?: () => void
   onFileSelect?: (file: File) => void
@@ -71,9 +71,11 @@ export function PhotoUpload({
       const formData = new FormData()
       formData.append('photo', file)
 
-      const endpoint = entityType === 'student' 
+      const endpoint = entityType === 'student'
         ? `/school/students/${entityId}/photo`
-        : `/school/staff/${entityId}/photo`
+        : entityType === 'staff'
+        ? `/school/staff/${entityId}/photo`
+        : `/auth/me/photo`
 
       const res = await apiFetch(endpoint, {
         method: 'POST',
@@ -102,7 +104,9 @@ export function PhotoUpload({
     try {
       const endpoint = entityType === 'student'
         ? `/school/students/${entityId}/photo`
-        : `/school/staff/${entityId}/photo`
+        : entityType === 'staff'
+        ? `/school/staff/${entityId}/photo`
+        : `/auth/me/photo`
 
       const res = await apiFetch(endpoint, {
         method: 'DELETE'

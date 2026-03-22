@@ -49,6 +49,7 @@ interface Level {
   academicYearId: string
   classTeacherId?: string
   classTeacherName?: string
+  levelSubjects?: { subjectId: string }[]
 }
 
 interface Subject {
@@ -471,7 +472,7 @@ function SchoolSettingsPage() {
                                 <SelectValue placeholder="Add Subject" />
                               </SelectTrigger>
                               <SelectContent>
-                                {subjects?.filter(s => !level.levelSubjects?.some(ls => ls.subjectId === s.id)).map(s => ( // Filter out already assigned subjects
+                                {subjects?.filter(s => !level.levelSubjects?.some((ls: { subjectId: string }) => ls.subjectId === s.id)).map(s => ( // Filter out already assigned subjects
                                   <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                                 ))}
                               </SelectContent>

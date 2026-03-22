@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, desc } from 'drizzle-orm'
 import { pages, blocks } from '@/db/schema'
 import { z } from 'zod'
@@ -31,7 +31,7 @@ const updatePageSchema = createPageSchema.partial()
 
 // GET all pages with hierarchy
 app.get('/', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const result = await db.select().from(pages).orderBy(pages.order, desc(pages.updatedAt))
   
   // Build hierarchical structure recursively
@@ -52,7 +52,7 @@ app.get('/', async (c) => {
 
 // GET single page with blocks
 app.get('/:id', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   const page = await db.select().from(pages).where(eq(pages.id, id)).get()
@@ -70,7 +70,7 @@ app.get('/:id', async (c) => {
 
 // POST new page
 app.post('/', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   
   const validation = createPageSchema.safeParse(body)
@@ -106,7 +106,7 @@ app.post('/', async (c) => {
 
 // PATCH update page settings
 app.patch('/:id', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   
@@ -128,7 +128,7 @@ app.patch('/:id', async (c) => {
 
 // PUT sync blocks
 app.put('/:id/blocks', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const pageId = c.req.param('id')
   const newBlocks = await c.req.json()
 
@@ -154,7 +154,7 @@ app.put('/:id/blocks', async (c) => {
 
 // DELETE page
 app.delete('/:id', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
 
   // Delete blocks first (though they might be cascade deleted depending on schema, 

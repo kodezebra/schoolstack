@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq } from 'drizzle-orm'
 import { siteSettings } from '@/db/schema'
 import { authMiddleware, requireRole } from '@/middleware/auth'
@@ -14,20 +14,18 @@ app.use('*', authMiddleware)
 app.use('/', requireRole('owner', 'admin'))
 
 app.get('/', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   let settings = await db.select().from(siteSettings).where(eq(siteSettings.id, 'default')).get()
 
   if (!settings) {
-    // Initialize if not exists
     [settings] = await db.insert(siteSettings).values({ id: 'default' }).returning()
   }
 
   return c.json(settings)
 })
 
-// PUT update site settings (Partial Update)
 app.put('/', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   
   let body: any
   try {
@@ -36,7 +34,6 @@ app.put('/', async (c) => {
     return c.json({ error: 'Invalid JSON body' }, 400)
   }
 
-  // Build update object only with provided fields
   const updateData: any = {
     updatedAt: new Date()
   }
@@ -45,9 +42,7 @@ app.put('/', async (c) => {
     'logoText', 'logoType', 'logoIcon', 'logoImage', 'favicon',
     'footerDescription', 'primaryColor', 'accentColor',
     'navbarConfig', 'navbarCta', 'footerConfig', 'footerSocials',
-    // School information for reports
     'schoolName', 'schoolAddress', 'schoolPhone', 'schoolEmail',
-    // Theme fields
     'theme', 'fontDisplay', 'fontBody', 'borderRadius', 'darkMode',
     'backgroundLight', 'backgroundDark'
   ]
@@ -64,6 +59,46 @@ app.put('/', async (c) => {
     .returning()
 
   return c.json(updated)
+})
+
+// Extra fees library
+app.get('/extra-fees', async (c) => {
+  const db = getDb(c)
+  const settings = await db.select().from(siteSettings).where(eq(siteSettings.id, 'default')).get()
+  
+  let library: any[] = []
+  if (settings?.extraFeesLibrary) {
+    try {
+      library = JSON.parse(settings.extraFeesLibrary as string)
+    } catch {
+      library = []
+    }
+  }
+  
+  return c.json(library)
+})
+
+app.put('/extra-fees', async (c) => {
+  const db = getDb(c)
+  
+  let body: any
+  try {
+    body = await c.req.json()
+  } catch {
+    return c.json({ error: 'Invalid JSON body' }, 400)
+  }
+
+  const library = body.library || []
+
+  const [updated] = await db.update(siteSettings)
+    .set({ 
+      extraFeesLibrary: JSON.stringify(library),
+      updatedAt: new Date()
+    })
+    .where(eq(siteSettings.id, 'default'))
+    .returning()
+
+  return c.json({ success: true, library })
 })
 
 export default app

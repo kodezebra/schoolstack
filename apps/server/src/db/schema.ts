@@ -7,6 +7,7 @@ export const users = sqliteTable('users', {
   passwordHash: text('password_hash').notNull(),
   name: text('name'),
   role: text('role', { enum: ['owner', 'admin', 'editor', 'viewer'] }).notNull().default('viewer'),
+  photo: text('photo'), // R2 URL for profile photo
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).$defaultFn(() => new Date()),
 });
@@ -78,6 +79,7 @@ export const siteSettings = sqliteTable('site_settings', {
   borderRadius: text('border_radius').notNull().default('lg'), // 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full'
   darkMode: text('dark_mode').notNull().default('system'), // 'light' | 'dark' | 'system'
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  extraFeesLibrary: text('extra_fees_library'), // JSON array of common extra fees
 });
 
 export const contactSubmissions = sqliteTable('contact_submissions', {
@@ -169,8 +171,9 @@ export const feeStructures = sqliteTable('fee_structures', {
 export const feePayments = sqliteTable('fee_payments', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   studentId: text('student_id').notNull().references(() => students.id, { onDelete: 'cascade' }),
-  feeStructureId: text('fee_structure_id').notNull().references(() => feeStructures.id, { onDelete: 'cascade' }),
-  amount: integer('amount').notNull(), // in UGX (integer)
+  feeStructureId: text('fee_structure_id').references(() => feeStructures.id, { onDelete: 'cascade' }),
+  extraFeeId: text('extra_fee_id').references(() => studentFees.id, { onDelete: 'cascade' }),
+  amount: integer('amount').notNull(),
   paymentDate: integer('payment_date', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
   paymentMethod: text('payment_method', { enum: ['cash', 'mobile_money', 'bank', 'school_pay'] }).notNull(),
   transactionNo: text('transaction_no'),
@@ -185,6 +188,16 @@ export const feeOverrides = sqliteTable('fee_overrides', {
   feeStructureId: text('fee_structure_id').notNull().references(() => feeStructures.id, { onDelete: 'cascade' }),
   overrideAmount: integer('override_amount').notNull(), // in UGX (integer)
   reason: text('reason'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+export const studentFees = sqliteTable('student_fees', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  studentId: text('student_id').notNull().references(() => students.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(), // e.g., "Transport", "Class Tour", "Uniform"
+  amount: integer('amount').notNull(), // in UGX (integer)
+  isRecurring: integer('is_recurring', { mode: 'boolean' }).notNull().default(true), // true = every term, false = one-time
+  status: text('status', { enum: ['active', 'paid', 'removed'] }).notNull().default('active'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 

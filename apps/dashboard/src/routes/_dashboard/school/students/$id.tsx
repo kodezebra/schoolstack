@@ -19,13 +19,13 @@ import {
   X,
   Plus,
   Receipt,
-  Camera
 } from 'lucide-react'
 import { useState } from 'react'
 import {
   Select,
   SelectContent,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
@@ -69,7 +69,8 @@ interface Level {
 interface FeePayment {
   id: string
   studentId: string
-  feeStructureId: string
+  feeStructureId?: string
+  extraFeeId?: string
   feeTitle: string
   amount: number
   paymentDate: string
@@ -92,6 +93,8 @@ interface FeeStructure {
 }
 
 interface FeeWithBalance extends FeeStructure {
+  type: 'base' | 'extra'
+  isRecurring?: boolean
   paid: number
   amountDue: number
   balance: number
@@ -112,7 +115,8 @@ function StudentDetailPage() {
   const [editedData, setEditedData] = useState<Student | null>(null)
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false)
   const [paymentForm, setPaymentForm] = useState({
-    feeStructureId: '',
+    feeId: '',
+    feeType: 'base' as 'base' | 'extra',
     amount: '',
     paymentMethod: 'cash',
     transactionNo: '',
@@ -124,6 +128,12 @@ function StudentDetailPage() {
     feeStructureId: '',
     overrideAmount: '',
     reason: ''
+  })
+  const [isExtraFeeDialogOpen, setIsExtraFeeDialogOpen] = useState(false)
+  const [extraFeeForm, setExtraFeeForm] = useState({
+    title: '',
+    amount: '',
+    isRecurring: true
   })
 
   const { data: student, isLoading } = useQuery<StudentDetail>({
@@ -144,21 +154,19 @@ function StudentDetailPage() {
     }
   })
 
-  const { data: feeStructures } = useQuery<FeeStructure[]>({
-    queryKey: ['school-fee-structures', student?.levelId],
-    queryFn: async () => {
-      if (!student?.levelId) return []
-      const res = await apiFetch(`/school/fees?levelId=${student.levelId}`)
-      if (!res.ok) return []
-      return res.json()
-    },
-    enabled: !!student?.levelId
-  })
-
   const { data: marks, isLoading: isLoadingMarks } = useQuery<any[]>({
     queryKey: ['school-student-marks', id],
     queryFn: async () => {
       const res = await apiFetch(`/school/results/student/${id}`)
+      if (!res.ok) return []
+      return res.json()
+    }
+  })
+
+  const { data: extraFeesLibrary } = useQuery<any[]>({
+    queryKey: ['settings', 'extra-fees'],
+    queryFn: async () => {
+      const res = await apiFetch('/settings/extra-fees')
       if (!res.ok) return []
       return res.json()
     }
@@ -194,10 +202,25 @@ function StudentDetailPage() {
   })
 
   const paymentMutation = useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: { feeType: 'base' | 'extra', feeId: string, amount: number, paymentMethod: string, transactionNo?: string, receiptNo?: string, notes?: string }) => {
+      const payload: any = {
+        studentId: id,
+        amount: data.amount,
+        paymentMethod: data.paymentMethod,
+        transactionNo: data.transactionNo,
+        receiptNo: data.receiptNo,
+        notes: data.notes
+      }
+      
+      if (data.feeType === 'base') {
+        payload.feeStructureId = data.feeId
+      } else {
+        payload.extraFeeId = data.feeId
+      }
+      
       const res = await apiFetch('/school/payments', {
         method: 'POST',
-        body: JSON.stringify(data)
+        body: JSON.stringify(payload)
       })
       if (!res.ok) throw new Error('Failed to record payment')
       return res.json()
@@ -208,7 +231,8 @@ function StudentDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['school-payments'] })
       setIsPaymentDialogOpen(false)
       setPaymentForm({
-        feeStructureId: '',
+        feeId: '',
+        feeType: 'base',
         amount: '',
         paymentMethod: 'cash',
         transactionNo: '',
@@ -234,10 +258,28 @@ function StudentDetailPage() {
     }
   })
 
-  const removeOverrideMutation = useMutation({
-    mutationFn: async (feeStructureId: string) => {
-      const res = await apiFetch(`/school/fees/overrides?studentId=${id}&feeStructureId=${feeStructureId}`, { method: 'DELETE' })
-      if (!res.ok) throw new Error('Failed to remove override')
+  const addExtraFeeMutation = useMutation({
+    mutationFn: async (data: { title: string, amount: number, isRecurring: boolean }) => {
+      const res = await apiFetch(`/school/students/${id}/fees/extra`, {
+        method: 'POST',
+        body: JSON.stringify(data)
+      })
+      if (!res.ok) throw new Error('Failed to add extra fee')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['school-student-fees', id] })
+      setIsExtraFeeDialogOpen(false)
+      setExtraFeeForm({ title: '', amount: '', isRecurring: true })
+    }
+  })
+
+  const removeExtraFeeMutation = useMutation({
+    mutationFn: async (feeId: string) => {
+      const res = await apiFetch(`/school/students/${id}/fees/extra/${feeId}`, {
+        method: 'DELETE'
+      })
+      if (!res.ok) throw new Error('Failed to remove extra fee')
       return res.json()
     },
     onSuccess: () => {
@@ -280,10 +322,10 @@ function StudentDetailPage() {
   const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const amount = parseFloat(paymentForm.amount)
-    if (!student || !paymentForm.feeStructureId || isNaN(amount) || amount <= 0) return
+    if (!student || !paymentForm.feeId || isNaN(amount) || amount <= 0) return
     paymentMutation.mutate({
-      studentId: student.id,
-      feeStructureId: paymentForm.feeStructureId,
+      feeType: paymentForm.feeType,
+      feeId: paymentForm.feeId,
       amount: amount,
       paymentMethod: paymentForm.paymentMethod,
       transactionNo: paymentForm.transactionNo || undefined,
@@ -291,8 +333,6 @@ function StudentDetailPage() {
       notes: paymentForm.notes || undefined,
     })
   }
-
-  const selectedFee = feeBalances?.find(f => f.id === paymentForm.feeStructureId)
 
   if (isLoading) {
     return (
@@ -582,68 +622,121 @@ function StudentDetailPage() {
                 <div className="flex justify-center py-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
                 </div>
-              ) : feeBalances?.length === 0 ? (
+              ) : feeBalances?.filter(f => f.type !== 'extra').length === 0 && feeBalances?.filter(f => f.type === 'extra').length === 0 ? (
                 <p className="text-muted-foreground text-center py-4">No fee structures found for this student's class.</p>
               ) : (
-                <div className="space-y-3">
-                  {feeBalances?.map((fee) => (
-                    <div key={fee.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{fee.title}</p>
-                          {fee.hasOverride && (
-                            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                              Adjusted
-                            </Badge>
-                          )}
-                          <Badge variant={fee.isPaid ? 'default' : fee.balance > 0 ? 'destructive' : 'secondary'}>
-                            {fee.isPaid ? 'Paid' : fee.balance > 0 ? 'Outstanding' : 'N/A'}
-                          </Badge>
-                        </div>
-                        {fee.hasOverride && fee.overrideReason && (
-                          <p className="text-sm text-muted-foreground">{fee.overrideReason}</p>
-                        )}
-                        {fee.description && (
-                          <p className="text-sm text-muted-foreground">{fee.description}</p>
-                        )}
-                        {fee.dueDate && (
-                          <p className="text-xs text-muted-foreground">Due: {new Date(fee.dueDate).toLocaleDateString()}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right space-y-1">
-                          <p className="font-medium">
-                            {fee.hasOverride ? (
-                              <span>
-                                <span className="line-through text-muted-foreground text-sm">{formatCurrency(fee.amount)}</span>
-                                <span className="ml-2 text-amber-600">{formatCurrency(fee.amountDue)}</span>
-                              </span>
-                            ) : (
-                              formatCurrency(fee.amountDue)
+                <div className="space-y-4">
+                  {/* Base Fees */}
+                  {feeBalances?.filter(f => f.type !== 'extra').length !== 0 && (
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-medium text-muted-foreground">Base Fees</h4>
+                      {feeBalances?.filter(f => f.type !== 'extra').map((fee) => (
+                        <div key={fee.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{fee.title}</p>
+                              {fee.hasOverride && (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                                  Adjusted
+                                </Badge>
+                              )}
+                              <Badge variant={fee.isPaid ? 'default' : fee.balance > 0 ? 'destructive' : 'secondary'}>
+                                {fee.isPaid ? 'Paid' : fee.balance > 0 ? 'Outstanding' : 'N/A'}
+                              </Badge>
+                            </div>
+                            {fee.hasOverride && fee.overrideReason && (
+                              <p className="text-sm text-muted-foreground">{fee.overrideReason}</p>
                             )}
-                          </p>
-                          <p className="text-sm text-green-600">Paid: {formatCurrency(fee.paid)}</p>
-                          {fee.balance > 0 && (
-                            <p className="text-sm text-red-600">Balance: {formatCurrency(fee.balance)}</p>
-                          )}
+                            {fee.description && (
+                              <p className="text-sm text-muted-foreground">{fee.description}</p>
+                            )}
+                            {fee.dueDate && (
+                              <p className="text-xs text-muted-foreground">Due: {new Date(fee.dueDate).toLocaleDateString()}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right space-y-1">
+                              <p className="font-medium">
+                                {fee.hasOverride ? (
+                                  <span>
+                                    <span className="line-through text-muted-foreground text-sm">{formatCurrency(fee.amount)}</span>
+                                    <span className="ml-2 text-amber-600">{formatCurrency(fee.amountDue)}</span>
+                                  </span>
+                                ) : (
+                                  formatCurrency(fee.amountDue)
+                                )}
+                              </p>
+                              <p className="text-sm text-green-600">Paid: {formatCurrency(fee.paid)}</p>
+                              {fee.balance > 0 && (
+                                <p className="text-sm text-red-600">Balance: {formatCurrency(fee.balance)}</p>
+                              )}
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => {
+                                setAdjustForm({
+                                  feeStructureId: fee.id,
+                                  overrideAmount: String(fee.amountDue),
+                                  reason: fee.overrideReason || ''
+                                })
+                                setIsAdjustDialogOpen(true)
+                              }}
+                            >
+                              Adjust
+                            </Button>
+                          </div>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => {
-                            setAdjustForm({
-                              feeStructureId: fee.id,
-                              overrideAmount: String(fee.amountDue),
-                              reason: fee.overrideReason || ''
-                            })
-                            setIsAdjustDialogOpen(true)
-                          }}
-                        >
-                          Adjust
-                        </Button>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+
+                  {/* Extra Charges */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-muted-foreground">Extra Charges</h4>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => setIsExtraFeeDialogOpen(true)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" /> Add Extra Charge
+                      </Button>
+                    </div>
+                    {feeBalances?.filter(f => f.type === 'extra').length === 0 ? (
+                      <p className="text-sm text-muted-foreground italic">No extra charges added.</p>
+                    ) : (
+                      feeBalances?.filter(f => f.type === 'extra').map((fee) => (
+                        <div key={fee.id} className="flex items-center justify-between p-4 border border-primary/20 rounded-lg bg-primary/5">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{fee.title}</p>
+                              <Badge variant="outline" className="text-xs">
+                                {fee.isRecurring ? 'Every term' : 'One-time'}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className="font-medium">{formatCurrency(fee.amountDue)}</p>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                              onClick={() => {
+                                if (confirm(`Remove "${fee.title}" from this student's charges?`)) {
+                                  removeExtraFeeMutation.mutate(fee.id)
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -735,27 +828,45 @@ function StudentDetailPage() {
           </DialogHeader>
           <form onSubmit={handlePaymentSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Fee Type</label>
+              <label className="text-sm font-medium">Fee</label>
               <Select 
-                value={paymentForm.feeStructureId} 
+                value={paymentForm.feeId} 
                 onValueChange={(v) => {
                   const fee = feeBalances?.find(f => f.id === v)
-                  setPaymentForm(prev => ({ 
-                    ...prev, 
-                    feeStructureId: v,
-                    amount: fee ? String(fee.balance) : ''
-                  }))
+                  if (fee) {
+                    setPaymentForm(prev => ({ 
+                      ...prev, 
+                      feeId: v,
+                      feeType: fee.type,
+                      amount: String(fee.balance > 0 ? fee.balance : fee.amountDue)
+                    }))
+                  }
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select fee type" />
+                  <SelectValue placeholder="Select fee" />
                 </SelectTrigger>
                 <SelectContent>
-                  {feeBalances?.map((fee) => (
-                    <SelectItem key={fee.id} value={fee.id}>
-                      {fee.title} - {formatCurrency(fee.amountDue)} {fee.balance < fee.amountDue ? `(Bal: ${formatCurrency(fee.balance)})` : ''}
-                    </SelectItem>
-                  ))}
+                  {feeBalances?.filter(f => f.type === 'base').length !== 0 && (
+                    <>
+                      <SelectLabel>Base Fees</SelectLabel>
+                      {feeBalances?.filter(f => f.type === 'base').map((fee) => (
+                        <SelectItem key={fee.id} value={fee.id}>
+                          {fee.title} - {formatCurrency(fee.amountDue)} {fee.balance > 0 ? `(Bal: ${formatCurrency(fee.balance)})` : ''}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {feeBalances?.filter(f => f.type === 'extra').length !== 0 && (
+                    <>
+                      <SelectLabel>Extra Charges</SelectLabel>
+                      {feeBalances?.filter(f => f.type === 'extra').map((fee) => (
+                        <SelectItem key={fee.id} value={fee.id}>
+                          {fee.title} - {formatCurrency(fee.amountDue)} {fee.balance > 0 ? `(Bal: ${formatCurrency(fee.balance)})` : ''}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -770,7 +881,7 @@ function StudentDetailPage() {
                 required
               />
               {(() => {
-                const selectedFee = feeBalances?.find(f => f.id === paymentForm.feeStructureId)
+                const selectedFee = feeBalances?.find(f => f.id === paymentForm.feeId)
                 if (!selectedFee) return null
                 return (
                   <p className="text-xs text-muted-foreground mt-1">
@@ -828,7 +939,7 @@ function StudentDetailPage() {
 
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => setIsPaymentDialogOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={paymentMutation.isPending || !paymentForm.feeStructureId || parseFloat(paymentForm.amount) <= 0}>
+              <Button type="submit" disabled={paymentMutation.isPending || !paymentForm.feeId || parseFloat(paymentForm.amount) <= 0}>
                 {paymentMutation.isPending ? 'Recording...' : 'Record Payment'}
               </Button>
             </div>
@@ -923,6 +1034,115 @@ function StudentDetailPage() {
               <Button type="button" variant="outline" onClick={() => setIsAdjustDialogOpen(false)}>Cancel</Button>
               <Button type="submit" disabled={adjustFeeMutation.isPending || !adjustForm.feeStructureId || !adjustForm.overrideAmount}>
                 {adjustFeeMutation.isPending ? 'Saving...' : 'Save Adjustment'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Extra Charge Dialog */}
+      <Dialog open={isExtraFeeDialogOpen} onOpenChange={setIsExtraFeeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Extra Charge</DialogTitle>
+            <DialogDescription>
+              Select from common charges or enter a custom one.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {/* Library Options */}
+          {extraFeesLibrary && extraFeesLibrary.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Common Charges</label>
+              <div className="grid grid-cols-2 gap-2">
+                {extraFeesLibrary.map((fee) => (
+                  <button
+                    key={fee.id}
+                    type="button"
+                    onClick={() => {
+                      setExtraFeeForm({
+                        title: fee.title,
+                        amount: String(fee.amount),
+                        isRecurring: fee.isRecurring
+                      })
+                    }}
+                    className={`p-3 border rounded-lg text-left transition-colors hover:bg-muted ${
+                      extraFeeForm.title === fee.title ? 'border-primary bg-primary/5' : ''
+                    }`}
+                  >
+                    <p className="font-medium text-sm">{fee.title}</p>
+                    <p className="text-xs text-muted-foreground">{formatCurrency(fee.amount)}</p>
+                  </button>
+                ))}
+              </div>
+              <div className="relative py-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">Or enter custom</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            addExtraFeeMutation.mutate({
+              title: extraFeeForm.title,
+              amount: parseInt(extraFeeForm.amount) || 0,
+              isRecurring: extraFeeForm.isRecurring
+            })
+          }} className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Charge Name</label>
+              <Input 
+                value={extraFeeForm.title}
+                onChange={(e) => setExtraFeeForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="e.g., Transport, Class Tour"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Amount (UGX)</label>
+              <Input 
+                type="number"
+                value={extraFeeForm.amount}
+                onChange={(e) => setExtraFeeForm(prev => ({ ...prev, amount: e.target.value }))}
+                placeholder="Enter amount"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Frequency</label>
+              <div className="flex gap-4 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={extraFeeForm.isRecurring}
+                    onChange={() => setExtraFeeForm(prev => ({ ...prev, isRecurring: true }))}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">Every term</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    checked={!extraFeeForm.isRecurring}
+                    onChange={() => setExtraFeeForm(prev => ({ ...prev, isRecurring: false }))}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-sm">One-time</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={() => setIsExtraFeeDialogOpen(false)}>Cancel</Button>
+              <Button type="submit" disabled={addExtraFeeMutation.isPending || !extraFeeForm.title || !extraFeeForm.amount}>
+                {addExtraFeeMutation.isPending ? 'Adding...' : 'Add Charge'}
               </Button>
             </div>
           </form>

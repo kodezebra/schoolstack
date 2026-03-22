@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, and } from 'drizzle-orm'
 import { pages, blocks, siteSettings } from '@/db/schema'
 import { PublicLayout } from '@/layouts/public'
@@ -13,7 +13,7 @@ type Bindings = {
 const app = new Hono<{ Bindings: Bindings }>()
 
 const renderPage = async (c: any, slug: string) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const dashboardUrl = c.env.FRONTEND_URL || 'http://localhost:5173'
 
   // Fetch Site Settings
@@ -84,7 +84,7 @@ app.get('/', (c) => renderPage(c, 'home'))
 
 // DEDICATED CONTACT PAGE (Ensures /contact always works)
 // app.get('/contact-us', async (c) => {
-//   const db = drizzle(c.env.DB)
+//   const db = getDb(c)
 //   const dashboardUrl = c.env.FRONTEND_URL || 'http://localhost:5173'
 
 //   // Try to find a custom contact page first

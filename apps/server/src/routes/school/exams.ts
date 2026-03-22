@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, desc, and, sql } from 'drizzle-orm'
 import { exams, subjects, levels, students, examResults, academicYears, levelSubjects, examSets, staff } from '@/db/schema'
 import { authMiddleware, requireRole } from '@/middleware/auth'
@@ -27,7 +27,7 @@ const examSchema = z.object({
 })
 
 app.get('/', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const academicYearId = c.req.query('academicYearId')
   const levelId = c.req.query('levelId')
   const subjectId = c.req.query('subjectId')
@@ -78,7 +78,7 @@ const examSetSchema = z.object({
 })
 
 app.get('/sets', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const academicYearId = c.req.query('academicYearId')
   const levelId = c.req.query('levelId')
   
@@ -108,7 +108,7 @@ app.get('/sets', requireRole('owner', 'admin', 'teacher'), async (c) => {
 })
 
 app.get('/sets/:id', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   const examSet = await db.select().from(examSets).where(eq(examSets.id, id)).get()
@@ -123,7 +123,7 @@ app.get('/sets/:id', requireRole('owner', 'admin', 'teacher'), async (c) => {
 })
 
 app.post('/sets', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   const data = examSetSchema.parse(body)
   
@@ -142,7 +142,7 @@ app.post('/sets', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.patch('/sets/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   
@@ -160,7 +160,7 @@ app.patch('/sets/:id', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.delete('/sets/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   // Remove examSetId from exams in this set
@@ -172,7 +172,7 @@ app.delete('/sets/:id', requireRole('owner', 'admin'), async (c) => {
 
 // Bulk create exams from exam set
 app.post('/sets/:id/exams', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   
@@ -208,7 +208,7 @@ const levelSubjectSchema = z.object({
 })
 
 app.get('/subjects/levels', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const levelId = c.req.query('levelId')
   
   let query = db.select({
@@ -234,7 +234,7 @@ app.get('/subjects/levels', requireRole('owner', 'admin', 'teacher'), async (c) 
 })
 
 app.post('/subjects/levels', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   const data = levelSubjectSchema.parse(body)
   
@@ -258,7 +258,7 @@ app.post('/subjects/levels', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.patch('/subjects/levels/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   const data = levelSubjectSchema.partial().parse(body)
@@ -276,7 +276,7 @@ app.patch('/subjects/levels/:id', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.delete('/subjects/levels/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   await db.delete(levelSubjects).where(eq(levelSubjects.id, id))
@@ -284,7 +284,7 @@ app.delete('/subjects/levels/:id', requireRole('owner', 'admin'), async (c) => {
 })
 // Bulk add subjects to level
 app.post('/subjects/levels/bulk', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   const { levelId, subjectIds } = body
   
@@ -299,19 +299,14 @@ app.post('/subjects/levels/bulk', requireRole('owner', 'admin'), async (c) => {
     }))
   
   if (newSubjects.length > 0) {
-    const values = newSubjects.map(s => ({
-      levelId: s.levelId,
-      subjectId: s.subjectId,
-      teacherId: s.teacherId || null,
-    }))
-    await db.insert(levelSubjects).values(values)
+    await db.insert(levelSubjects).values(newSubjects)
   }
   
   return c.json({ success: true, added: newSubjects.length })
 })
 
 app.get('/:id', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   const exam = await db.select().from(exams).where(eq(exams.id, id)).get()
@@ -338,7 +333,7 @@ app.get('/:id', requireRole('owner', 'admin', 'teacher'), async (c) => {
 })
 
 app.post('/', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   const data = examSchema.parse(body)
   
@@ -359,7 +354,7 @@ app.post('/', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   
@@ -378,7 +373,7 @@ app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.delete('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   await db.delete(exams).where(eq(exams.id, id))
@@ -387,7 +382,7 @@ app.delete('/:id', requireRole('owner', 'admin'), async (c) => {
 
 // Results endpoints
 app.get('/:id/results', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   const exam = await db.select().from(exams).where(eq(exams.id, id)).get()
@@ -409,7 +404,7 @@ app.get('/:id/results', requireRole('owner', 'admin', 'teacher'), async (c) => {
 })
 
 app.post('/:id/results', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   
@@ -441,7 +436,7 @@ app.post('/:id/results', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.patch('/:id/results/:resultId', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const resultId = c.req.param('resultId')
   const body = await c.req.json()
   

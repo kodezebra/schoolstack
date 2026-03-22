@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, desc } from 'drizzle-orm'
 import { gradeScales, academicYears } from '@/db/schema'
 import { authMiddleware, requireRole } from '@/middleware/auth'
@@ -27,7 +27,7 @@ const gradeScaleSchema = z.object({
 })
 
 app.get('/', requireRole('owner', 'admin', 'editor'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const academicYearId = c.req.query('academicYearId')
   
   const conditions = academicYearId ? [eq(gradeScales.academicYearId, academicYearId)] : []
@@ -54,7 +54,7 @@ app.get('/', requireRole('owner', 'admin', 'editor'), async (c) => {
 })
 
 app.get('/:id', requireRole('owner', 'admin', 'editor'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   const scale = await db.select().from(gradeScales).where(eq(gradeScales.id, id)).get()
@@ -68,7 +68,7 @@ app.get('/:id', requireRole('owner', 'admin', 'editor'), async (c) => {
 })
 
 app.post('/', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const body = await c.req.json()
   const data = gradeScaleSchema.parse(body)
   
@@ -90,7 +90,7 @@ app.post('/', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const body = await c.req.json()
   
@@ -117,7 +117,7 @@ app.patch('/:id', requireRole('owner', 'admin'), async (c) => {
 })
 
 app.delete('/:id', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   
   await db.delete(gradeScales).where(eq(gradeScales.id, id))

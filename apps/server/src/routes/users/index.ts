@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, desc, sql } from 'drizzle-orm'
 import { users, sessions } from '@/db/schema'
 import { getCookie } from 'hono/cookie'
@@ -13,7 +13,7 @@ const app = new Hono<{ Bindings: Bindings }>()
 
 // Helper: Get current user from session
 async function getCurrentUser(c: any) {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const sessionId = getCookie(c, 'session')
   if (!sessionId) return null
 
@@ -36,7 +36,7 @@ async function requireAdmin(c: any, next: any) {
 // GET all users (admin + owner only)
 app.use('/', requireAdmin)
 app.get('/', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const allUsers = await db.select().from(users).orderBy(desc(users.createdAt))
   
   // Don't expose password hashes
@@ -46,7 +46,7 @@ app.get('/', async (c) => {
 
 // POST create user (admin + owner only)
 app.post('/', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const { email, password, name, role } = await c.req.json()
 
   // Validate role
@@ -84,7 +84,7 @@ app.post('/', async (c) => {
 
 // PATCH update user (admin + owner only)
 app.patch('/:id', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const currentUser = await getCurrentUser(c)
   const { name, email, role } = await c.req.json()
@@ -139,7 +139,7 @@ app.patch('/:id', async (c) => {
 
 // DELETE user (admin + owner only)
 app.delete('/:id', async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const id = c.req.param('id')
   const currentUser = await getCurrentUser(c)
 

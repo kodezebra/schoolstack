@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { generateNumber } from '@/lib/generateNumber'
 import { authMiddleware, requireRole } from '@/middleware/auth'
 
@@ -12,7 +12,7 @@ const app = new Hono<{ Bindings: Bindings }>()
 app.use('/*', authMiddleware)
 
 app.get('/', requireRole('owner', 'admin'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const type = c.req.query('type') as 'student' | 'staff' | 'receipt'
   const role = c.req.query('role') as string | undefined
 

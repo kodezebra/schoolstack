@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { drizzle } from 'drizzle-orm/d1'
+import { getDb } from '@/lib/db'
 import { eq, desc, sql } from 'drizzle-orm'
 import { examResults, exams, subjects, students } from '@/db/schema'
 import { authMiddleware, requireRole } from '@/middleware/auth'
@@ -13,7 +13,7 @@ const app = new Hono<{ Bindings: Bindings }>()
 app.use('/*', authMiddleware)
 
 app.get('/student/:studentId', requireRole('owner', 'admin', 'teacher'), async (c) => {
-  const db = drizzle(c.env.DB)
+  const db = getDb(c)
   const studentId = c.req.param('studentId')
   
   const student = await db.select().from(students).where(eq(students.id, studentId)).get()
