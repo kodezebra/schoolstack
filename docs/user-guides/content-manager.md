@@ -45,7 +45,7 @@ Access CMS features from the sidebar:
 
 ## Understanding the Block Editor
 
-KidzKave uses a **block-based editor**. Each page is composed of blocks - individual content sections like headers, images, or feature lists.
+SchoolStack uses a **block-based editor**. Each page is composed of blocks - individual content sections like headers, images, or feature lists.
 
 ### Block Types Available
 

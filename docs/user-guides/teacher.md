@@ -172,7 +172,7 @@ Track over time:
 
 ### Understanding Grading
 
-KidzKave uses configurable grade scales:
+SchoolStack uses configurable grade scales:
 
 | Grade | Points | Description |
 |-------|--------|-------------|

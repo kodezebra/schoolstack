@@ -336,7 +336,7 @@ function StudentReportPage() {
 
         {/* Fine Print */}
         <div className="px-10 py-2.5 bg-[#FF6B6B] text-white flex justify-between items-center text-[7px] font-black uppercase tracking-[0.2em]">
-           <span>KidzKave Digital School Records &copy; 2026</span>
+           <span>SchoolStack Digital School Records &copy; 2026</span>
            <span className="flex items-center gap-1.5">Sunshine Verified <Star className="w-2.5 h-2.5 fill-white" /></span>
         </div>
       </main>

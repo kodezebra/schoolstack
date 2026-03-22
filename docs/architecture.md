@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes the system architecture of KidzKave.
+This document describes the system architecture of SchoolStack.
 
 ## High-Level Overview
 
@@ -235,7 +235,7 @@ exams ──< exam_results
 ### R2 Bucket Structure
 
 ```
-kz-assets/
+your-school-assets/
 ├── photos/
 │   ├── students/{id}.jpg
 │   └── staff/{id}.jpg

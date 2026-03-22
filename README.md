@@ -1,6 +1,8 @@
-# KidzKave
+# SchoolStack
 
-A comprehensive school management CMS platform built for educational institutions.
+A comprehensive school management CMS platform for educational institutions.
+
+> **Start here**: Clone this repo, customize for your school(s), and deploy to Cloudflare in minutes.
 
 ## Features
 
@@ -23,19 +25,6 @@ A comprehensive school management CMS platform built for educational institution
 | Storage | Cloudflare R2 |
 | Monorepo | Turborepo, Bun |
 
-## Project Structure
-
-```
-kidzkave/
-├── apps/
-│   ├── dashboard/          # React frontend (admin CMS)
-│   └── server/             # Hono API + SSR (public site)
-├── docs/                   # Documentation
-├── package.json            # Root workspace
-├── turbo.json              # Turborepo config
-└── RULES.md                # Coding standards
-```
-
 ## Quick Start
 
 ```bash
@@ -49,7 +38,49 @@ bun run dev
 Dashboard: http://localhost:5173
 API: http://localhost:8787
 
-See [docs/getting-started.md](docs/getting-started.md) for detailed setup.
+## Customization
+
+### 1. Rename Your Project
+
+Update the following files to use your school/organization name:
+
+```bash
+# Update app names in apps/*/package.json
+# Update wrangler.jsonc "name" field
+# Update dashboard title in layouts
+```
+
+### 2. Configure Your Brand
+
+Edit school settings in the dashboard:
+- School name and logo
+- Primary brand color
+- Contact information
+
+### 3. Set Up Database
+
+```bash
+cd apps/server
+
+# Create local database
+bunx wrangler d1 create your-db-name
+
+# Apply migrations
+bun run db:migrate
+```
+
+## Project Structure
+
+```
+schoolstack/
+├── apps/
+│   ├── dashboard/          # React frontend (admin CMS)
+│   └── server/             # Hono API + SSR (public site)
+├── docs/                   # Documentation
+├── package.json            # Root workspace
+├── turbo.json              # Turborepo config
+└── RULES.md                # Coding standards
+```
 
 ## Available Scripts
 
@@ -69,8 +100,8 @@ bun run format   # Format code with Prettier
 | [Architecture](docs/architecture.md) | System architecture, tech decisions, data flow |
 | [Deployment](docs/deployment.md) | Deploy to Cloudflare (unified domain) |
 | [API Reference](docs/api-reference.md) | API endpoints summary |
+| [User Guides](docs/user-guides/) | Role-based documentation for end users |
 | [Block System](docs/BLOCK_SYSTEM.md) | CMS page builder documentation |
-| [User Management](docs/USER_MANAGEMENT.md) | Roles and permissions |
 
 ## Deployment
 
@@ -98,4 +129,4 @@ FRONTEND_URL=http://localhost:5173
 
 ## License
 
-Private - All rights reserved
+MIT License - Free to use and modify for your school(s).

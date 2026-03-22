@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Deploy KidzKave to Cloudflare's platform.
+Deploy SchoolStack to Cloudflare's platform.
 
 ## Architecture
 
@@ -27,12 +27,12 @@ Serve dashboard and API on the same domain for best performance and security.
 cd apps/server
 
 # Create production D1 database
-bunx wrangler d1 create kidzkave-db
+bunx wrangler d1 create your-school-db
 
 # Note the database_id from output, add to wrangler.jsonc:
 # [[d1_databases]]
 # binding = "DB"
-# database_name = "kidzkave-db"
+# database_name = "your-school-db"
 # database_id = "your-database-id"
 
 # Apply migrations
@@ -207,13 +207,13 @@ Always use `https://` for all URLs in production.
 
 For file uploads:
 
-1. Create R2 bucket: `kz-assets`
+1. Create R2 bucket: `your-school-assets`
 2. Add to `wrangler.jsonc`:
 
 ```json
 [[r2_buckets]]
 binding = "ASSETS"
-bucket_name = "kz-assets"
+bucket_name = "your-school-assets"
 ```
 
 3. Set public URL pattern in site settings

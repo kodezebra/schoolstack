@@ -110,7 +110,7 @@ interface ParsedSettings {
 }
 
 const DEFAULT_SETTINGS: ParsedSettings = {
-  logoText: 'KZ Cloud',
+  logoText: 'SchoolStack',
   logoType: 'icon',
   logoIcon: 'zap',
   logoImage: '',

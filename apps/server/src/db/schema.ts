@@ -66,7 +66,7 @@ export const siteSettings = sqliteTable('site_settings', {
   footerConfig: text('footer_config'),
   footerSocials: text('footer_socials'), // Array<{ platform: string, url: string }>
   // School information for reports
-  schoolName: text('school_name').notNull().default('KidzKave School'),
+  schoolName: text('school_name').notNull().default('Your School Name'),
   schoolAddress: text('school_address').default('Kampala, Uganda'),
   schoolPhone: text('school_phone').default('+256 700 000 000'),
   schoolEmail: text('school_email').default('info@school.com'),

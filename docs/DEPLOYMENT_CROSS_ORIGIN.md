@@ -15,7 +15,7 @@ Use this guide for **testing on Cloudflare's default domains** (`.workers.dev` a
 1.  **Initialize the production D1 DB:**
     ```bash
     cd apps/server
-    bunx wrangler d1 create kz-db
+    bunx wrangler d1 create your-school-db
     bun run db:migrate:remote
     ```
 2.  **Deploy the Worker:**

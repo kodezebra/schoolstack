@@ -306,7 +306,7 @@ export function DashboardLayout() {
       }
 
       // Update title: "App Name | Page Name"
-      const brandName = settings.logoText || 'KZ Cloud'
+      const brandName = settings.logoText || 'SchoolStack'
       document.title = `${brandName} | ${pageName}`
 
       // Update favicon
@@ -337,7 +337,7 @@ export function DashboardLayout() {
           <div className="flex h-14 items-center border-b px-6">
             <Link to="/" className="flex items-center gap-2 font-semibold text-primary">
               <ShieldCheck className="h-6 w-6" />
-              <span className="font-bold tracking-tight text-slate-900">{settings?.logoText || 'KZ Cloud'}</span>
+              <span className="font-bold tracking-tight text-slate-900">{settings?.logoText || 'SchoolStack'}</span>
             </Link>
           </div>
 

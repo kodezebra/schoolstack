@@ -17,7 +17,7 @@
 	"r2_buckets": [
 		{
 			"binding": "ASSETS",
-			"bucket_name": "kz-assets"
+			"bucket_name": "your-school-assets"
 		}
 	],
 	"vars": {

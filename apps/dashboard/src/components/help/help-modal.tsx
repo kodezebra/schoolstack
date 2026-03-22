@@ -91,7 +91,7 @@ export function HelpModal({ open, onOpenChange }: HelpModalProps) {
                     Help Center
                   </DialogTitle>
                   <DialogDescription>
-                    Find answers and learn how to use KidzKave
+                    Find answers and learn how to use SchoolStack
                   </DialogDescription>
                 </div>
                 <div className="flex items-center gap-2">

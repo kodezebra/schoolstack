@@ -44,7 +44,7 @@ export function useEditor(initialBlocks: any[] = []) {
 
     switch (type) {
       case 'navbar':
-        content = { logoText: 'KZ Cloud', links: [{ label: 'Features', href: '#' }, { label: 'About', href: '#' }], cta: { label: 'Get Started', href: '#' } }
+        content = { logoText: 'SchoolStack', links: [{ label: 'Features', href: '#' }, { label: 'About', href: '#' }], cta: { label: 'Get Started', href: '#' } }
         break
       case 'hero':
         content = { title: 'Design Your Future with Precision', subtitle: 'Elevate your digital presence with our modern, professional solutions.', primaryCta: { label: 'Start Building' }, secondaryCta: { label: 'View Portfolio' } }
@@ -68,7 +68,7 @@ export function useEditor(initialBlocks: any[] = []) {
         content = { title: 'Ready to Revolutionize?', subtitle: 'Join hundreds of forward-thinking companies.', ctaLabel: 'Start Today' }
         break
       case 'footer':
-        content = { logoText: 'KZ Cloud', description: 'Empowering businesses with cutting-edge solutions.' }
+        content = { logoText: 'SchoolStack', description: 'Empowering businesses with cutting-edge solutions.' }
         break
       case 'steps':
         content = { tagline: 'How It Works', title: 'Our Process', subtitle: 'Simple steps to get started.', items: [{ icon: 'zap', title: 'Step 1', description: 'First step description.' }, { icon: 'settings', title: 'Step 2', description: 'Second step description.' }] }

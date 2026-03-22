@@ -94,7 +94,7 @@ export const whatsNew: WhatsNewItem[] = [
     version: "1.0.0",
     date: "January 2026",
     title: "Initial Release",
-    description: "Welcome to KidzKave!",
+    description: "Welcome to SchoolStack!",
     features: [
       "Student management",
       "Staff management",
@@ -201,9 +201,9 @@ Now you can:
     category: "Basics",
     keywords: ["start", "begin", "setup", "login", "dashboard"],
     content: `
-# Getting Started with KidzKave
+# Getting Started with SchoolStack
 
-Welcome to KidzKave! This guide will help you get up and running quickly.
+Welcome to SchoolStack! This guide will help you get up and running quickly.
 
 ## Your First Login
 

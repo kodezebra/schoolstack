@@ -157,7 +157,7 @@ app.get('/class/:levelId', requireRole('owner', 'admin', 'editor'), async (c) =>
   
   return c.json({
     school: {
-      name: settings?.schoolName || 'KidzKave School',
+      name: settings?.schoolName || 'Your School Name',
       address: settings?.schoolAddress || '',
       phone: settings?.schoolPhone || '',
       email: settings?.schoolEmail || '',
@@ -284,7 +284,7 @@ app.get('/student/:studentId', requireRole('owner', 'admin', 'editor'), async (c
   
   return c.json({
     school: {
-      name: settings?.schoolName || 'KidzKave School',
+      name: settings?.schoolName || 'Your School Name',
       address: settings?.schoolAddress || '',
       phone: settings?.schoolPhone || '',
       email: settings?.schoolEmail || '',

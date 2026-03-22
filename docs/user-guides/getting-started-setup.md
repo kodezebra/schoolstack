@@ -4,7 +4,7 @@
 
 ---
 
-## Welcome to KidzKave!
+## Welcome to SchoolStack!
 
 This guide walks you through setting up your school from scratch. Follow these steps in order for the best experience.
 

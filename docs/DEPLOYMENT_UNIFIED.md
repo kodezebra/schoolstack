@@ -15,7 +15,7 @@ This architecture uses Cloudflare's platform to serve both your **Dashboard (Pag
 1.  **Create the production D1 DB:**
     ```bash
     cd apps/server
-    bunx wrangler d1 create kz-db
+    bunx wrangler d1 create your-school-db
     ```
 2.  **Apply Migrations:**
     ```bash

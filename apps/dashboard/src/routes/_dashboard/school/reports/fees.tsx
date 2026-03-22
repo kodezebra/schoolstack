@@ -189,7 +189,7 @@ function FeeBalancesReportPage() {
         <div className="print-area space-y-4">
           <div className="hidden print:block mb-6">
             <div className="text-center border-b-2 border-black pb-2 mb-2">
-              <h1 className="text-xl font-bold uppercase">KidzKave School</h1>
+              <h1 className="text-xl font-bold uppercase">SchoolStack School</h1>
               <h2 className="text-lg font-bold uppercase mt-2">Fee Balances Report</h2>
               <p className="text-sm text-muted-foreground">
                 {currentYear?.name || 'All Years'} {currentLevel ? `• ${currentLevel.name}` : ''}

@@ -1,6 +1,6 @@
 # API Reference
 
-REST API endpoints for KidzKave.
+REST API endpoints for SchoolStack.
 
 ## Base URL
 
@@ -703,8 +703,8 @@ Get site settings.
 ```json
 // Response (200)
 {
-  "siteName": "KidzKave School",
-  "schoolName": "KidzKave School",
+  "siteName": "Your School Name",
+  "schoolName": "Your School Name",
   "schoolAddress": "123 Education Street",
   "schoolPhone": "+256...",
   "schoolEmail": "info@school.com",

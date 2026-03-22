@@ -6,7 +6,7 @@
 
 ## Welcome
 
-As the School Owner, you have full access to KidzKave. You can manage your entire school operation, delegate responsibilities to staff, and monitor all activities. This guide walks you through everything you need to know.
+As the School Owner, you have full access to SchoolStack. You can manage your entire school operation, delegate responsibilities to staff, and monitor all activities. This guide walks you through everything you need to know.
 
 ---
 

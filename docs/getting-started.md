@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide walks you through setting up KidzKave locally for development.
+This guide walks you through setting up SchoolStack locally for development.
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ This guide walks you through setting up KidzKave locally for development.
 
 ```bash
 git clone <repository-url>
-cd kidzkave
+cd schoolstack
 bun install
 ```
 

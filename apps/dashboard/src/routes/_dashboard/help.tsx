@@ -123,7 +123,7 @@ function HelpPage() {
       <div className="text-center">
         <h1 className="text-4xl font-bold tracking-tight">Help Center</h1>
         <p className="text-muted-foreground mt-3 text-lg">
-          Learn how to get the most out of KidzKave
+          Learn how to get the most out of SchoolStack
         </p>
       </div>
 
