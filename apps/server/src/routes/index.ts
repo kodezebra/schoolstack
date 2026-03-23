@@ -8,7 +8,13 @@ import pagesApp from './pages'
 import contactApp from './contact'
 import schoolApp from './school'
 
-const api = new Hono()
+type Bindings = {
+  DB: D1Database
+  FRONTEND_URL: string
+  ASSETS: R2Bucket
+}
+
+const api = new Hono<{ Bindings: Bindings }>()
 
 // Auth Routes
 api.route('/auth', authApp)

@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "server",
+	"name": "kidzkave",
 	"main": "src/index.ts",
 	"compatibility_date": "2026-03-10",
 	"assets": {
@@ -20,9 +20,9 @@
 			"bucket_name": "your-school-assets"
 		}
 	],
-	"vars": {
-		"FRONTEND_URL": "http://localhost:5173"
-	}
+"vars": {
+    "FRONTEND_URL": "http://localhost:5173"
+  }
 	// "compatibility_flags": [
 	//   "nodejs_compat"
 	// ],

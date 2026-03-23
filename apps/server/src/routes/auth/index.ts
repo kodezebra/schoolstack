@@ -10,6 +10,7 @@ import { authMiddleware, requireRole } from '@/middleware/auth'
 type Bindings = {
   DB: D1Database
   ASSETS: R2Bucket
+  FRONTEND_URL: string
 }
 
 const app = new Hono<{ Bindings: Bindings }>()
@@ -92,10 +93,11 @@ app.post('/login', async (c) => {
     expiresAt,
   })
 
+  const isProduction = c.env.FRONTEND_URL?.startsWith('https://')
   setCookie(c, 'session', sessionId, {
     httpOnly: true,
-    secure: true,
-    sameSite: 'None',
+    secure: isProduction,
+    sameSite: isProduction ? 'None' : 'Lax',
     path: '/',
     expires: expiresAt,
   })

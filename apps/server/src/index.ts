@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { secureHeaders } from 'hono/secure-headers'
 import apiApp from './routes'
 import publicApp from './routes/public'
 
@@ -12,26 +11,25 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings }>()
 
-// Middleware
-app.use('*', async (c, next) => {
-  const origin = c.env.FRONTEND_URL || 'http://localhost:5173'
-  const corsMiddleware = cors({
-    origin: origin,
+// Clean, secure CORS implementation
+app.use('/api/*', async (c, next) => {
+  const frontendUrl = c.env.FRONTEND_URL
+  const allowedOrigins = [frontendUrl, 'http://localhost:5173']
+  
+  return cors({
+    origin: (origin) => {
+      if (allowedOrigins.includes(origin)) return origin
+      return frontendUrl // Default to production frontend for security
+    },
+    credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  })
-  return corsMiddleware(c, next)
+    maxAge: 86400,
+  })(c, next)
 })
 
-app.use('*', secureHeaders({
-  crossOriginResourcePolicy: false,
-}))
-
-// All API Routes grouped under /api
 app.route('/api', apiApp)
 
-// Public SSR Routes
 app.route('/', publicApp)
 
 export default app

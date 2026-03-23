@@ -15,7 +15,13 @@ import reports from './reports'
 import generateNumber from './generate-number'
 import remarks from './remarks'
 
-const app = new Hono()
+type Bindings = {
+  DB: D1Database
+  FRONTEND_URL: string
+  ASSETS: R2Bucket
+}
+
+const app = new Hono<{ Bindings: Bindings }>()
 
 app.route('/', dashboard)
 app.route('/academic-years', academicYears)
