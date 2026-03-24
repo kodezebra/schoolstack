@@ -2,53 +2,17 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { 
-  ArrowLeft,
-  Mail,
-  Phone,
-  Calendar,
-  Settings2,
-  Trash2,
-  Save,
-  X,
-  GraduationCap,
-  Briefcase,
-} from 'lucide-react'
 import { useState } from 'react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { PhotoUpload } from '@/components/ui/photo-upload'
-import { RoleBadge } from '@/components/ui/status-badge'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
+import { OverviewSection, DetailsSection, NotesSection } from './sections'
+import type { Staff } from './sections/StaffSections'
+import { ArrowLeft, Settings2, Trash2, Save, X } from 'lucide-react'
 
 export const Route = createFileRoute('/_dashboard/school/staff/$id')({
   component: StaffDetailPage,
 })
-
-interface Staff {
-  id: string
-  employeeNo: string
-  firstName: string
-  lastName: string
-  email: string
-  phone?: string
-  role: 'teacher' | 'admin' | 'counselor' | 'principal'
-  department?: string
-  qualifications?: string
-  experience?: string
-  photo?: string
-  status: 'active' | 'inactive'
-  joinDate: string
-}
 
 function StaffDetailPage() {
   const { id } = Route.useParams()
@@ -142,7 +106,6 @@ function StaffDetailPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => window.history.back()}>
@@ -199,199 +162,26 @@ function StaffDetailPage() {
           <TabsTrigger value="notes">Notes</TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab */}
-        <TabsContent value="overview">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Basic Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {isEditing ? (
-                  <>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium">First Name</label>
-                        <Input 
-                          value={editedData?.firstName || ''} 
-                          onChange={(e) => setEditedData(prev => prev ? { ...prev, firstName: e.target.value } : null)}
-                        />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Last Name</label>
-                        <Input 
-                          value={editedData?.lastName || ''} 
-                          onChange={(e) => setEditedData(prev => prev ? { ...prev, lastName: e.target.value } : null)}
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Role</label>
-                      <Select 
-                        value={editedData?.role} 
-                        onValueChange={(v) => setEditedData(prev => prev ? { ...prev, role: v as any } : null)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="teacher">Teacher</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                          <SelectItem value="counselor">Counselor</SelectItem>
-                          <SelectItem value="principal">Principal</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Status</label>
-                      <Select 
-                        value={editedData?.status} 
-                        onValueChange={(v) => setEditedData(prev => prev ? { ...prev, status: v as any } : null)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <RoleBadge role={staff.role} />
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Joined</p>
-                        <p className="font-medium">{new Date(staff.joinDate).toLocaleDateString()}</p>
-                      </div>
-                    </div>
-                    <Badge variant={staff.status === 'active' ? 'default' : 'secondary'}>
-                      {staff.status}
-                    </Badge>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Contact Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {isEditing ? (
-                  <>
-                    <div>
-                      <label className="text-sm font-medium">Email</label>
-                      <Input 
-                        value={editedData?.email || ''} 
-                        onChange={(e) => setEditedData(prev => prev ? { ...prev, email: e.target.value } : null)}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Phone</label>
-                      <Input 
-                        value={editedData?.phone || ''} 
-                        onChange={(e) => setEditedData(prev => prev ? { ...prev, phone: e.target.value } : null)}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Email</p>
-                        <p className="font-medium">{staff.email}</p>
-                      </div>
-                    </div>
-                    {staff.phone && (
-                      <div className="flex items-center gap-3">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <p className="text-xs text-muted-foreground">Phone</p>
-                          <p className="font-medium">{staff.phone}</p>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+        <TabsContent value="overview" className="mt-0">
+          <OverviewSection
+            staff={staff}
+            isEditing={isEditing}
+            editedData={editedData}
+            onEditChange={setEditedData}
+          />
         </TabsContent>
 
-        {/* Details Tab */}
-        <TabsContent value="details">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Professional Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {isEditing ? (
-                <>
-                  <div>
-                    <label className="text-sm font-medium">Department</label>
-                    <Input 
-                      value={editedData?.department || ''} 
-                      onChange={(e) => setEditedData(prev => prev ? { ...prev, department: e.target.value } : null)}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Qualifications</label>
-                    <Input 
-                      value={editedData?.qualifications || ''} 
-                      onChange={(e) => setEditedData(prev => prev ? { ...prev, qualifications: e.target.value } : null)}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Experience</label>
-                    <Input 
-                      value={editedData?.experience || ''} 
-                      onChange={(e) => setEditedData(prev => prev ? { ...prev, experience: e.target.value } : null)}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-3">
-                    <Briefcase className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Department</p>
-                      <p className="font-medium">{staff.department || '-'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Qualifications</p>
-                      <p className="font-medium">{staff.qualifications || '-'}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <div>
-                      <p className="text-xs text-muted-foreground">Experience</p>
-                      <p className="font-medium">{staff.experience || '-'}</p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+        <TabsContent value="details" className="mt-0">
+          <DetailsSection
+            staff={staff}
+            isEditing={isEditing}
+            editedData={editedData}
+            onEditChange={setEditedData}
+          />
         </TabsContent>
 
-        {/* Notes Tab */}
-        <TabsContent value="notes">
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              Notes feature coming soon...
-            </CardContent>
-          </Card>
+        <TabsContent value="notes" className="mt-0">
+          <NotesSection />
         </TabsContent>
       </Tabs>
 
