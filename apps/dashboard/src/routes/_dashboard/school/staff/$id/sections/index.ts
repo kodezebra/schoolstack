@@ -1,1 +1,1 @@
-export { OverviewSection, DetailsSection, NotesSection } from './StaffSections'
+export { OverviewSection, DetailsSection, NotesSection } from './-StaffSections'

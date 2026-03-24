@@ -1,1 +1,1 @@
-export { GuidesSection, WhatsNewSection, PersonasSection } from './HelpSections'
+export { GuidesSection, WhatsNewSection, PersonasSection } from './-HelpSections'

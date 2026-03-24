@@ -1,2 +1,2 @@
-export { ExamsSection } from './ExamsSection'
-export { ExamSetsSection } from './ExamSetsSection'
+export { ExamsSection } from './-ExamsSection'
+export { ExamSetsSection } from './-ExamSetsSection'
