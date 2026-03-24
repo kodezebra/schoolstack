@@ -11,13 +11,12 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -71,8 +70,8 @@ interface User {
 function UsersPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isAddSheetOpen, setIsAddSheetOpen] = useState(false)
+  const [isEditSheetOpen, setIsEditSheetOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const { confirm, renderConfirmDialog } = useConfirmDialog()
 
@@ -375,15 +374,15 @@ function UsersPage() {
         </CardContent>
       </Card>
 
-      {/* Add User Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New User</DialogTitle>
-            <DialogDescription>
+      {/* Add User Sheet */}
+      <Sheet open={isAddSheetOpen} onOpenChange={setIsAddDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[480px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Add New User</SheetTitle>
+            <SheetDescription>
               Create a new team member account. They will receive login credentials.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="add-name">Name <span className="text-xs text-muted-foreground">(optional)</span></Label>
@@ -465,7 +464,7 @@ function UsersPage() {
               )}
             </div>
           </div>
-          <DialogFooter>
+          <div className="flex justify-end gap-2 pt-4 pb-4">
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               Cancel
             </Button>
@@ -482,19 +481,19 @@ function UsersPage() {
                 </>
               )}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </SheetContent>
+      </Sheet>
 
-      {/* Edit User Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>
+      {/* Edit User Sheet */}
+      <Sheet open={isEditSheetOpen} onOpenChange={setIsEditDialogOpen}>
+        <SheetContent className="w-[400px] sm:w-[480px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Edit User</SheetTitle>
+            <SheetDescription>
               Update user information and permissions
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="edit-name">Name</Label>
@@ -573,10 +572,7 @@ function UsersPage() {
               )}
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-              Cancel
-            </Button>
+          <div className="flex justify-end gap-2 pt-4 pb-4">
             {canDeleteUser(selectedUser!) && (
               <Button
                 variant="destructive"
@@ -588,6 +584,9 @@ function UsersPage() {
                 Delete
               </Button>
             )}
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
             {canEditUser(selectedUser!) ? (
               <Button onClick={handleEditUser} disabled={updateUserMutation.isPending}>
                 {updateUserMutation.isPending ? (
@@ -608,9 +607,9 @@ function UsersPage() {
                 Cannot Edit
               </Button>
             )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {renderConfirmDialog()}
     </div>
