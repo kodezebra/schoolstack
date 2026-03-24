@@ -58,14 +58,18 @@ export const siteSettings = sqliteTable('site_settings', {
   logoIcon: text('logo_icon').notNull().default('zap'),
   logoImage: text('logo_image'),
   favicon: text('favicon'),
+  // Navbar specific settings (can be overridden by navbarConfig)
+  navbarConfig: text('navbar_config', { mode: 'json' }), // JSON object for full navbar content
+  // Footer specific settings (can be overridden by footerConfig)
   footerDescription: text('footer_description'),
+  footerConfig: text('footer_config', { mode: 'json' }), // JSON object for full footer content
+  footerSocials: text('footer_socials', { mode: 'json' }).$type<Array<{ platform: string; url: string; icon: string }>>(), // Social media links
+  // Global appearance settings
   primaryColor: text('primary_color').notNull().default('#6366f1'),
   accentColor: text('accent_color').notNull().default('#ff6b35'),
-  navbarConfig: text('navbar_config'),
-  navbarCta: text('navbar_cta'), // { label: string, url: string, show: boolean }
-  footerConfig: text('footer_config'),
-  footerSocials: text('footer_socials'), // Array<{ platform: string, url: string }>
-  // School information for reports
+  // Additional footer logo specific settings for differentiation
+  footerLogoLayout: text('footer_logo_layout', { enum: ['horizontal', 'vertical'] }).default('horizontal'),
+  footerLogoMonochrome: integer('footer_logo_monochrome', { mode: 'boolean' }).default(false),
   schoolName: text('school_name').notNull().default('Your School Name'),
   schoolAddress: text('school_address').default('Kampala, Uganda'),
   schoolPhone: text('school_phone').default('+256 700 000 000'),

@@ -1,4 +1,4 @@
-import { MessageSquare } from 'lucide-react'
+import { Icon } from '@iconify/react'
 
 export function TestimonialsBlock({ content }: { content: any }) {
   return (
@@ -16,7 +16,7 @@ export function TestimonialsBlock({ content }: { content: any }) {
                   <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-slate-300">
-                    <MessageSquare className="h-4 w-4" />
+                    <Icon icon="ph:chats-fill" className="h-4 w-4" />
                   </div>
                 )}
               </div>

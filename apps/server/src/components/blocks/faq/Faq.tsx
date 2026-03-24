@@ -1,4 +1,4 @@
-import { getPadding } from '../utils'
+import { getPadding, IconSvg } from '../utils'
 
 export const Faq = ({ content }: { content: any }) => (
   <section className="py-32 bg-white dark:bg-background-dark" style={getPadding(content.styles)}>
@@ -22,7 +22,7 @@ export const Faq = ({ content }: { content: any }) => (
             <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
               <h4 className="text-lg font-bold text-slate-900 dark:text-slate-100 pr-4">{item.question || "Question?"}</h4>
               <span className="text-primary transition-transform group-open:rotate-180 flex-shrink-0">
-                <i data-lucide="chevron-down" className="w-6 h-6"></i>
+                <IconSvg icon="chevron-down" className="w-6 h-6" />
               </span>
             </summary>
             <div className="px-6 pb-6">

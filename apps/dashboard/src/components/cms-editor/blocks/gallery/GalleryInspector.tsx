@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Plus, Trash2, GripVertical } from 'lucide-react'
+import { Icon } from '@iconify/react'
 import { Section, Field } from '../common'
 
 export function GalleryInspector({
@@ -68,19 +68,19 @@ export function GalleryInspector({
                     disabled={i === 0}
                     className="text-slate-400 hover:text-slate-600 disabled:opacity-30"
                   >
-                    <GripVertical className="h-3 w-3 rotate-90" />
+                    <Icon icon="ph:dots-six-vertical-fill" className="h-3 w-3 rotate-90" />
                   </button>
                   <button
                     onClick={() => moveImage(i, 'down')}
                     disabled={i === content.images.length - 1}
                     className="text-slate-400 hover:text-slate-600 disabled:opacity-30"
                   >
-                    <GripVertical className="h-3 w-3 -rotate-90" />
+                    <Icon icon="ph:dots-six-vertical-fill" className="h-3 w-3 -rotate-90" />
                   </button>
                 </div>
                 <span className="text-xs font-medium flex-1">Image {i + 1}</span>
                 <Button variant="ghost" size="icon" onClick={() => removeImage(i)}>
-                  <Trash2 className="h-4 w-4" />
+                  <Icon icon="ph:trash-fill" className="h-4 w-4" />
                 </Button>
               </div>
               <Field label="Image URL"><Input value={image.src || ''} onChange={(e) => updateImage(i, { src: e.target.value })} /></Field>
@@ -89,7 +89,7 @@ export function GalleryInspector({
             </div>
           ))}
           <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={addImage}>
-            <Plus className="h-3 w-3" /> Add Image
+            <Icon icon="ph:plus-fill" className="h-3 w-3" /> Add Image
           </Button>
         </div>
       </Section>

@@ -1,6 +1,6 @@
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { X, ChevronDown, ChevronUp } from 'lucide-react'
+import { Icon } from '@iconify/react'
 
 // Simple helper components for block inspectors to maintain layout consistency
 
@@ -36,9 +36,9 @@ export const ItemAccordion = ({
       <span className="text-[10px] font-bold truncate uppercase">{title}</span>
       <div className="flex items-center gap-1">
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); onRemove(); }}>
-          <X className="h-3 w-3 text-destructive" />
+          <Icon icon="ph:x-fill" className="h-3 w-3 text-destructive" />
         </Button>
-        {isOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        {isOpen ? <Icon icon="ph:caret-up-fill" className="h-3 w-3" /> : <Icon icon="ph:caret-down-fill" className="h-3 w-3" />}
       </div>
     </div>
     {isOpen && <div className="p-3 space-y-3 border-t bg-background">{children}</div>}

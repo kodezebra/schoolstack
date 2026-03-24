@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { ImagePlus, Plus, X } from 'lucide-react'
+import { Icon } from '@iconify/react'
 import { Section, Field } from '../common'
 import { MediaPicker } from '../../MediaPicker'
 import { IconPicker } from '../../IconPicker'
@@ -31,12 +31,12 @@ export function ContentInspector({ content, onUpdateContent }: { content: any, o
                 onUpdateContent({ ...content, features: newFeatures })
               }} />
               <Button variant="ghost" size="icon" onClick={() => onUpdateContent({ ...content, features: content.features.filter((_: any, idx: number) => idx !== i) })}>
-                <X className="h-4 w-4" />
+                <Icon icon="ph:x-fill" className="h-4 w-4" />
               </Button>
             </div>
           ))}
           <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => onUpdateContent({ ...content, features: [...(content.features || []), 'New Checklist Item'] })}>
-            <Plus className="h-3 w-3" /> Add Item
+            <Icon icon="ph:plus-fill" className="h-3 w-3" /> Add Item
           </Button>
         </div>
       </div>
@@ -44,7 +44,7 @@ export function ContentInspector({ content, onUpdateContent }: { content: any, o
       <Section title="Image">
         <div className="flex items-center gap-2">
           <Input value={content.image || ''} onChange={(e) => onUpdateContent({ ...content, image: e.target.value })} className="flex-1" />
-          <MediaPicker onSelect={(url) => onUpdateContent({ ...content, image: url })} trigger={<Button variant="outline" size="icon"><ImagePlus className="h-4 w-4" /></Button>} />
+          <MediaPicker onSelect={(url) => onUpdateContent({ ...content, image: url })} trigger={<Button variant="outline" size="icon"><Icon icon="ph:image-plus-fill" className="h-4 w-4" /></Button>} />
         </div>
       </Section>
       <Section title="CTA Button">

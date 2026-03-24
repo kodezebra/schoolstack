@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Plus } from 'lucide-react'
+import { Icon } from '@iconify/react'
 import { Section, Field, ItemAccordion } from '../common'
 import { IconPicker } from '../../IconPicker'
 
@@ -81,7 +81,7 @@ export function ServicesInspector({
             </ItemAccordion>
           ))}
           <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={addItem}>
-            <Plus className="h-3 w-3" /> Add Service
+            <Icon icon="ph:plus-fill" className="h-3 w-3" /> Add Service
           </Button>
         </div>
       </Section>

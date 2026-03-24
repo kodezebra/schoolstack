@@ -182,19 +182,19 @@ export interface TextContent extends CommonBlockContent {
 // --- Unified Types ---
 
 export type BlockType =
-  | 'navbar' | 'hero' | 'features' | 'content' | 'stats'
+  | 'hero' | 'features' | 'content' | 'stats'
   | 'team' | 'testimonials' | 'cta' | 'steps' | 'values'
-  | 'splitContent' | 'videoGallery' | 'faq' | 'footer' | 'text'
+  | 'splitContent' | 'videoGallery' | 'faq' | 'text'
   | 'pricing' | 'gallery' | 'services' | 'contact-form';
 
 export interface Block {
   id: string;
   type: BlockType;
   content:
-    | NavbarContent | HeroContent | FeaturesContent | ContentBlockContent
+    | HeroContent | FeaturesContent | ContentBlockContent
     | StatsContent | TeamContent | TestimonialsContent | CtaContent
     | StepsContent | ValuesContent | SplitContentContent | VideoGalleryContent
-    | FaqContent | FooterContent | TextContent
+    | FaqContent | TextContent
     | PricingContent | GalleryContent | ServicesContent | ContactFormContent;
 }
 

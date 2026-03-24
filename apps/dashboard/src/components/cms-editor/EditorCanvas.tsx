@@ -15,14 +15,12 @@ import {
 import type { Block } from './types'
 
 // Block Components
-import { NavbarBlock } from './blocks/navbar/NavbarBlock'
 import { HeroBlock } from './blocks/hero/HeroBlock'
 import { FeaturesBlock } from './blocks/features/FeaturesBlock'
 import { ContentBlock } from './blocks/content/ContentBlock'
 import { StatsBlock } from './blocks/stats/StatsBlock'
 import { TeamBlock } from './blocks/team/TeamBlock'
 import { TestimonialsBlock } from './blocks/testimonials/TestimonialsBlock'
-import { FooterBlock } from './blocks/footer/FooterBlock'
 import { TextBlock } from './blocks/text/TextBlock'
 import { CtaBlock } from './blocks/cta/CtaBlock'
 import { StepsBlock } from './blocks/steps/StepsBlock'
@@ -76,14 +74,12 @@ export function EditorCanvas({
 
   const renderBlock = (block: Block) => {
     switch (block.type) {
-      case 'navbar': return <NavbarBlock content={block.content as any} />
       case 'hero': return <HeroBlock content={block.content as any} />
       case 'features': return <FeaturesBlock content={block.content as any} />
       case 'content': return <ContentBlock content={block.content as any} />
       case 'stats': return <StatsBlock content={block.content as any} />
       case 'team': return <TeamBlock content={block.content as any} />
       case 'testimonials': return <TestimonialsBlock content={block.content as any} />
-      case 'footer': return <FooterBlock content={block.content as any} />
       case 'cta': return <CtaBlock content={block.content as any} />
       case 'steps': return <StepsBlock content={block.content as any} />
       case 'values': return <ValuesBlock content={block.content as any} />

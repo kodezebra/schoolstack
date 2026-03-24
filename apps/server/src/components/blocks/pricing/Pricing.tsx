@@ -1,4 +1,4 @@
-import { getPadding } from '../utils'
+import { getPadding, IconSvg } from '../utils'
 
 export const Pricing = ({ content }: { content: any }) => (
   <section className="py-32 bg-white dark:bg-slate-950" style={getPadding(content.styles)}>
@@ -48,7 +48,7 @@ export const Pricing = ({ content }: { content: any }) => (
             <ul className="space-y-4 mb-8">
               {tier.features?.map((feature: string, j: number) => (
                 <li key={j} className="flex items-start gap-3">
-                  <i data-lucide="check" className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <IconSvg icon="check" className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
                   <span className="text-slate-600 dark:text-slate-300">{feature}</span>
                 </li>
               ))}

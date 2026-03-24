@@ -1,8 +1,10 @@
+import { IconSvg } from '../utils'
+
 export const Navbar = ({ content, settings }: { content: any; settings?: any }) => {
   const logoText = content.logoText || settings?.logoText || "KZ Cloud"
   const logoIcon = content.logoIcon || settings?.logoIcon || "layout"
-  const logoType = content.logoType || "icon"
-  const logoImage = content.logoImage || ""
+  const logoType = content.logoType || settings?.logoType || "icon"
+  const logoImage = content.logoImage || settings?.logoImage || ""
   
   return (
     <nav className="sticky top-0 z-50 w-full bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50">
@@ -12,7 +14,7 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
             {logoType === 'image' && logoImage ? (
               <img src={logoImage} alt={logoText} className="h-9 w-auto object-contain" />
             ) : (
-              <i data-lucide={logoIcon} className="text-primary w-9 h-9"></i>
+              <IconSvg icon={logoIcon} className="text-primary w-9 h-9" />
             )}
             <span className="text-2xl font-display font-bold tracking-tight text-slate-900 dark:text-white">
               {logoText}
@@ -28,7 +30,7 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
                       onclick={`document.getElementById('dropdown-${index}').classList.toggle('hidden'); document.getElementById('dropdown-${index}').classList.toggle('block')`}
                     >
                       {link.label}
-                      <i data-lucide="chevron-down" className="w-4 h-4"></i>
+                      <IconSvg icon="chevron-down" className="w-4 h-4" />
                     </button>
                     <div id={`dropdown-${index}`} className="hidden absolute top-full left-0 mt-2 w-56 py-2 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 z-50">
                       {link.children.map((child: any) => (
@@ -53,8 +55,8 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
                 className="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors cursor-pointer"
                 title="Toggle Theme"
               >
-                <i data-lucide="sun" className="hidden dark:block w-5 h-5"></i>
-                <i data-lucide="moon" className="block dark:hidden w-5 h-5"></i>
+                <IconSvg icon="sun" className="hidden dark:block w-5 h-5" />
+                <IconSvg icon="moon" className="block dark:hidden w-5 h-5" />
               </button>
               {content.cta && (
                 <a
@@ -71,21 +73,20 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
               onclick="window.toggleTheme()"
               className="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors cursor-pointer"
             >
-              <i data-lucide="sun" className="hidden dark:block w-5 h-5"></i>
-              <i data-lucide="moon" className="block dark:hidden w-5 h-5"></i>
+              <IconSvg icon="sun" className="hidden dark:block w-5 h-5" />
+              <IconSvg icon="moon" className="block dark:hidden w-5 h-5" />
             </button>
             <button 
               id="mobile-menu-button"
               className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
               onclick="document.getElementById('mobile-menu').classList.toggle('hidden')"
             >
-              <i data-lucide="menu" className="w-8 h-8"></i>
+              <IconSvg icon="menu" className="w-8 h-8" />
             </button>
           </div>
         </div>
       </div>
       
-      {/* Mobile Menu */}
       <div id="mobile-menu" className="hidden md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-in slide-in-from-top duration-300">
         <div className="px-4 pt-2 pb-6 space-y-1">
           {content.links?.map((link: any, index: number) => (
@@ -97,7 +98,7 @@ export const Navbar = ({ content, settings }: { content: any; settings?: any }) 
                     onclick={`document.getElementById('mobile-dropdown-${index}').classList.toggle('hidden')`}
                   >
                     {link.label}
-                    <i data-lucide="chevron-down" className="w-5 h-5"></i>
+                    <IconSvg icon="chevron-down" className="w-5 h-5" />
                   </button>
                   <div id={`mobile-dropdown-${index}`} className="hidden pl-4 space-y-1">
                     {link.children.map((child: any) => (

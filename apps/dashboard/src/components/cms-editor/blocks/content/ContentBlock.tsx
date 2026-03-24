@@ -1,7 +1,6 @@
+import { Icon } from '@iconify/react'
 import { renderDynamicIcon } from '../utils'
-import { Image as ImageIcon } from 'lucide-react'
 
-// Split content section rendering on the canvas
 export function ContentBlock({ content }: { content: any }) {
   return (
     <div className="py-20 px-12 flex items-center gap-16 bg-white">
@@ -10,7 +9,7 @@ export function ContentBlock({ content }: { content: any }) {
           <img src={content.image} alt="" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-slate-300">
-            <ImageIcon className="h-20 w-20" />
+            <Icon icon="ph:image-fill" className="h-20 w-20" />
           </div>
         )}
         <div className="absolute inset-0 bg-primary/10 mix-blend-overlay"></div>

@@ -1,4 +1,4 @@
-import { Play } from 'lucide-react'
+import { Icon } from '@iconify/react'
 
 export function VideoGalleryBlock({ content }: { content: any }) {
   return (
@@ -17,7 +17,7 @@ export function VideoGalleryBlock({ content }: { content: any }) {
             )}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                <Play className="h-6 w-6 text-slate-900 fill-current" />
+                <Icon icon="ph:play-fill" className="h-6 w-6 text-slate-900" />
               </div>
             </div>
             <div className="absolute bottom-6 left-6 right-6">

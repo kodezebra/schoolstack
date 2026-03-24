@@ -1,4 +1,4 @@
-import { getPadding } from '../utils'
+import { getPadding, IconSvg } from '../utils'
 
 export const Values = ({ content }: { content: any }) => (
   <section className="py-32 bg-slate-50 dark:bg-slate-900/50" style={getPadding(content.styles)}>
@@ -21,9 +21,9 @@ export const Values = ({ content }: { content: any }) => (
           <div key={index} className="group flex flex-col gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark/50 p-8 hover:border-primary/50 transition-colors">
             <div className="text-primary bg-primary/10 w-14 h-14 rounded-xl flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
               {item.icon ? (
-                <i data-lucide={item.icon} className="w-7 h-7"></i>
+                <IconSvg icon={item.icon} className="w-7 h-7" />
               ) : (
-                <i data-lucide="star" className="w-7 h-7"></i>
+                <IconSvg icon="star" className="w-7 h-7" />
               )}
             </div>
             <div className="flex flex-col gap-2">

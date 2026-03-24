@@ -1,8 +1,13 @@
-import { getPadding, SocialIcon } from '../utils'
+import { getPadding, renderIcon, IconSvg } from '../utils'
 
 export const Footer = ({ dashboardUrl, content, settings }: { dashboardUrl: string; content: any; settings?: any }) => {
   const logoText = content?.logoText || settings?.logoText || "KZ Cloud"
   const logoIcon = content?.logoIcon || settings?.logoIcon || "layout"
+  const logoType = content?.logoType || settings?.logoType || "icon"
+  const logoImage = content?.logoImage || settings?.logoImage || ""
+  const logoLayout = content?.logoLayout || 'horizontal'
+  const isMonochrome = content?.monochrome === true
+  
   const description = content?.description || settings?.footerDescription || "Empowering businesses with cutting-edge digital solutions and forward-thinking design."
   
   const schoolName = settings?.schoolName
@@ -12,7 +17,6 @@ export const Footer = ({ dashboardUrl, content, settings }: { dashboardUrl: stri
   
   const showContactInfo = schoolName || schoolAddress || schoolPhone || schoolEmail
   
-  // Use custom columns if provided, otherwise fallback to default
   const columns = content?.columns || [
     { title: 'Product', links: [{ label: 'Features', href: '#' }, { label: 'Integrations', href: '#' }, { label: 'Pricing', href: '#' }] },
     { title: 'Company', links: [{ label: 'About Us', href: '#' }, { label: 'Careers', href: '#' }] }
@@ -20,8 +24,8 @@ export const Footer = ({ dashboardUrl, content, settings }: { dashboardUrl: stri
 
   const socials = content?.socials || [
     { platform: 'Globe', url: '#', icon: 'globe' },
-    { platform: 'Mail', url: '#', icon: 'mail' },
-    { platform: 'Share', url: '#', icon: 'share-2' }
+    { platform: 'Email', url: '#', icon: 'email' },
+    { platform: 'Share', url: '#', icon: 'share' }
   ]
 
   return (
@@ -29,9 +33,13 @@ export const Footer = ({ dashboardUrl, content, settings }: { dashboardUrl: stri
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-24">
           <div className="col-span-2">
-            <div className="flex items-center gap-2 mb-8">
-              <i data-lucide={logoIcon} className="text-primary w-9 h-9"></i>
-              <span className="text-2xl font-display font-bold tracking-tight text-slate-900 dark:text-white">
+            <div className={`flex ${logoLayout === 'vertical' ? 'flex-col items-start gap-4' : 'items-center gap-2'} mb-8 ${isMonochrome ? 'grayscale opacity-80' : ''}`}>
+              {logoType === 'image' && logoImage ? (
+                <img src={logoImage} alt={logoText} className={`${logoLayout === 'vertical' ? 'h-16' : 'h-9'} w-auto object-contain`} />
+              ) : (
+                <IconSvg icon={logoIcon} className={`text-primary ${logoLayout === 'vertical' ? 'w-12 h-12' : 'w-9 h-9'}`} />
+              )}
+              <span className={`${logoLayout === 'vertical' ? 'text-3xl' : 'text-2xl'} font-display font-bold tracking-tight text-slate-900 dark:text-white`}>
                 {logoText}
               </span>
             </div>
@@ -46,7 +54,7 @@ export const Footer = ({ dashboardUrl, content, settings }: { dashboardUrl: stri
                   title={social.platform}
                   className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-primary hover:text-white hover:border-primary transition-all text-slate-600 dark:text-slate-300 shadow-sm"
                 >
-                  <SocialIcon icon={social.icon || "external-link"} className="w-6 h-6" />
+                  <IconSvg icon={social.icon || "external-link"} className="w-6 h-6" />
                 </a>
               ))}
             </div>
@@ -73,15 +81,15 @@ export const Footer = ({ dashboardUrl, content, settings }: { dashboardUrl: stri
               <ul className="space-y-4 text-slate-500 dark:text-slate-400 font-medium">
                 {schoolName && <li>{schoolName}</li>}
                 {schoolAddress && <li className="flex items-start gap-2">
-                  <i data-lucide="map-pin" className="w-4 h-4 mt-0.5 shrink-0"></i>
+                  <IconSvg icon="map-pin" className="w-4 h-4 mt-0.5 shrink-0" />
                   <span>{schoolAddress}</span>
                 </li>}
                 {schoolPhone && <li className="flex items-center gap-2">
-                  <i data-lucide="phone" className="w-4 h-4 shrink-0"></i>
+                  <IconSvg icon="phone" className="w-4 h-4 shrink-0" />
                   <a href={`tel:${schoolPhone}`} className="hover:text-primary">{schoolPhone}</a>
                 </li>}
                 {schoolEmail && <li className="flex items-center gap-2">
-                  <i data-lucide="mail" className="w-4 h-4 shrink-0"></i>
+                  <IconSvg icon="mail" className="w-4 h-4 shrink-0" />
                   <a href={`mailto:${schoolEmail}`} className="hover:text-primary">{schoolEmail}</a>
                 </li>}
               </ul>
@@ -99,7 +107,7 @@ export const Footer = ({ dashboardUrl, content, settings }: { dashboardUrl: stri
           <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">© {new Date().getFullYear()} {logoText} Inc. All rights reserved.</p>
           <div className="flex items-center gap-8">
             <span className="text-sm text-slate-500 dark:text-slate-400 font-medium flex items-center gap-2">
-              <i data-lucide="globe" className="w-4 h-4"></i> English (US)
+              <IconSvg icon="globe" className="w-4 h-4" /> English (US)
             </span>
           </div>
         </div>

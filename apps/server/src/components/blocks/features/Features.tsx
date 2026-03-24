@@ -1,4 +1,4 @@
-import { getPadding } from '../utils'
+import { getPadding, IconSvg } from '../utils'
 
 export const Features = ({ content }: { content: any }) => (
   <section className="py-32 bg-slate-50 dark:bg-slate-900/50" style={getPadding(content.styles)}>
@@ -18,7 +18,7 @@ export const Features = ({ content }: { content: any }) => (
         {content.items?.map((item: any) => (
           <div className="group p-10 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-primary/50 transition-all shadow-xl shadow-slate-200/50 dark:shadow-none hover:-translate-y-2">
             <div className={`w-16 h-16 ${item.bgClass || "bg-primary/10"} rounded-xl flex items-center justify-center mb-8 ${item.iconClass || "text-primary"} group-hover:scale-110 transition-transform`}>
-              <i data-lucide={item.icon || "zap"} className="w-10 h-10"></i>
+              <IconSvg icon={item.icon || "zap"} className="w-10 h-10" />
             </div>
             <h4 className="text-2xl font-display font-bold mb-4">{item.title}</h4>
             <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{item.text}</p>

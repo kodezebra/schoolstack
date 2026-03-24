@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Plus, Trash2 } from 'lucide-react'
+import { Icon } from '@iconify/react'
 import { Section, Field, ItemAccordion } from '../common'
 import { Switch } from "@/components/ui/switch"
 
@@ -118,19 +118,19 @@ export function PricingInspector({
                         className="flex-1"
                       />
                       <Button variant="ghost" size="icon" onClick={() => removeFeature(i, j)}>
-                        <Trash2 className="h-4 w-4" />
+                        <Icon icon="ph:trash-fill" className="h-4 w-4" />
                       </Button>
                     </div>
                   ))}
                   <Button variant="outline" size="sm" className="w-full" onClick={() => addFeature(i)}>
-                    <Plus className="h-3 w-3 mr-1" /> Add Feature
+                    <Icon icon="ph:plus-fill" className="h-3 w-3 mr-1" /> Add Feature
                   </Button>
                 </div>
               </div>
             </ItemAccordion>
           ))}
           <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={addTier}>
-            <Plus className="h-3 w-3" /> Add Pricing Tier
+            <Icon icon="ph:plus-fill" className="h-3 w-3" /> Add Pricing Tier
           </Button>
         </div>
       </Section>

@@ -1,4 +1,4 @@
-import { getPadding } from '../utils'
+import { getPadding, IconSvg } from '../utils'
 
 export const Services = ({ content }: { content: any }) => (
   <section className="py-32 bg-slate-50 dark:bg-slate-900/50" style={getPadding(content.styles)}>
@@ -22,14 +22,14 @@ export const Services = ({ content }: { content: any }) => (
               className="flex gap-6 p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-primary/50 transition-colors"
             >
               <div className={`w-14 h-14 ${item.bgClass || "bg-primary/10"} rounded-xl flex items-center justify-center flex-shrink-0 ${item.iconClass || "text-primary"}`}>
-                <i data-lucide={item.icon || "zap"} className="w-7 h-7" />
+                <IconSvg icon={item.icon || "zap"} className="w-7 h-7" />
               </div>
               <div>
                 <h4 className="text-xl font-display font-bold text-slate-900 dark:text-white">{item.title}</h4>
                 <p className="text-slate-600 dark:text-slate-400 mt-2">{item.description}</p>
                 {item.link && (
                   <a href={item.link} className="inline-flex items-center gap-1 text-primary font-semibold mt-3 hover:underline">
-                    Learn more <i data-lucide="arrow-right" className="w-4 h-4" />
+                    Learn more <IconSvg icon="arrow-right" className="w-4 h-4" />
                   </a>
                 )}
               </div>
@@ -44,13 +44,13 @@ export const Services = ({ content }: { content: any }) => (
               className="group p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-primary/50 transition-all shadow-lg shadow-slate-200/50 dark:shadow-none hover:-translate-y-1"
             >
               <div className={`w-14 h-14 ${item.bgClass || "bg-primary/10"} rounded-xl flex items-center justify-center mb-6 ${item.iconClass || "text-primary"} group-hover:scale-110 transition-transform`}>
-                <i data-lucide={item.icon || "zap"} className="w-7 h-7" />
+                <IconSvg icon={item.icon || "zap"} className="w-7 h-7" />
               </div>
               <h4 className="text-xl font-display font-bold text-slate-900 dark:text-white">{item.title}</h4>
               <p className="text-slate-600 dark:text-slate-400 mt-3 leading-relaxed">{item.description}</p>
               {item.link && (
                 <a href={item.link} className="inline-flex items-center gap-1 text-primary font-semibold mt-4 hover:underline">
-                  Learn more <i data-lucide="arrow-right" className="w-4 h-4" />
+                  Learn more <IconSvg icon="arrow-right" className="w-4 h-4" />
                 </a>
               )}
             </div>

@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Plus, ImagePlus } from 'lucide-react'
+import { Icon } from '@iconify/react'
 import { Section, Field, ItemAccordion } from '../common'
 import { MediaPicker } from '../../MediaPicker'
 
@@ -47,14 +47,14 @@ export function VideoGalleryInspector({
               <Field label="Thumbnail URL">
                 <div className="flex items-center gap-2">
                   <Input value={item.thumbnail || ''} onChange={(e) => updateItem('items', i, { thumbnail: e.target.value })} className="flex-1" />
-                  <MediaPicker onSelect={(url) => updateItem('items', i, { thumbnail: url })} trigger={<Button variant="outline" size="icon"><ImagePlus className="h-4 w-4" /></Button>} />
+                  <MediaPicker onSelect={(url) => updateItem('items', i, { thumbnail: url })} trigger={<Button variant="outline" size="icon"><Icon icon="ph:image-plus-fill" className="h-4 w-4" /></Button>} />
                 </div>
               </Field>
               <Field label="Video URL"><Input value={item.videoUrl || ''} onChange={(e) => updateItem('items', i, { videoUrl: e.target.value })} placeholder="https://youtube.com/..." /></Field>
             </ItemAccordion>
           ))}
           <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => addItem('items', { title: 'New Video', thumbnail: '', videoUrl: '' })}>
-            <Plus className="h-3 w-3" /> Add Video
+            <Icon icon="ph:plus-fill" className="h-3 w-3" /> Add Video
           </Button>
         </div>
       </Section>

@@ -1,4 +1,4 @@
-import { ChevronDown } from 'lucide-react'
+import { Icon } from '@iconify/react'
 
 export function FaqBlock({ content }: { content: any }) {
   return (
@@ -12,7 +12,7 @@ export function FaqBlock({ content }: { content: any }) {
           <div key={i} className="border-b pb-4">
             <div className="flex items-center justify-between font-bold py-2">
               <span>{item.question}</span>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              <Icon icon="ph:caret-down-fill" className="h-4 w-4 text-muted-foreground" />
             </div>
             <p className="text-sm text-slate-500 mt-2">{item.answer}</p>
           </div>

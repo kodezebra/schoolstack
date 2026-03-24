@@ -1,4 +1,4 @@
-import { getPadding } from '../utils'
+import { getPadding, IconSvg } from '../utils'
 
 export const Hero = ({ content }: { content: any }) => (
   <header 
@@ -14,6 +14,23 @@ export const Hero = ({ content }: { content: any }) => (
   >
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
       <div className="max-w-3xl">
+        {content.badge && (
+          <div className={`mb-10 inline-flex items-center gap-3 px-5 py-3 rounded-full text-xs sm:text-sm font-black tracking-[0.15em] uppercase animate-in fade-in slide-in-from-bottom-4 duration-700 whitespace-nowrap ${
+            content.badgeVariant === 'glass' 
+              ? 'bg-white/10 backdrop-blur-md border border-white/20 text-white' 
+              : 'bg-accent text-white shadow-xl shadow-accent/40 ring-2 ring-accent/30'
+          }`}>
+            {content.badgeIcon ? (
+              <IconSvg icon={content.badgeIcon} className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+            ) : (
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+              </span>
+            )}
+            <span className="font-semibold tracking-[0.1em]">{content.badge}</span>
+          </div>
+        )}
         <h1 className="text-5xl font-display font-bold tracking-tight sm:text-7xl mb-8 leading-[1.1]">
           {content.title || "Design Your Future with Precision"}
         </h1>

@@ -10,6 +10,11 @@ export function HeroBlock({ content }: { content: any }) {
       } : {}}
     >
       {!content.image && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/5 rounded-full blur-3xl -z-10"></div>}
+      {content.badge && (
+        <div className="mb-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black tracking-[0.15em] uppercase bg-primary text-white shadow-lg shadow-primary/30">
+          <span>{content.badge}</span>
+        </div>
+      )}
       <h1 className="text-6xl font-black tracking-tight leading-[1.1]">
         {content.title}
       </h1>

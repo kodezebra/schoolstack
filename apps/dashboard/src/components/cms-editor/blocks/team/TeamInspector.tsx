@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Plus, ImagePlus } from 'lucide-react'
+import { Icon } from '@iconify/react'
 import { Section, Field, ItemAccordion } from '../common'
 import { MediaPicker } from '../../MediaPicker'
 
@@ -47,13 +47,13 @@ export function TeamInspector({
               <Field label="Photo URL">
                 <div className="flex items-center gap-2">
                   <Input value={m.image || ''} onChange={(e) => updateItem('members', i, { image: e.target.value })} className="flex-1" />
-                  <MediaPicker onSelect={(url) => updateItem('members', i, { image: url })} trigger={<Button variant="outline" size="icon"><ImagePlus className="h-4 w-4" /></Button>} />
+                  <MediaPicker onSelect={(url) => updateItem('members', i, { image: url })} trigger={<Button variant="outline" size="icon"><Icon icon="ph:image-plus-fill" className="h-4 w-4" /></Button>} />
                 </div>
               </Field>
             </ItemAccordion>
           ))}
           <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => addItem('members', { name: 'Member Name', role: 'Role', image: '' })}>
-            <Plus className="h-3 w-3" /> Add Member
+            <Icon icon="ph:plus-fill" className="h-3 w-3" /> Add Member
           </Button>
         </div>
       </Section>

@@ -1,4 +1,4 @@
-import { Users } from 'lucide-react'
+import { Icon } from '@iconify/react'
 
 export function TeamBlock({ content }: { content: any }) {
   return (
@@ -15,7 +15,7 @@ export function TeamBlock({ content }: { content: any }) {
                 <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-300">
-                  <Users className="h-10 w-10" />
+                  <Icon icon="ph:users-fill" className="h-10 w-10" />
                 </div>
               )}
             </div>

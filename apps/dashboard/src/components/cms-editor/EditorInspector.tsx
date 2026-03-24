@@ -7,14 +7,12 @@ import { useState } from 'react'
 import type { Block } from './types'
 
 // Modular Inspectors
-import { NavbarInspector } from './blocks/navbar/NavbarInspector'
 import { HeroInspector } from './blocks/hero/HeroInspector'
 import { FeaturesInspector } from './blocks/features/FeaturesInspector'
 import { ContentInspector } from './blocks/content/ContentInspector'
 import { StatsInspector } from './blocks/stats/StatsInspector'
 import { TeamInspector } from './blocks/team/TeamInspector'
 import { TestimonialsInspector } from './blocks/testimonials/TestimonialsInspector'
-import { FooterInspector } from './blocks/footer/FooterInspector'
 import { TextInspector } from './blocks/text/TextInspector'
 import { CtaInspector } from './blocks/cta/CtaInspector'
 import { StepsInspector } from './blocks/steps/StepsInspector'
@@ -54,8 +52,6 @@ export function EditorInspector({
   // Validation: Check for empty required fields
   const hasEmptyRequired = !(selectedBlock.content as any).title && 
     !(selectedBlock.content as any).text && 
-    selectedBlock.type !== 'navbar' && 
-    selectedBlock.type !== 'footer' &&
     selectedBlock.type !== 'stats'
 
   const toggleItem = (index: number) => {
@@ -77,14 +73,12 @@ export function EditorInspector({
     }
 
     switch (selectedBlock.type) {
-      case 'navbar': return <NavbarInspector {...commonProps} />
       case 'hero': return <HeroInspector content={content as any} onUpdateContent={onUpdateContent} />
       case 'features': return <FeaturesInspector {...commonProps} />
       case 'content': return <ContentInspector content={content as any} onUpdateContent={onUpdateContent} />
       case 'stats': return <StatsInspector content={content as any} onUpdateContent={onUpdateContent} />
       case 'team': return <TeamInspector {...commonProps} />
       case 'testimonials': return <TestimonialsInspector {...commonProps} />
-      case 'footer': return <FooterInspector content={content as any} onUpdateContent={onUpdateContent} />
       case 'cta': return <CtaInspector content={content as any} onUpdateContent={onUpdateContent} />
       case 'steps': return <StepsInspector {...commonProps} />
       case 'values': return <ValuesInspector {...commonProps} />

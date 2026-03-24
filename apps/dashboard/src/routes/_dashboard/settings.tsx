@@ -10,8 +10,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
+import { Icon } from '@iconify/react'
 import { IconPicker } from '@/components/cms-editor/IconPicker'
 import { MediaPicker } from '@/components/cms-editor/MediaPicker'
+import { PageSelector } from '@/components/cms-editor/PageSelector'
 // import { cn } from '@/lib/utils'
 import {
   Palette,
@@ -1312,11 +1314,10 @@ function SettingsPage() {
                           placeholder="Link label"
                           className="flex-1"
                         />
-                        <Input
+                        <PageSelector
                           value={link.href}
-                          onChange={(e) => updateNavbarLink(index, 'href', e.target.value)}
+                          onChange={(value) => updateNavbarLink(index, 'href', value)}
                           placeholder="/page"
-                          className="flex-1 font-mono text-sm"
                         />
                         <Button
                           variant="ghost"
@@ -1338,11 +1339,10 @@ function SettingsPage() {
                                 placeholder="Child label"
                                 className="flex-1"
                               />
-                              <Input
+                              <PageSelector
                                 value={child.href}
-                                onChange={(e) => updateNavbarChildLink(index, childIndex, 'href', e.target.value)}
+                                onChange={(value) => updateNavbarChildLink(index, childIndex, 'href', value)}
                                 placeholder="/child"
-                                className="flex-1 font-mono text-sm"
                               />
                               <Button
                                 variant="ghost"
@@ -1408,15 +1408,15 @@ function SettingsPage() {
                       </div>
                       <div>
                         <Label htmlFor="ctaHref">Button URL</Label>
-                        <Input
-                          id="ctaHref"
-                          value={parsedSettings.navbarCta.href}
-                          onChange={(e) =>
-                            updateSetting('navbarCta', { ...parsedSettings.navbarCta, href: e.target.value })
-                          }
-                          placeholder="/contact"
-                          className="mt-1.5 font-mono"
-                        />
+                        <div className="mt-1.5">
+                          <PageSelector
+                            value={parsedSettings.navbarCta.href}
+                            onChange={(value) =>
+                              updateSetting('navbarCta', { ...parsedSettings.navbarCta, href: value })
+                            }
+                            placeholder="/contact"
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1461,11 +1461,10 @@ function SettingsPage() {
                               placeholder="Link label"
                               className="flex-1 text-sm"
                             />
-                            <Input
+                            <PageSelector
                               value={link.href}
-                              onChange={(e) => updateFooterLink(colIndex, linkIndex, 'href', e.target.value)}
+                              onChange={(value) => updateFooterLink(colIndex, linkIndex, 'href', value)}
                               placeholder="/page"
-                              className="flex-1 font-mono text-sm"
                             />
                             <Button
                               variant="ghost"
@@ -1510,11 +1509,12 @@ function SettingsPage() {
                         value={social.icon}
                         onSelect={(icon) => updateFooterSocial(index, 'icon', icon)}
                         trigger={
-                          <Button variant="outline" size="sm" className="gap-2">
-                            <Globe className="h-4 w-4" />
-                            <span className="capitalize">{social.icon}</span>
+                          <Button variant="outline" size="sm" className="gap-2 w-[120px] justify-start">
+                            <Icon icon={social.icon ? `ph:${social.icon}` : 'ph:globe'} className="h-4 w-4" />
+                            <span className="capitalize truncate">{social.icon || 'Icon'}</span>
                           </Button>
                         }
+                        defaultTab="social"
                       />
                       <Input
                         value={social.platform}

@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Plus, ImagePlus } from 'lucide-react'
+import { Icon } from '@iconify/react'
 import { Section, Field, ItemAccordion } from '../common'
 import { MediaPicker } from '../../MediaPicker'
 
@@ -48,13 +48,13 @@ export function TestimonialsInspector({
               <Field label="Photo URL">
                 <div className="flex items-center gap-2">
                   <Input value={item.image || ''} onChange={(e) => updateItem('items', i, { image: e.target.value })} className="flex-1" />
-                  <MediaPicker onSelect={(url) => updateItem('items', i, { image: url })} trigger={<Button variant="outline" size="icon"><ImagePlus className="h-4 w-4" /></Button>} />
+                  <MediaPicker onSelect={(url) => updateItem('items', i, { image: url })} trigger={<Button variant="outline" size="icon"><Icon icon="ph:image-plus-fill" className="h-4 w-4" /></Button>} />
                 </div>
               </Field>
             </ItemAccordion>
           ))}
           <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => addItem('items', { name: 'Client Name', role: 'CEO', text: 'Feedback here', image: '' })}>
-            <Plus className="h-3 w-3" /> Add Testimonial
+            <Icon icon="ph:plus-fill" className="h-3 w-3" /> Add Testimonial
           </Button>
         </div>
       </Section>

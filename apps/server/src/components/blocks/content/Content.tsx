@@ -1,4 +1,4 @@
-import { getPadding } from '../utils'
+import { getPadding, IconSvg } from '../utils'
 
 export const Content = ({ content }: { content: any }) => (
   <section className="py-32 overflow-hidden bg-white dark:bg-background-dark" style={getPadding(content.styles)}>
@@ -27,7 +27,7 @@ export const Content = ({ content }: { content: any }) => (
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-12">
             {content.features?.map((f: string) => (
               <li className="flex items-center gap-3">
-                <i data-lucide={content.featureIcon || "check-circle"} className="text-primary w-6 h-6"></i>
+                <IconSvg icon={content.featureIcon || "check-circle"} className="text-primary w-6 h-6" />
                 <span className="font-bold text-slate-700 dark:text-slate-200">{f}</span>
               </li>
             ))}
@@ -39,7 +39,7 @@ export const Content = ({ content }: { content: any }) => (
                 <span className="absolute bottom-0 left-0 w-full h-0.5 bg-primary/30 scale-x-0 group-hover:scale-x-100 transition-transform origin-left"></span>
               </span>
               <div className="w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
-                <i data-lucide="arrow-right" className="w-5 h-5"></i>
+                <IconSvg icon="arrow-right" className="w-5 h-5" />
               </div>
             </a>
           )}

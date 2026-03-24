@@ -1,4 +1,4 @@
-import { getPadding } from '../utils'
+import { getPadding, IconSvg } from '../utils'
 
 export const VideoGallery = ({ content }: { content: any }) => (
   <section className="py-32 bg-slate-50 dark:bg-slate-900/50" style={getPadding(content.styles)}>
@@ -23,17 +23,17 @@ export const VideoGallery = ({ content }: { content: any }) => (
               <img src={item.thumbnail} alt={item.title || `Video ${index + 1}`} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-slate-300 to-slate-400 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center">
-                <i data-lucide="video" className="w-12 h-12 text-slate-500 dark:text-slate-600"></i>
+                <IconSvg icon="video" className="w-12 h-12 text-slate-500 dark:text-slate-600" />
               </div>
             )}
             <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               {item.videoUrl ? (
                 <a href={item.videoUrl} className="w-16 h-16 bg-primary/90 backdrop-blur-md rounded-full flex items-center justify-center border border-primary/50 cursor-pointer hover:scale-110 transition-transform">
-                  <i data-lucide="play" className="w-8 h-8 text-white fill-white"></i>
+                  <IconSvg icon="play" className="w-8 h-8 text-white" />
                 </a>
               ) : (
                 <div className="w-16 h-16 bg-primary/90 backdrop-blur-md rounded-full flex items-center justify-center border border-primary/50">
-                  <i data-lucide="play" className="w-8 h-8 text-white fill-white"></i>
+                  <IconSvg icon="play" className="w-8 h-8 text-white" />
                 </div>
               )}
             </div>

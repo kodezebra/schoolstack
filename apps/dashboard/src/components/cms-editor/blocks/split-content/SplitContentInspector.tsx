@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { ImagePlus } from 'lucide-react'
+import { Icon } from '@iconify/react'
 import { Section, Field } from '../common'
 import { MediaPicker } from '../../MediaPicker'
 
@@ -15,7 +15,7 @@ export function SplitContentInspector({ content, onUpdateContent }: { content: a
       <Section title="Image">
         <div className="flex items-center gap-2">
           <Input value={content.image || ''} onChange={(e) => onUpdateContent({ ...content, image: e.target.value })} className="flex-1" />
-          <MediaPicker onSelect={(url) => onUpdateContent({ ...content, image: url })} trigger={<Button variant="outline" size="icon"><ImagePlus className="h-4 w-4" /></Button>} />
+          <MediaPicker onSelect={(url) => onUpdateContent({ ...content, image: url })} trigger={<Button variant="outline" size="icon"><Icon icon="ph:image-plus-fill" className="h-4 w-4" /></Button>} />
         </div>
         <div className="mt-3">
           <label className="text-[10px] font-bold uppercase tracking-tight text-muted-foreground/80">Image Position</label>

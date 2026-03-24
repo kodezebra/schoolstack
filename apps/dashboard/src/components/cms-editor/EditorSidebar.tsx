@@ -4,7 +4,7 @@ import {
   Plus, Layers, MousePointer2, Box, Type,
   Layout, Zap, Eye,
   BarChart3, Users, MessageSquare, Megaphone,
-  PanelBottom, ListFilter, HeartHandshake, ImagePlay, CircleHelp,
+  ListFilter, HeartHandshake, ImagePlay, CircleHelp,
   Search, Sparkles, FileText, Image as ImageIcon, MessageCircle,
   ChevronUp, ChevronDown
 } from 'lucide-react'
@@ -32,9 +32,7 @@ interface BlockDefinition {
 }
 
 const AVAILABLE_BLOCKS: BlockDefinition[] = [
-  { type: 'navbar', icon: Layout, label: 'Navbar', description: 'Logo and navigation links', category: 'layout', color: 'from-blue-500 to-cyan-500' },
   { type: 'hero', icon: Box, label: 'Hero Section', description: 'Headline, subheadline, and background', category: 'layout', color: 'from-purple-500 to-pink-500' },
-  { type: 'footer', icon: PanelBottom, label: 'Footer', description: 'Bottom navigation and info', category: 'layout', color: 'from-slate-500 to-zinc-500' },
   { type: 'splitContent', icon: Layout, label: 'Split Content', description: 'Image and text side-by-side', category: 'layout', color: 'from-indigo-500 to-blue-500' },
   
   { type: 'features', icon: Zap, label: 'Features Grid', description: 'Highlight your services or features', category: 'content', color: 'from-amber-500 to-orange-500' },

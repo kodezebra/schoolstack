@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Plus } from 'lucide-react'
+import { Icon } from '@iconify/react'
 import { Section, Field, ItemAccordion } from '../common'
 
 export function FaqInspector({ 
@@ -47,7 +47,7 @@ export function FaqInspector({
             </ItemAccordion>
           ))}
           <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => addItem('items', { question: 'New Question', answer: 'Answer goes here' })}>
-            <Plus className="h-3 w-3" /> Add Question
+            <Icon icon="ph:plus-fill" className="h-3 w-3" /> Add Question
           </Button>
         </div>
       </Section>
