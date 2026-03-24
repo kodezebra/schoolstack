@@ -4,6 +4,7 @@ import { apiFetch } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { 
@@ -11,9 +12,17 @@ import {
   Trash2,
   Calendar,
   Check,
-  User
+  User,
+  Building2,
+  Phone,
+  Mail,
+  MapPin,
+  FileText,
+  Save,
+  Loader2,
+  Pencil
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Sheet,
   SheetContent,
@@ -21,7 +30,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet"
-import { Loader2, Pencil } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -31,6 +39,8 @@ import {
 } from "@/components/ui/select"
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useToast } from '@/components/ui/toast'
+import { REPORT_CARD_THEMES, DEFAULT_SETTINGS } from '../settings/settings.data'
+import type { ParsedSettings, SiteSettings, ReportCardTheme } from '../settings/settings.types'
 
 export const Route = createFileRoute('/_dashboard/school/settings')({
   component: SchoolSettingsPage,
@@ -180,7 +190,66 @@ function SchoolSettingsPage() {
   const [isAddLevelDialogOpen, setIsAddLevelDialogOpen] = useState(false)
   const [isEditLevelDialogOpen, setIsEditLevelDialogOpen] = useState(false)
   const [editingLevel, setEditingLevel] = useState<Level | null>(null)
+  const [parsedSettings, setParsedSettings] = useState<ParsedSettings>(DEFAULT_SETTINGS)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const { confirm, renderConfirmDialog } = useConfirmDialog()
+
+  const { data: settingsData, isLoading: settingsLoading } = useQuery({
+    queryKey: ['siteSettings'],
+    queryFn: async () => {
+      const res = await apiFetch('/settings')
+      if (!res.ok) throw new Error('Failed to fetch settings')
+      return res.json() as Promise<SiteSettings>
+    }
+  })
+
+  const saveSettingsMutation = useMutation({
+    mutationFn: async (settings: ParsedSettings) => {
+      const payload: Partial<SiteSettings> = {
+        schoolName: settings.schoolName,
+        schoolAddress: settings.schoolAddress,
+        schoolPhone: settings.schoolPhone,
+        schoolEmail: settings.schoolEmail,
+        reportCardTheme: settings.reportCardTheme
+      }
+      const res = await apiFetch('/settings', {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      })
+      if (!res.ok) throw new Error('Failed to save settings')
+      return res.json()
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['siteSettings'] })
+      setHasUnsavedChanges(false)
+      toast({ title: 'Settings saved', description: 'School settings have been updated.', variant: 'success' })
+    },
+    onError: (error) => {
+      toast({ title: 'Error', description: error instanceof Error ? error.message : 'Failed to save settings', variant: 'error' })
+    }
+  })
+
+  const updateSetting = (key: string, value: unknown) => {
+    setParsedSettings(prev => ({ ...prev, [key]: value }))
+    setHasUnsavedChanges(true)
+  }
+
+  const handleSaveSettings = () => {
+    saveSettingsMutation.mutate(parsedSettings)
+  }
+
+  useEffect(() => {
+    if (settingsData) {
+      setParsedSettings({
+        ...DEFAULT_SETTINGS,
+        schoolName: settingsData.schoolName || DEFAULT_SETTINGS.schoolName,
+        schoolAddress: settingsData.schoolAddress || DEFAULT_SETTINGS.schoolAddress,
+        schoolPhone: settingsData.schoolPhone || DEFAULT_SETTINGS.schoolPhone,
+        schoolEmail: settingsData.schoolEmail || DEFAULT_SETTINGS.schoolEmail,
+        reportCardTheme: settingsData.reportCardTheme || DEFAULT_SETTINGS.reportCardTheme
+      })
+    }
+  }, [settingsData])
 
   const { data: staff } = useQuery<Staff[]>({
     queryKey: ['school-staff'],
@@ -436,11 +505,104 @@ function SchoolSettingsPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="levels" className="space-y-4">
+      <Tabs defaultValue="info" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="levels">Classes</TabsTrigger>
-          <TabsTrigger value="years">Academic Years</TabsTrigger>
+          <TabsTrigger value="info">
+            <Building2 className="h-4 w-4 mr-2" />
+            School Info
+          </TabsTrigger>
+          <TabsTrigger value="levels">
+            <User className="h-4 w-4 mr-2" />
+            Classes
+          </TabsTrigger>
+          <TabsTrigger value="years">
+            <Calendar className="h-4 w-4 mr-2" />
+            Academic Years
+          </TabsTrigger>
+          <TabsTrigger value="reports">
+            <FileText className="h-4 w-4 mr-2" />
+            Reports
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="info">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="h-5 w-5" />
+                  School Information
+                </CardTitle>
+                <CardDescription>Basic details about your school</CardDescription>
+              </div>
+              <Button onClick={handleSaveSettings} disabled={!hasUnsavedChanges || saveSettingsMutation.isPending}>
+                {saveSettingsMutation.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                {saveSettingsMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="schoolName">School Name</Label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="schoolName"
+                      value={parsedSettings.schoolName}
+                      onChange={(e) => updateSetting('schoolName', e.target.value)}
+                      placeholder="Your School Name"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="schoolEmail">School Email</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="schoolEmail"
+                      type="email"
+                      value={parsedSettings.schoolEmail}
+                      onChange={(e) => updateSetting('schoolEmail', e.target.value)}
+                      placeholder="info@school.edu"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="schoolPhone">Phone Number</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="schoolPhone"
+                      type="tel"
+                      value={parsedSettings.schoolPhone}
+                      onChange={(e) => updateSetting('schoolPhone', e.target.value)}
+                      placeholder="+256 700 000 000"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="schoolAddress">Physical Address</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="schoolAddress"
+                      value={parsedSettings.schoolAddress}
+                      onChange={(e) => updateSetting('schoolAddress', e.target.value)}
+                      placeholder="123 School Street, City"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="years">
           <Card>
@@ -659,6 +821,101 @@ function SchoolSettingsPage() {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="reports">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Report Card Theme
+              </CardTitle>
+              <CardDescription>Choose a theme for your student report cards</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {REPORT_CARD_THEMES.map((theme: ReportCardTheme) => (
+                  <button
+                    key={theme.id}
+                    onClick={() => updateSetting('reportCardTheme', theme.id)}
+                    className={`p-4 rounded-lg border text-left transition-all ${
+                      parsedSettings.reportCardTheme === theme.id
+                        ? 'border-primary bg-primary/5 ring-2 ring-primary'
+                        : 'border-muted hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-semibold">{theme.name}</span>
+                      {parsedSettings.reportCardTheme === theme.id && (
+                        <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">{theme.description}</p>
+                    <div className="flex gap-1">
+                      <div className="w-6 h-6 rounded" style={{ backgroundColor: theme.colors.primary }} title="Primary" />
+                      <div className="w-6 h-6 rounded" style={{ backgroundColor: theme.colors.secondary }} title="Secondary" />
+                      <div className="w-6 h-6 rounded" style={{ backgroundColor: theme.colors.accent }} title="Accent" />
+                      <div className="w-6 h-6 rounded" style={{ backgroundColor: theme.colors.header }} title="Header" />
+                      <div className="w-6 h-6 rounded" style={{ backgroundColor: theme.colors.tableHeader }} title="Table Header" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-6 p-4 rounded-lg bg-muted/30">
+                <h4 className="font-medium text-sm mb-3">Preview</h4>
+                {(() => {
+                  const theme = REPORT_CARD_THEMES.find(t => t.id === parsedSettings.reportCardTheme) || REPORT_CARD_THEMES[0]
+                  return (
+                    <div className="rounded-lg overflow-hidden border" style={{ backgroundColor: theme.colors.background }}>
+                      <div className="p-4 text-white" style={{ backgroundColor: theme.colors.header }}>
+                        <div className="font-bold">{parsedSettings.schoolName || 'School Name'}</div>
+                        <div className="text-sm opacity-80">Student Report Card</div>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex justify-between mb-4">
+                          <div>
+                            <div className="font-semibold">Student Name</div>
+                            <div className="text-sm text-muted-foreground">Term 1, 2024</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm">Grade: P1</div>
+                            <div className="text-sm text-muted-foreground">Class: Primary 1</div>
+                          </div>
+                        </div>
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr style={{ backgroundColor: theme.colors.tableHeader, color: 'white' }}>
+                              <th className="p-2 text-left">Subject</th>
+                              <th className="p-2 text-center">Marks</th>
+                              <th className="p-2 text-center">Grade</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr style={{ backgroundColor: theme.colors.tableRow }}>
+                              <td className="p-2">Mathematics</td>
+                              <td className="p-2 text-center">85</td>
+                              <td className="p-2 text-center" style={{ color: theme.colors.primary }}>A</td>
+                            </tr>
+                            <tr>
+                              <td className="p-2">English</td>
+                              <td className="p-2 text-center">78</td>
+                              <td className="p-2 text-center" style={{ color: theme.colors.primary }}>B+</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="p-3 text-center text-sm" style={{ backgroundColor: theme.colors.footer }}>
+                        <span style={{ color: theme.colors.text }}>Total: 163/200</span>
+                      </div>
+                    </div>
+                  )
+                })()}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
