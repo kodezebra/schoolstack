@@ -7,24 +7,24 @@ export const Values = ({ content }: { content: any }) => {
     : ''
 
   return html`
-    <section class="py-32 bg-slate-50 dark:bg-slate-900/50" data-animate="fade-up" style="${paddingStyleStr}">
+    <section class="py-20 bg-slate-50 dark:bg-slate-900/50" data-animate="fade-up" style="${paddingStyleStr}">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16" data-animate-item>
-          ${content.tagline ? html`<h2 class="text-primary font-display font-bold tracking-[0.2em] uppercase text-sm mb-4">${content.tagline}</h2>` : ''}
-          <h3 class="text-4xl font-display font-bold text-slate-900 dark:text-white sm:text-5xl mb-6">
-            ${content.title || "Our Core Values"}
-          </h3>
+          ${content.tagline ? html`<span class="text-primary font-display font-bold tracking-[0.2em] uppercase text-sm mb-4 block">${content.tagline}</span>` : ''}
+          <h2 class="text-4xl md:text-5xl font-display font-bold text-slate-900 dark:text-white mb-6">
+            ${content.title || "Our Values"}
+          </h2>
           ${content.subtitle ? html`<p class="text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed max-w-2xl mx-auto">${content.subtitle}</p>` : ''}
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          ${(content.items || []).map((item: any, index: number) => raw(`
-            <div class="group flex flex-col gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark/50 p-8 hover:border-primary/50 transition-colors card-hover" data-animate-item>
-              <div class="text-primary bg-primary/10 w-14 h-14 rounded-xl flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-                ${renderIcon(item.icon || 'star', 'w-7 h-7')}
+          ${(content.items || []).map((item: any) => raw(`
+            <div class="group flex flex-col gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-8 hover:border-primary/50 hover:shadow-lg transition-all card-hover" data-animate-item>
+              <div class="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                ${renderIcon(item.icon || 'star', 'w-7 h-7 text-primary group-hover:text-white')}
               </div>
               <div class="flex flex-col gap-2">
-                <h4 class="text-slate-900 dark:text-slate-100 text-xl font-bold">${item.title || "Value Title"}</h4>
-                <p class="text-slate-500 dark:text-slate-400 leading-relaxed">${item.description || "Value description goes here."}</p>
+                <h4 class="text-slate-900 dark:text-slate-100 text-xl font-bold">${item.title || "Value"}</h4>
+                <p class="text-slate-600 dark:text-slate-400 leading-relaxed">${item.description || ""}</p>
               </div>
             </div>
           `))}

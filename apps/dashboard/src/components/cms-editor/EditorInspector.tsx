@@ -26,6 +26,7 @@ import { ServicesInspector } from './blocks/services/ServicesInspector'
 import { ContactFormInspector } from './blocks/contact-form/ContactFormInspector'
 import { MapInspector } from './blocks/map/MapInspector'
 import { BannerInspector } from './blocks/banner/BannerInspector'
+import { FeesInspector } from './blocks/fees/FeesInspector'
 
 export function EditorInspector({
   selectedBlock,
@@ -94,6 +95,7 @@ export function EditorInspector({
       case 'contact-form': return <ContactFormInspector {...commonProps} />
       case 'map': return <MapInspector content={content as any} onUpdateContent={onUpdateContent} />
       case 'banner': return <BannerInspector content={content as any} onUpdateContent={onUpdateContent} />
+      case 'fees': return <FeesInspector {...commonProps} />
       default: return <div className="p-4 text-xs text-muted-foreground italic">No specialized inspector for this block type.</div>
     }
   }

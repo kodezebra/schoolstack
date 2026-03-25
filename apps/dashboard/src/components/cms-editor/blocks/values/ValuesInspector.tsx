@@ -43,12 +43,14 @@ export function ValuesInspector({
         <div className="space-y-2">
           {content.items?.map((item: any, i: number) => (
             <ItemAccordion key={i} title={item.title || `Value ${i+1}`} onRemove={() => removeItem('items', i)} isOpen={openItem === i} onToggle={() => onToggleItem(i)}>
-              <Field label="Icon"><IconPicker value={item.icon} onSelect={(icon) => updateItem('items', i, { icon })} /></Field>
+              <Field label="Icon">
+                <IconPicker value={item.icon} onSelect={(icon) => updateItem('items', i, { icon })} />
+              </Field>
               <Field label="Title"><Input value={item.title || ''} onChange={(e) => updateItem('items', i, { title: e.target.value })} /></Field>
               <Field label="Description"><textarea className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs shadow-sm" value={item.description || ''} onChange={(e) => updateItem('items', i, { description: e.target.value })} /></Field>
             </ItemAccordion>
           ))}
-          <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => addItem('items', { icon: 'star', title: 'New Value', description: 'Value description' })}>
+          <Button variant="outline" size="sm" className="w-full gap-2 border-dashed" onClick={() => addItem('items', { icon: 'star', title: 'New Value', description: '' })}>
             <Icon icon="ph:plus-fill" className="h-3 w-3" /> Add Value
           </Button>
         </div>

@@ -40,7 +40,16 @@ export interface FeaturesContent extends CommonBlockContent {
   tagline?: string;
   title: string;
   subtitle?: string;
-  items: Array<{ icon: string; title: string; text: string; bgClass?: string; iconClass?: string }>;
+  items: Array<{
+    icon?: string;
+    title: string;
+    text: string;
+    image?: string;
+    link?: string;
+    linkLabel?: string;
+    bgClass?: string;
+    iconClass?: string;
+  }>;
 }
 
 export interface ContentBlockContent extends CommonBlockContent {
@@ -153,6 +162,21 @@ export interface GalleryContent extends CommonBlockContent {
   images: Array<{ src: string; alt: string; caption?: string }>;
 }
 
+export interface FeesContent extends CommonBlockContent {
+  tagline?: string;
+  title: string;
+  subtitle?: string;
+  currency?: string;
+  sections: Array<{
+    title: string;
+    style: 'list' | 'table' | 'checklist';
+    items: Array<{ name: string; price?: string; note?: string }>;
+    note?: string;
+  }>;
+  ctaLabel?: string;
+  ctaHref?: string;
+}
+
 export interface ServicesContent extends CommonBlockContent {
   tagline?: string;
   title: string;
@@ -224,7 +248,7 @@ export type BlockType =
   | 'team' | 'testimonials' | 'cta' | 'steps' | 'values'
   | 'splitContent' | 'videoGallery' | 'faq' | 'text'
   | 'pricing' | 'gallery' | 'services' | 'contact-form' | 'map'
-  | 'banner';
+  | 'banner' | 'fees';
 
 export interface Block {
   id: string;
@@ -235,7 +259,7 @@ export interface Block {
     | StepsContent | ValuesContent | SplitContentContent | VideoGalleryContent
     | FaqContent | TextContent
     | PricingContent | GalleryContent | ServicesContent | ContactFormContent
-    | MapContent | BannerContent;
+    | MapContent | BannerContent | FeesContent;
 }
 
 export interface PageSettings {

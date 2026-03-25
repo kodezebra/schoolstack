@@ -34,6 +34,7 @@ import { ServicesBlock } from './blocks/services/ServicesBlock'
 import { ContactFormBlock } from './blocks/contact-form/ContactFormBlock'
 import { MapBlock } from './blocks/map/MapBlock'
 import { BannerBlock } from './blocks/banner/BannerBlock'
+import { FeesBlock } from './blocks/fees/FeesBlock'
 
 export function EditorCanvas({
   blocks,
@@ -95,6 +96,7 @@ export function EditorCanvas({
       case 'contact-form': return <ContactFormBlock content={block.content as any} />
       case 'map': return <MapBlock content={block.content as any} />
       case 'banner': return <BannerBlock content={block.content as any} />
+      case 'fees': return <FeesBlock content={block.content as any} />
       default:
         return (
           <div className="px-12 py-16 border-2 border-dashed rounded-2xl m-6 text-center bg-muted/30 border-muted-foreground/10">
