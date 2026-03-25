@@ -2,12 +2,12 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { apiFetch } from '@/lib/api'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
-import { PaymentsSection, FeeStructuresSection, BalancesSection } from './sections'
-import type { FeeTab } from './sections/fee.types'
+import { PaymentsSection, FeeStructuresSection, BalancesSection } from './sections/-index'
+import type { FeeTab } from './sections/-fee.types'
 
 export const Route = createFileRoute('/_dashboard/school/fees/')({
   component: FeesPage,

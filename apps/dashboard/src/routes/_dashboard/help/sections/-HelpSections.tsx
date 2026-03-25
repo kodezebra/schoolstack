@@ -1,6 +1,5 @@
-import { useState, useMemo } from "react"
+import { useMemo } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { 
@@ -13,11 +12,7 @@ import {
   type HelpArticle
 } from "@/components/help"
 import { 
-  Search,
-  BookOpen,
-  Bell,
   Filter,
-  Users,
   Star,
   Rocket,
   ChevronRight,
@@ -26,12 +21,11 @@ import {
 
 interface GuidesSectionProps {
   searchQuery: string
-  onSearchChange: (query: string) => void
   selectedRole: UserRole | "all"
   onArticleSelect: (article: HelpArticle) => void
 }
 
-export function GuidesSection({ searchQuery, onSearchChange, selectedRole, onArticleSelect }: GuidesSectionProps) {
+export function GuidesSection({ searchQuery, selectedRole, onArticleSelect }: GuidesSectionProps) {
   const filteredArticles = useMemo(() => {
     let articles = selectedRole === "all" 
       ? helpArticles 

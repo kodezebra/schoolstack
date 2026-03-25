@@ -30,8 +30,8 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useToast } from '@/components/ui/toast'
-import { Plus, Trash2, Folder } from 'lucide-react'
-import type { ExamSet, AcademicYear, Level, Term, Subject } from './exam.types'
+import { Trash2, Folder } from 'lucide-react'
+import type { ExamSet, AcademicYear, Level, Term, Subject } from './-exam.types'
 
 interface ExamSetsSectionProps {
   examSets: ExamSet[] | undefined
@@ -59,6 +59,13 @@ export function ExamSetsSection({
     yearId: '',
     termId: '',
     name: ''
+  })
+  const [bulkExamForm, setBulkExamForm] = useState({
+    type: 'beginning_of_term',
+    examDate: '',
+    totalMarks: 100,
+    titleTemplate: '',
+    subjectIds: [] as string[]
   })
 
   const deleteExamSetMutation = useMutation({
@@ -104,13 +111,20 @@ export function ExamSetsSection({
         method: 'POST',
         body: JSON.stringify(data)
       })
-      if (!res.ok) throw new Error('Failed to create bulk exams')
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.message || err.error || 'Failed to create bulk exams')
+      }
       return res.json()
     },
     onSuccess: () => {
       onExamSetsRefresh()
       setIsBulkExamDialogOpen(false)
       setSelectedExamSet(null)
+      toast({ title: 'Exams created successfully', variant: 'success' })
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Failed to create exams', description: error.message, variant: 'error' })
     }
   })
 
@@ -329,7 +343,10 @@ export function ExamSetsSection({
 
       <Sheet open={isBulkExamDialogOpen} onOpenChange={(open) => {
         setIsBulkExamDialogOpen(open)
-        if (!open) setSelectedExamSet(null)
+        if (!open) {
+          setSelectedExamSet(null)
+          setBulkExamForm({ type: 'beginning_of_term', examDate: '', totalMarks: 100, titleTemplate: '', subjectIds: [] })
+        }
       }}>
         <SheetContent className="w-[400px] sm:w-[450px] p-6 overflow-y-auto">
           <SheetHeader>
@@ -337,45 +354,21 @@ export function ExamSetsSection({
             <SheetDescription>Create multiple exams at once for {selectedExamSet?.name}</SheetDescription>
           </SheetHeader>
           {selectedExamSet && (
-            <form onSubmit={(e) => {
-              e.preventDefault()
-              const formData = new FormData(e.currentTarget)
-              const subjectIds = Array.from(e.currentTarget.querySelectorAll('input[name="subjects"]:checked')).map((input: any) => input.value)
-              const examType = formData.get('type') as string
-              
-              if (subjectIds.length === 0) {
-                toast({ title: 'No subjects selected', description: 'Please select at least one subject', variant: 'error' })
-                return
-              }
-              
-              confirm({
-                title: `Create ${subjectIds.length} Exam${subjectIds.length > 1 ? 's' : ''}?`,
-                description: `This will create ${subjectIds.length} exams for the selected subjects.`,
-                confirmText: `Create ${subjectIds.length} Exam${subjectIds.length > 1 ? 's' : ''}`,
-                onConfirm: () => {
-                  bulkCreateExamsMutation.mutate({
-                    examSetId: selectedExamSet.id,
-                    data: {
-                      subjectIds,
-                      type: examType,
-                      examDate: formData.get('examDate'),
-                      totalMarks: parseInt(formData.get('totalMarks') as string) || 100,
-                      titleTemplate: formData.get('titleTemplate'),
-                    }
-                  })
-                }
-              })
-            }} className="space-y-4 mt-6">
+            <div className="space-y-4 mt-6">
               <div>
                 <label className="text-sm font-medium">Exam Type</label>
-                <Select name="type" required defaultValue="test">
+                <Select 
+                  value={bulkExamForm.type} 
+                  onValueChange={(v) => setBulkExamForm(f => ({ ...f, type: v }))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="test">Test</SelectItem>
+                    <SelectItem value="beginning_of_term">Beginning of Term</SelectItem>
                     <SelectItem value="midterm">Midterm</SelectItem>
-                    <SelectItem value="final">Final</SelectItem>
+                    <SelectItem value="end_of_term">End of Term</SelectItem>
+                    <SelectItem value="test">Test</SelectItem>
                     <SelectItem value="assignment">Assignment</SelectItem>
                     <SelectItem value="quiz">Quiz</SelectItem>
                   </SelectContent>
@@ -384,11 +377,19 @@ export function ExamSetsSection({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium">Exam Date</label>
-                  <Input name="examDate" type="date" required />
+                  <Input 
+                    type="date" 
+                    value={bulkExamForm.examDate}
+                    onChange={(e) => setBulkExamForm(f => ({ ...f, examDate: e.target.value }))}
+                  />
                 </div>
                 <div>
                   <label className="text-sm font-medium">Total Marks</label>
-                  <Input name="totalMarks" type="number" defaultValue="100" />
+                  <Input 
+                    type="number" 
+                    value={bulkExamForm.totalMarks}
+                    onChange={(e) => setBulkExamForm(f => ({ ...f, totalMarks: parseInt(e.target.value) || 100 }))}
+                  />
                 </div>
               </div>
               <div>
@@ -396,22 +397,68 @@ export function ExamSetsSection({
                 <div className="border rounded-md p-3 max-h-40 overflow-y-auto space-y-2">
                   {subjects?.map(subject => (
                     <label key={subject.id} className="flex items-center gap-2">
-                      <input type="checkbox" name="subjects" value={subject.id} />
+                      <input 
+                        type="checkbox" 
+                        name="subjects" 
+                        value={subject.id}
+                        checked={bulkExamForm.subjectIds.includes(subject.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setBulkExamForm(f => ({ ...f, subjectIds: [...f.subjectIds, subject.id] }))
+                          } else {
+                            setBulkExamForm(f => ({ ...f, subjectIds: f.subjectIds.filter(id => id !== subject.id) }))
+                          }
+                        }}
+                      />
                       <span>{subject.name}</span>
                     </label>
                   ))}
                 </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Title (optional)</label>
+                <Input 
+                  placeholder="e.g., {subject} Exam"
+                  value={bulkExamForm.titleTemplate}
+                  onChange={(e) => setBulkExamForm(f => ({ ...f, titleTemplate: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground mt-1">Use {"{subject}"} to include subject name</p>
               </div>
               <div className="flex justify-end gap-2 pt-4 pb-4">
                 <Button type="button" variant="outline" onClick={() => {
                   setIsBulkExamDialogOpen(false)
                   setSelectedExamSet(null)
                 }}>Cancel</Button>
-                <Button type="submit" disabled={bulkCreateExamsMutation.isPending}>
+                <Button 
+                  type="button" 
+                  disabled={bulkCreateExamsMutation.isPending}
+                  onClick={() => {
+                    if (bulkExamForm.subjectIds.length === 0) {
+                      toast({ title: 'No subjects selected', description: 'Please select at least one subject', variant: 'error' })
+                      return
+                    }
+                    
+                    if (!bulkExamForm.examDate) {
+                      toast({ title: 'Exam date required', description: 'Please select an exam date', variant: 'error' })
+                      return
+                    }
+                    
+                    bulkCreateExamsMutation.mutate({
+                      examSetId: selectedExamSet.id,
+                      data: {
+                        subjectIds: bulkExamForm.subjectIds,
+                        type: bulkExamForm.type,
+                        examDate: bulkExamForm.examDate,
+                        totalMarks: bulkExamForm.totalMarks,
+                        titleTemplate: bulkExamForm.titleTemplate,
+                      }
+                    })
+                  }}
+                >
                   {bulkCreateExamsMutation.isPending ? 'Creating...' : 'Create Exams'}
                 </Button>
               </div>
-            </form>
+            </div>
           )}
         </SheetContent>
       </Sheet>

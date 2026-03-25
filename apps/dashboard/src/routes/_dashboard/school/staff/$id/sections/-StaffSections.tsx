@@ -1,7 +1,8 @@
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, RoleBadge } from '@/components/ui/status-badge'
+import { Calendar } from 'lucide-react'
+import { RoleBadge } from '@/components/ui/status-badge'
 import {
   Select,
   SelectContent,
@@ -11,7 +12,7 @@ import {
 } from "@/components/ui/select"
 import { Mail, Phone } from 'lucide-react'
 
-interface Staff {
+export interface Staff {
   id: string
   employeeNo: string
   firstName: string
@@ -35,8 +36,6 @@ interface OverviewSectionProps {
 }
 
 export function OverviewSection({ staff, isEditing, editedData, onEditChange }: OverviewSectionProps) {
-  const display = isEditing && editedData ? editedData : staff
-
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>

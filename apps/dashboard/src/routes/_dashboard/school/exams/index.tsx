@@ -2,13 +2,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { apiFetch } from '@/lib/api'
-import { Button } from '@/components/ui/button'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Folder } from 'lucide-react'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
-import { ExamsSection, ExamSetsSection } from './sections'
-import type { ExamTab } from './sections/exam.types'
+import { ExamsSection, ExamSetsSection } from './sections/-index'
+import type { ExamTab } from './sections/-exam.types'
 
 export const Route = createFileRoute('/_dashboard/school/exams/')({
   component: ExamsPage,

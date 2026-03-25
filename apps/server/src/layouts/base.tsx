@@ -1,5 +1,6 @@
 import { html, raw } from 'hono/html'
 import { getFontStack, BORDER_RADIUS_OPTIONS } from '../lib/themes'
+import { animationScript, reducedMotionScript } from '../lib/animation-init'
 
 interface BaseLayoutProps {
   title: string
@@ -105,12 +106,50 @@ export const BaseLayout = async ({ title, description, children, settings }: Bas
           background-size: cover;
           background-position: center;
         }
+        /* Smooth scroll */
+        html {
+          scroll-behavior: smooth;
+        }
+        /* Animation utilities */
+        [data-animate], [data-animate-item] {
+          will-change: transform, opacity;
+        }
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+          *, ::before, ::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+        /* Loading skeleton animation */
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .skeleton {
+          background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+          background-size: 200% 100%;
+          animation: shimmer 1.5s infinite;
+        }
+        /* Scroll progress bar */
+        .scroll-progress {
+          position: fixed;
+          top: 0;
+          left: 0;
+          height: 3px;
+          background: linear-gradient(90deg, var(--primary), var(--accent));
+          z-index: 9999;
+          transform-origin: left;
+        }
         `)}
       </style>
       <script>${raw(darkModeScript)}</script>
+      ${reducedMotionScript}
     </head>
     <body class="font-body bg-app-bg text-app-text selection:bg-primary/20 antialiased">
       ${children}
+      ${animationScript()}
     </body>
   </html>
   `

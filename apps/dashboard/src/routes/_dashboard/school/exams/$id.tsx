@@ -264,6 +264,7 @@ function ExamDetailPage() {
         <CardHeader className="flex flex-row items-center justify-between py-4">
           <CardTitle className="text-lg font-semibold">Mark Sheet</CardTitle>
           <Button 
+            type="button"
             size="sm"
             onClick={handleSaveAll} 
             disabled={saveMutation.isPending || students?.every(s => savedIds.has(s.id))}
@@ -296,6 +297,12 @@ function ExamDetailPage() {
                           className="w-24 h-9 text-right pr-8"
                           value={marksData[student.id]?.marks ?? ''}
                           onChange={(e) => handleMarksChange(student.id, e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              handleSave(student.id)
+                            }
+                          }}
                           max={examData.totalMarks}
                           min={0}
                         />
@@ -309,9 +316,16 @@ function ExamDetailPage() {
                         placeholder="Comment..."
                         value={marksData[student.id]?.notes ?? ''}
                         onChange={(e) => handleNotesChange(student.id, e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleSave(student.id)
+                          }
+                        }}
                       />
 
                       <Button 
+                        type="button"
                         size="icon" 
                         variant={isSaved ? "ghost" : "default"}
                         className={`h-9 w-9 shrink-0 ${isSaved ? 'text-green-600' : ''}`}

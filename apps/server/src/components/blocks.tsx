@@ -17,6 +17,8 @@ export { Pricing } from './blocks/pricing/Pricing'
 export { Gallery } from './blocks/gallery/Gallery'
 export { Services } from './blocks/services/Services'
 export { ContactForm } from './blocks/contact-form/ContactForm'
+export { Map } from './blocks/map/Map'
+export { Banner } from './blocks/banner/Banner'
 
 // 404 Page Component
 export const NotFound = ({ homeUrl = "/", dashboardUrl }: { homeUrl?: string; dashboardUrl: string }) => (

@@ -7,6 +7,7 @@ import templatesApp from './templates'
 import pagesApp from './pages'
 import contactApp from './contact'
 import schoolApp from './school'
+import videoApp from './video'
 
 type Bindings = {
   DB: D1Database
@@ -39,5 +40,8 @@ api.route('/contact', contactApp)
 
 // School Management
 api.route('/school', schoolApp)
+
+// Video Utilities (thumbnails via oEmbed)
+api.route('/video', videoApp)
 
 export default api

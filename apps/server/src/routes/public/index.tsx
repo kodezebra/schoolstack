@@ -59,11 +59,19 @@ const renderPage = async (c: any, slug: string) => {
     >
       {contentBlocks.map((block) => {
         const content = typeof block.content === 'string' ? JSON.parse(block.content) : block.content
-        // Convert kebab-case to PascalCase (e.g., 'contact-form' -> 'ContactForm')
-        const typeName = block.type
-          .split('-')
-          .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-          .join('')
+        // Convert block type to PascalCase component name
+        // Handles both kebab-case ('video-gallery') and camelCase ('videoGallery')
+        let typeName: string
+        if (block.type.includes('-')) {
+          // kebab-case: 'video-gallery' -> 'VideoGallery'
+          typeName = block.type
+            .split('-')
+            .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+            .join('')
+        } else {
+          // camelCase: 'videoGallery' -> 'VideoGallery'
+          typeName = block.type.charAt(0).toUpperCase() + block.type.slice(1)
+        }
         const BlockComponent = (Blocks as any)[typeName]
 
         if (BlockComponent) {

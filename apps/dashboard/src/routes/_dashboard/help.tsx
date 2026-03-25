@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { ExternalLink, Moon, Sun, Search, BookOpen, Bell, Users, CheckSquare } from "lucide-react"
-import { GuidesSection, WhatsNewSection, PersonasSection } from './sections'
+import { GuidesSection, WhatsNewSection, PersonasSection } from './help/sections/-index'
 import { whatsNew, type HelpArticle, type UserRole } from "@/components/help"
 
 export const Route = createFileRoute('/_dashboard/help')({
@@ -114,7 +114,6 @@ function HelpPage() {
         <TabsContent value="guides" className="mt-0">
           <GuidesSection
             searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
             selectedRole={selectedRole}
             onArticleSelect={setSelectedArticle}
           />

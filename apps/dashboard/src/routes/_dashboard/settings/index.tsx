@@ -9,7 +9,7 @@ import {
   BrandingSection,
   ThemeSection,
   FooterSection
-} from './sections'
+} from './sections/-index'
 import type { SettingsTab } from './settings.types'
 
 export const Route = createFileRoute('/_dashboard/settings/')({

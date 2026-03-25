@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { User, Calendar, Phone, Mail, MapPin } from 'lucide-react'
-import type { Student } from './student.types'
+import type { Student } from './-student.types'
 
 interface OverviewSectionProps {
   student: Student
@@ -19,8 +19,6 @@ interface OverviewSectionProps {
 }
 
 export function OverviewSection({ student, isEditing, editedData, onEditChange }: OverviewSectionProps) {
-  const display = isEditing && editedData ? editedData : student
-
   return (
     <div className="grid gap-6 md:grid-cols-2">
       <Card>

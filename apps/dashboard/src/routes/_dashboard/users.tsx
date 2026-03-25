@@ -146,7 +146,7 @@ function UsersPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
-      setIsAddDialogOpen(false)
+      setIsAddSheetOpen(false)
       setAddForm({ name: '', email: '', password: '', role: 'viewer' })
       toast({
         title: 'User created',
@@ -178,7 +178,7 @@ function UsersPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
-      setIsEditDialogOpen(false)
+      setIsEditSheetOpen(false)
       setSelectedUser(null)
       toast({
         title: 'User updated',
@@ -234,7 +234,7 @@ function UsersPage() {
   const handleDeleteUser = () => {
     if (!selectedUser) return
     deleteUserMutation.mutate(selectedUser.id)
-    setIsEditDialogOpen(false)
+    setIsEditSheetOpen(false)
     setSelectedUser(null)
   }
 
@@ -245,7 +245,7 @@ function UsersPage() {
       email: user.email,
       role: user.role
     })
-    setIsEditDialogOpen(true)
+    setIsEditSheetOpen(true)
   }
 
   const getRoleBadgeColor = (role: string) => {
@@ -283,7 +283,7 @@ function UsersPage() {
           <p className="text-muted-foreground mt-1">Manage team members and their permissions</p>
         </div>
         {canManageUsers && (
-          <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+          <Button onClick={() => setIsAddSheetOpen(true)} className="gap-2">
             <UserPlus className="h-4 w-4" />
             Add User
           </Button>
@@ -375,8 +375,8 @@ function UsersPage() {
       </Card>
 
       {/* Add User Sheet */}
-      <Sheet open={isAddSheetOpen} onOpenChange={setIsAddDialogOpen}>
-        <SheetContent className="w-[400px] sm:w-[480px] overflow-y-auto">
+      <Sheet open={isAddSheetOpen} onOpenChange={setIsAddSheetOpen}>
+        <SheetContent className="w-[400px] sm:w-[480px] overflow-y-auto p-6">
           <SheetHeader>
             <SheetTitle>Add New User</SheetTitle>
             <SheetDescription>
@@ -465,7 +465,7 @@ function UsersPage() {
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4 pb-4">
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsAddSheetOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleAddUser} disabled={createUserMutation.isPending}>
@@ -486,8 +486,8 @@ function UsersPage() {
       </Sheet>
 
       {/* Edit User Sheet */}
-      <Sheet open={isEditSheetOpen} onOpenChange={setIsEditDialogOpen}>
-        <SheetContent className="w-[400px] sm:w-[480px] overflow-y-auto">
+      <Sheet open={isEditSheetOpen} onOpenChange={setIsEditSheetOpen}>
+        <SheetContent className="w-[400px] sm:w-[480px] overflow-y-auto p-6">
           <SheetHeader>
             <SheetTitle>Edit User</SheetTitle>
             <SheetDescription>
@@ -584,7 +584,7 @@ function UsersPage() {
                 Delete
               </Button>
             )}
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsEditSheetOpen(false)}>
               Cancel
             </Button>
             {canEditUser(selectedUser!) ? (

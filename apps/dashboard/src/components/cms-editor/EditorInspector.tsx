@@ -24,6 +24,8 @@ import { PricingInspector } from './blocks/pricing/PricingInspector'
 import { GalleryInspector } from './blocks/gallery/GalleryInspector'
 import { ServicesInspector } from './blocks/services/ServicesInspector'
 import { ContactFormInspector } from './blocks/contact-form/ContactFormInspector'
+import { MapInspector } from './blocks/map/MapInspector'
+import { BannerInspector } from './blocks/banner/BannerInspector'
 
 export function EditorInspector({
   selectedBlock,
@@ -90,6 +92,8 @@ export function EditorInspector({
       case 'gallery': return <GalleryInspector {...commonProps} />
       case 'services': return <ServicesInspector {...commonProps} />
       case 'contact-form': return <ContactFormInspector {...commonProps} />
+      case 'map': return <MapInspector content={content as any} onUpdateContent={onUpdateContent} />
+      case 'banner': return <BannerInspector content={content as any} onUpdateContent={onUpdateContent} />
       default: return <div className="p-4 text-xs text-muted-foreground italic">No specialized inspector for this block type.</div>
     }
   }

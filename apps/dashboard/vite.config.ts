@@ -6,7 +6,7 @@ import { defineConfig } from "vite"
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [TanStackRouterVite({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()],
+  plugins: [TanStackRouterVite({ target: 'react', autoCodeSplitting: true, routeFileIgnorePattern: '\\.(data|hooks|types)\\.ts$' }), react(), tailwindcss()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

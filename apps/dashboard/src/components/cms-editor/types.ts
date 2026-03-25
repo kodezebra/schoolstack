@@ -100,11 +100,24 @@ export interface SplitContentContent extends CommonBlockContent {
   cta: { label: string; href: string };
 }
 
+export type VideoPlatform = 'youtube' | 'tiktok'
+
+export interface VideoItem {
+  id: string
+  platform: VideoPlatform
+  videoId: string
+  url: string
+  embedUrl: string
+  thumbnail: string
+  title?: string
+  embedAllowed: boolean
+}
+
 export interface VideoGalleryContent extends CommonBlockContent {
   tagline?: string;
   title: string;
   subtitle?: string;
-  items: Array<{ title: string; thumbnail: string; videoUrl: string }>;
+  items: VideoItem[];
 }
 
 export interface FaqContent extends CommonBlockContent {
@@ -167,6 +180,31 @@ export interface ContactFormContent extends CommonBlockContent {
   }>;
 }
 
+export interface MapContent extends CommonBlockContent {
+  title?: string;
+  latitude?: string;
+  longitude?: string;
+  height?: 'small' | 'medium' | 'large' | 'full';
+  showDirections?: boolean;
+  directionsLabel?: string;
+}
+
+export interface BannerContent extends CommonBlockContent {
+  title?: string;
+  eyebrow?: string;
+  subtitle?: string;
+  height?: 'small' | 'medium' | 'large';
+  showBreadcrumb?: boolean;
+  backgroundColor?: string;
+  image?: string;
+  textureImage?: string;
+  offsetImage?: string;
+  showOffsetImage?: boolean;
+  overlayColor?: string;
+  overlayHex?: string;
+  showDivider?: boolean;
+}
+
 export interface FooterContent extends CommonBlockContent {
   logoText: string;
   logoIcon: string;
@@ -185,7 +223,8 @@ export type BlockType =
   | 'hero' | 'features' | 'content' | 'stats'
   | 'team' | 'testimonials' | 'cta' | 'steps' | 'values'
   | 'splitContent' | 'videoGallery' | 'faq' | 'text'
-  | 'pricing' | 'gallery' | 'services' | 'contact-form';
+  | 'pricing' | 'gallery' | 'services' | 'contact-form' | 'map'
+  | 'banner';
 
 export interface Block {
   id: string;
@@ -195,7 +234,8 @@ export interface Block {
     | StatsContent | TeamContent | TestimonialsContent | CtaContent
     | StepsContent | ValuesContent | SplitContentContent | VideoGalleryContent
     | FaqContent | TextContent
-    | PricingContent | GalleryContent | ServicesContent | ContactFormContent;
+    | PricingContent | GalleryContent | ServicesContent | ContactFormContent
+    | MapContent | BannerContent;
 }
 
 export interface PageSettings {

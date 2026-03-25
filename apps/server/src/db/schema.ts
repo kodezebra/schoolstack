@@ -230,7 +230,7 @@ export const terms = sqliteTable('terms', {
 export const exams = sqliteTable('exams', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   title: text('title').notNull(), // e.g., "Term 1 Mathematics Exam"
-  type: text('type', { enum: ['test', 'midterm', 'final', 'assignment', 'quiz'] }).notNull(),
+  type: text('type', { enum: ['beginning_of_term', 'midterm', 'end_of_term', 'test', 'final', 'assignment', 'quiz'] }).notNull(),
   academicYearId: text('academic_year_id').notNull().references(() => academicYears.id, { onDelete: 'cascade' }),
   levelId: text('level_id').notNull().references(() => levels.id, { onDelete: 'cascade' }),
   subjectId: text('subject_id').notNull().references(() => subjects.id, { onDelete: 'cascade' }),

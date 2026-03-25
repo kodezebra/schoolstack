@@ -221,6 +221,12 @@ export function DashboardLayout() {
     let gPressedAt = 0
     
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore shortcuts when typing in input/textarea
+      const target = e.target as HTMLElement
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+        return
+      }
+      
       // Cmd/Ctrl + K: Focus search
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault()

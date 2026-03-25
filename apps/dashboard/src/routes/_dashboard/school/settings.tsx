@@ -194,7 +194,7 @@ function SchoolSettingsPage() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const { confirm, renderConfirmDialog } = useConfirmDialog()
 
-  const { data: settingsData, isLoading: settingsLoading } = useQuery({
+  const { data: settingsData } = useQuery({
     queryKey: ['siteSettings'],
     queryFn: async () => {
       const res = await apiFetch('/settings')
@@ -511,13 +511,13 @@ function SchoolSettingsPage() {
             <Building2 className="h-4 w-4 mr-2" />
             School Info
           </TabsTrigger>
-          <TabsTrigger value="levels">
-            <User className="h-4 w-4 mr-2" />
-            Classes
-          </TabsTrigger>
           <TabsTrigger value="years">
             <Calendar className="h-4 w-4 mr-2" />
             Academic Years
+          </TabsTrigger>
+          <TabsTrigger value="levels">
+            <User className="h-4 w-4 mr-2" />
+            Classes
           </TabsTrigger>
           <TabsTrigger value="reports">
             <FileText className="h-4 w-4 mr-2" />

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/api'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -30,8 +30,8 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useToast } from '@/components/ui/toast'
-import { Plus, Trash2, Banknote } from 'lucide-react'
-import type { FeeStructure, AcademicYear } from './fee.types'
+import { Trash2, Banknote } from 'lucide-react'
+import type { FeeStructure, AcademicYear } from './-fee.types'
 
 interface FeeStructuresSectionProps {
   feeStructures: FeeStructure[] | undefined

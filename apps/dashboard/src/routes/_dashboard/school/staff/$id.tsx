@@ -6,8 +6,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { useState } from 'react'
 import { PhotoUpload } from '@/components/ui/photo-upload'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
-import { OverviewSection, DetailsSection, NotesSection } from './sections'
-import type { Staff } from './sections/StaffSections'
+import { OverviewSection, DetailsSection, NotesSection } from './$id/sections/-index'
+import type { Staff } from './$id/sections/-StaffSections'
 import { ArrowLeft, Settings2, Trash2, Save, X } from 'lucide-react'
 
 export const Route = createFileRoute('/_dashboard/school/staff/$id')({

@@ -6,7 +6,7 @@ import {
   BarChart3, Users, MessageSquare, Megaphone,
   ListFilter, HeartHandshake, ImagePlay, CircleHelp,
   Search, Sparkles, FileText, Image as ImageIcon, MessageCircle,
-  ChevronUp, ChevronDown
+  ChevronUp, ChevronDown, Map as MapIcon, Flag
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import {
@@ -34,6 +34,7 @@ interface BlockDefinition {
 const AVAILABLE_BLOCKS: BlockDefinition[] = [
   { type: 'hero', icon: Box, label: 'Hero Section', description: 'Headline, subheadline, and background', category: 'layout', color: 'from-purple-500 to-pink-500' },
   { type: 'splitContent', icon: Layout, label: 'Split Content', description: 'Image and text side-by-side', category: 'layout', color: 'from-indigo-500 to-blue-500' },
+  { type: 'banner', icon: Flag, label: 'Page Banner', description: 'Simple header for inner pages', category: 'layout', color: 'from-blue-500 to-cyan-500' },
   
   { type: 'features', icon: Zap, label: 'Features Grid', description: 'Highlight your services or features', category: 'content', color: 'from-amber-500 to-orange-500' },
   { type: 'content', icon: Eye, label: 'Content Block', description: 'Text and image layout', category: 'content', color: 'from-emerald-500 to-teal-500' },
@@ -46,6 +47,7 @@ const AVAILABLE_BLOCKS: BlockDefinition[] = [
   { type: 'text', icon: Type, label: 'Basic Text', description: 'Simple text block', category: 'content', color: 'from-gray-500 to-slate-500' },
   
   { type: 'videoGallery', icon: ImagePlay, label: 'Video Gallery', description: 'Grid of video thumbnails', category: 'media', color: 'from-red-500 to-rose-500' },
+  { type: 'map', icon: MapIcon, label: 'Map Block', description: 'Embed a Google Map with location', category: 'media', color: 'from-teal-500 to-cyan-500' },
   
   { type: 'cta', icon: Megaphone, label: 'Call to Action', description: 'Urge users to take action', category: 'interactive', color: 'from-orange-500 to-amber-500' },
   { type: 'contact-form', icon: MessageCircle, label: 'Contact Form', description: 'Add a contact form with custom fields', category: 'interactive', color: 'from-green-500 to-emerald-500' },

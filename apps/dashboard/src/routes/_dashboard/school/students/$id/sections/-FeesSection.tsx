@@ -24,7 +24,7 @@ import {
 import { Plus, Trash2, Receipt } from 'lucide-react'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useToast } from '@/components/ui/toast'
-import type { Student, FeePayment, FeeWithBalance } from './student.types'
+import type { Student, FeePayment, FeeWithBalance } from './-student.types'
 
 interface FeesSectionProps {
   student: Student

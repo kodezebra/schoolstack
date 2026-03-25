@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardDescription, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -19,7 +18,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { Link } from '@tanstack/react-router'
 import { Users, CheckCircle, AlertCircle } from 'lucide-react'
-import type { BalancesData, Level, AcademicYear, FeeTab } from './fee.types'
+import type { BalancesData, Level, AcademicYear } from './-fee.types'
 
 interface BalancesSectionProps {
   balancesData: BalancesData | undefined

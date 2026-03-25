@@ -177,15 +177,25 @@ app.post('/sets/:id/exams', requireRole('owner', 'admin'), async (c) => {
   const body = await c.req.json()
   
   const examSet = await db.select().from(examSets).where(eq(examSets.id, id)).get()
-  if (!examSet) return c.notFound()
+  if (!examSet) return c.json({ message: 'Exam set not found' }, 404)
   
   const { subjectIds, type, examDate, totalMarks, titleTemplate } = body
+  
+  if (!subjectIds || !Array.isArray(subjectIds) || subjectIds.length === 0) {
+    return c.json({ message: 'No subjects selected' }, 400)
+  }
+  
+  if (!examDate) {
+    return c.json({ message: 'Exam date is required' }, 400)
+  }
+  
   const examsToCreate = subjectIds.map((subjectId: string) => ({
     title: titleTemplate?.replace('{subject}', '') || `Exam`,
     type: type || 'test',
     academicYearId: examSet.academicYearId,
     levelId: examSet.levelId,
     subjectId,
+    termId: examSet.termId,
     examSetId: id,
     examDate: new Date(examDate),
     totalMarks: totalMarks || 100,

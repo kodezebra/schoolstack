@@ -31,13 +31,12 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { useConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useToast } from '@/components/ui/toast'
 import {
-  Plus,
   Search,
   Trash2,
   FileText,
 } from 'lucide-react'
 import { useState } from 'react'
-import type { Exam, AcademicYear, Level, Term, Subject } from './exam.types'
+import type { Exam, AcademicYear, Level, Term, Subject } from './-exam.types'
 
 interface ExamsSectionProps {
   exams: Exam[] | undefined

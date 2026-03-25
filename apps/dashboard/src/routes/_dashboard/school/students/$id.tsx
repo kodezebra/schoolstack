@@ -18,8 +18,8 @@ import {
   OverviewSection,
   FeesSection,
   MarksSection,
-} from './sections'
-import type { Student, StudentDetail, FeeWithBalance, StudentTab } from './sections/student.types'
+} from './$id/sections/-index'
+import type { Student, StudentDetail, FeeWithBalance, StudentTab } from './$id/sections/-student.types'
 
 export const Route = createFileRoute('/_dashboard/school/students/$id')({
   component: StudentDetailPage,

@@ -30,8 +30,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { EmptyState } from '@/components/ui/empty-state'
-import { Search, Receipt, Banknote } from 'lucide-react'
-import type { FeePayment, FeeStructure } from './fee.types'
+import { Search, Receipt } from 'lucide-react'
+import type { FeePayment, FeeStructure } from './-fee.types'
 
 interface PaymentsSectionProps {
   payments: FeePayment[] | undefined

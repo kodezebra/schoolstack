@@ -91,6 +91,12 @@ export function useEditor(initialBlocks: any[] = []) {
       case 'contact-form':
         content = { tagline: 'Contact', title: 'Get In Touch', submitLabel: 'Send Message', fields: [{ name: 'name', label: 'Name', type: 'text', required: true }] }
         break
+      case 'map':
+        content = { title: 'Visit Our Campus', height: 'medium', showDirections: true, directionsLabel: 'Get Directions' }
+        break
+      case 'banner':
+        content = { title: 'Page Title', height: 'small', showBreadcrumb: true }
+        break
       default:
         content = { text: 'New content block.' }
     }

@@ -12,7 +12,7 @@ interface Mark {
 }
 
 interface MarksSectionProps {
-  marks: Mark[]
+  marks: Mark[] | undefined
   isLoadingMarks: boolean
 }
 
