@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Settings2, Globe, ExternalLink, Rocket, Undo2, Redo2, Trash2 } from 'lucide-react'
+import { ArrowLeft, Settings2, Globe, ExternalLink, Rocket, Undo2, Redo2, Trash2, Sun, Moon } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import {
@@ -57,6 +57,19 @@ export function EditorHeader({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [showSuccess, setShowSuccess] = useState(false)
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'))
+
+  const toggleDarkMode = () => {
+    const newIsDark = !isDark
+    setIsDark(newIsDark)
+    if (newIsDark) {
+      document.documentElement.classList.add('dark')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+      localStorage.setItem('theme', 'light')
+    }
+  }
 
   useEffect(() => {
     if (isSavingBlocks === false && showSuccess === false && isSavingSettings === false) {
@@ -155,6 +168,17 @@ export function EditorHeader({
             <Redo2 className="h-4 w-4" />
           </Button>
         </div>
+
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-8 w-8"
+          onClick={toggleDarkMode}
+          title="Toggle Theme"
+        >
+          <Sun className="h-4 w-4 dark:hidden" />
+          <Moon className="h-4 w-4 hidden dark:block" />
+        </Button>
 
         <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
           <SheetTrigger asChild>
